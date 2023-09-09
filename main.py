@@ -4,8 +4,11 @@ import sys
 import glfw
 
 # local modules
-from utils.parsers import argument_parser as ap
-from utils.timer.Timer import Timer
+from utils import argument_parser as ap
+from utils.Timer import Timer
+
+from utils.Printer import Printer
+
 from window.Window import Window
 from renderer.RendererManager import RendererManager
 from renderer.Renderer import Renderer
@@ -24,11 +27,12 @@ def main():
     # controller object
     controller = Controller()
 
+    printer = Printer()
+
     # execution timer
     frametime = Timer()
-    # timer to limit how often the timer should be printed
-    print_timer = Timer()
 
+    # time passed between frames
     dt = 0
     
     # game loop
@@ -42,15 +46,12 @@ def main():
         # refresh the screen and handle events
         glfw.swap_buffers(window.window)
         glfw.poll_events()
-        
-        # print the execution time
-        if print_timer.elapsed() > 2000:
-            frametime.elapsed(True, True)
-            print_timer.reset()
 
         # calculate the time it took to render this cycle
         dt = frametime.elapsed()
         frametime.reset()
+
+        printer.write(frametime=dt)
         
     glfw.terminate()
             

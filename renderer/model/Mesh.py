@@ -3,7 +3,9 @@ import numpy as np
 import glm
 import pywavefront
 
+# class that represents the model to be rendered
 class Model:
+    # constructor method
     def __init__(self, vertices):
         self.vbo = 0
         self.vbo = glGenBuffers(1)
@@ -45,7 +47,6 @@ class Model:
         glBufferData(GL_ARRAY_BUFFER, formatted_vertices.nbytes, formatted_vertices, GL_STATIC_DRAW)        
 
         self.model_matrix = glm.mat4(1.0)
-
         self.position = glm.vec3(0.0)
         self.rotation = glm.vec3(0.0)
         self.scale_factor = glm.vec3(1.0)

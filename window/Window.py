@@ -3,8 +3,8 @@ from pyrr import Matrix44
 from OpenGL.GL import *
 import glm
 
-from utils.singleton.Singleton import Singleton
-from utils.ascii_colors.colors import colors
+from utils.Singleton import Singleton
+from utils.colors import colors
 from controller.Controller import Controller
 
 class Window(metaclass=Singleton):
