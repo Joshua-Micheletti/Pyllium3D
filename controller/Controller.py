@@ -18,6 +18,7 @@ class Controller(metaclass=Singleton):
         self.states["left"] = False
         self.states["right"] = False
         self.states["close"] = False
+        self.states["cursor"] = False
 
         # variables to track the mouse movement
         self.first_mouse = True
@@ -42,6 +43,13 @@ class Controller(metaclass=Singleton):
         if key == glfw.KEY_ESCAPE:
             self.states["close"] = True
 
+
+        if key == glfw.KEY_LEFT_ALT and self.states["cursor"] == False:
+            self.states["cursor"] = True
+        elif key == glfw.KEY_LEFT_ALT and self.states["cursor"] == True:
+            self.states["cursor"] = False
+        
+
     # function called by the window when a key is released
     def handle_key_release(self, key, mods):
         if key == glfw.KEY_W:
@@ -59,6 +67,10 @@ class Controller(metaclass=Singleton):
 
     # function called by the window when the cursor is moved
     def handle_mouse_movement(self, window, xpos, ypos):
+        if self.states["cursor"] == True:
+            self.first_mouse = True
+            return
+        
         # if it's the first time that the mouse moves
         if self.first_mouse:
             # setup the last position variables with the current variables
@@ -108,5 +120,10 @@ class Controller(metaclass=Singleton):
         # control to close the window
         if self.states["close"] == True:
             glfw.set_window_should_close(window.window, 1)
+
+        if self.states["cursor"] == True:
+            glfw.set_input_mode(window.window, glfw.CURSOR, glfw.CURSOR_NORMAL)
+        elif self.states["cursor"] == False:
+            glfw.set_input_mode(window.window, glfw.CURSOR, glfw.CURSOR_DISABLED)
         
         

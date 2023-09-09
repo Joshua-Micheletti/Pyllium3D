@@ -8,7 +8,7 @@ from renderer.RendererManager import RendererManager
 
 class Printer(metaclass=Singleton):
     def __init__(self, interval = 2000):
-        self.inteval = interval
+        self.interval = interval
         self.frames_count = 3
 
         self._timer = Timer()
@@ -17,7 +17,7 @@ class Printer(metaclass=Singleton):
         self._print_string = ''
 
     def write(self, frametime=0.0):
-        if self._timer.elapsed() > 2000:
+        if self._timer.elapsed() > self.interval:
             self._prepare_data(frametime)
 
             os.system("clear")
@@ -61,11 +61,14 @@ class Printer(metaclass=Singleton):
 
     def _write_vertices(self):
         vertices_count = 0
+        meshes = 0
 
         for key, value in RendererManager().vertices_count.items():
             vertices_count += int(value)
+            meshes += 1
 
         self._print_string += "| Vertices: " + str(vertices_count) + " |"
+        self._print_string += " Meshes: " + str(meshes) + " |"
 
     def _separator(self):
         substrings = self._print_string.splitlines()

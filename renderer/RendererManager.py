@@ -18,39 +18,9 @@ class RendererManager(metaclass=Singleton):
         self.positions = dict()
         self.rotations = dict()
         self.scales = dict()
-        
-
-        # self.meshes["plane"] = Model([-0.5, -0.5, 0.0,
-        #                                0.5, -0.5, 0.0,
-        #                               -0.5,  0.5, 0.0,
-        #                                0.5,  0.5, 0.0,
-        #                               -0.5,  0.5, 0.0,
-        #                                0.5, -0.5, 0.0])
-        
-        # self.meshes["plane"].scale(100, 120, 120)
-        # self.meshes["plane"].place(0.0, 0.0, 0.0)
-        # self.meshes["plane"].rotate(60.0, 30.0, 45.0)
-
-        # self.meshes["box"] = Model("models/gally.obj")
-        # self.meshes["box"].scale(100, 100, 100)
-        # self.meshes["box"].rotate(0.0, 0.0, 45.0)
-        # self.meshes["box"].place(500.0, 0.0, 0.0)
-
-        self.new_mesh("box", "models/gally.obj")
-
-        for i in range(200):
-            self.new_mesh("box" + str(i), "models/box.obj")
-
-        print(self.model_matrices)
-
-        self.scale("box", 20, 20, 20)
-
-        # for i in range(210):
-        #     self.meshes["box" + str(i)] = Model("models/gally.obj")
-        
         self.shaders = dict()
-        self.shaders["default"] = Shader("./shaders/default/default.vert", "./shaders/default/default.frag")
 
+        self.shaders["default"] = Shader("./shaders/default/default.vert", "./shaders/default/default.frag")
         self.camera = Camera()
 
     def new_mesh(self, name, vertices):
@@ -59,6 +29,7 @@ class RendererManager(metaclass=Singleton):
 
         self.vaos[name] = glGenVertexArrays(1)
         glBindVertexArray(self.vaos[name])
+        
 
         self.vertices_count[name] = 0
 
@@ -89,7 +60,11 @@ class RendererManager(metaclass=Singleton):
 
             formatted_vertices = np.array(formatted_vertices, dtype=np.float32)
 
-        glBufferData(GL_ARRAY_BUFFER, formatted_vertices.nbytes, formatted_vertices, GL_STATIC_DRAW)        
+        glBufferData(GL_ARRAY_BUFFER, formatted_vertices.nbytes, formatted_vertices, GL_STATIC_DRAW) 
+
+        glEnableVertexAttribArray(0)
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
+       
 
 
         self.positions[name] = glm.vec3(0.0)

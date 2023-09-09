@@ -13,6 +13,7 @@ from window.Window import Window
 from renderer.RendererManager import RendererManager
 from renderer.Renderer import Renderer
 from controller.Controller import Controller
+from scene import scene
 
 def main():
     # parse the arguments from the command line
@@ -22,12 +23,14 @@ def main():
     window = Window()
 
     renderer_manager = RendererManager()
+
+    scene.setup()
     # renderer object
     renderer = Renderer()
     # controller object
     controller = Controller()
 
-    printer = Printer()
+    printer = Printer(interval = 2000)
 
     # execution timer
     frametime = Timer()
