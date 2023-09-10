@@ -15,13 +15,10 @@ class Renderer(metaclass=Singleton):
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-    def render(self):        
+    def render(self):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) 
 
-        rm = RendererManager()
-
-        # shader = rm.shaders["default"]
-        # shader.use()        
+        rm = RendererManager()       
         
         for name in rm.model_matrices:
             if name == "light":
@@ -29,9 +26,9 @@ class Renderer(metaclass=Singleton):
                 self._link_static_uniforms(rm.shaders["white"])
                 self._link_dynamic_uniforms(rm.shaders["white"], name)
             else:
-                rm.shaders["default"].use()
-                self._link_static_uniforms(rm.shaders["default"])
-                self._link_dynamic_uniforms(rm.shaders["default"], name)
+                rm.shaders["lighting"].use()
+                self._link_static_uniforms(rm.shaders["lighting"])
+                self._link_dynamic_uniforms(rm.shaders["lighting"], name)
 
             
             glBindVertexArray(rm.vaos[name])

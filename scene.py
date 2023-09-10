@@ -4,11 +4,7 @@ import glm
 def setup():
     rm = RendererManager()
 
-    # rm.new_mesh("gally", "models/sphere.obj")
-
-    # rm.scale("gally", 100, 100, 100)
-
-    count = 100
+    count = 200
 
     rm.new_mesh("sphere", "models/sphere.obj", count=count)
     rm.new_mesh("light", "models/sphere.obj")

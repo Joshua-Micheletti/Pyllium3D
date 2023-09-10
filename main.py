@@ -3,33 +3,33 @@ import sys
 # module to create the window
 import glfw
 
+import scene
+
 # local modules
 from utils import argument_parser as ap
 from utils.Timer import Timer
-
 from utils.Printer import Printer
 
 from window.Window import Window
 from renderer.RendererManager import RendererManager
 from renderer.Renderer import Renderer
 from controller.Controller import Controller
-from scene import scene
+
 
 def main():
     # parse the arguments from the command line
-    ap.parse_arguments(sys.argv)
+    # ap.parse_arguments(sys.argv)
 
     # window object
     window = Window()
-
-    renderer_manager = RendererManager()
-
+    # setup the scene
     scene.setup()
     # renderer object
     renderer = Renderer()
     # controller object
     controller = Controller()
 
+    # printer object to print render information
     printer = Printer(interval = 2000)
 
     # execution timer
@@ -54,7 +54,8 @@ def main():
         dt = frametime.elapsed()
         frametime.reset()
 
-        printer.write(frametime=dt)
+        # print the rendering information
+        printer.write(frametime=dt, verbose=False)
         
     glfw.terminate()
             
