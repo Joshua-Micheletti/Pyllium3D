@@ -15,27 +15,26 @@ class Renderer(metaclass=Singleton):
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-    def render(self):
-        timer = Timer()
-        
+    def render(self):        
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) 
 
         rm = RendererManager()
 
-        shader = rm.shaders["default"]
-        shader.use()
-
+        # shader = rm.shaders["default"]
+        # shader.use()        
         
-        self._link_static_uniforms(shader)
-        
-        # for name, mesh in RendererManager().meshes.items():
         for name in rm.model_matrices:
+            if name == "light":
+                rm.shaders["white"].use()
+                self._link_static_uniforms(rm.shaders["white"])
+                self._link_dynamic_uniforms(rm.shaders["white"], name)
+            else:
+                rm.shaders["default"].use()
+                self._link_static_uniforms(rm.shaders["default"])
+                self._link_dynamic_uniforms(rm.shaders["default"], name)
+
             
-            self._link_dynamic_uniforms(shader, name)
-
-            glBindBuffer(GL_ARRAY_BUFFER, rm.vbos[name])
             glBindVertexArray(rm.vaos[name])
-
             glDrawArrays(GL_TRIANGLES, 0, int(rm.vertices_count[name]))
 
     def _link_static_uniforms(self, shader):
@@ -43,6 +42,12 @@ class Renderer(metaclass=Singleton):
             glUniformMatrix4fv(shader.uniforms["view"], 1, GL_FALSE, RendererManager().camera.get_ogl_matrix())
         if "projection" in shader.uniforms:
             glUniformMatrix4fv(shader.uniforms["projection"], 1, GL_FALSE, Window().get_ogl_matrix())
+        if "light" in shader.uniforms:
+            light_source = RendererManager().light_source
+            glUniform3f(shader.uniforms["light"], light_source.x, light_source.y, light_source.z)
+        if "eye" in shader.uniforms:
+            camera_position = RendererManager().camera.position
+            glUniform3f(shader.uniforms["eye"], camera_position.x, camera_position.y, camera_position.z)
 
     def _link_dynamic_uniforms(self, shader, name):
         rm = RendererManager()

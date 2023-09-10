@@ -29,5 +29,11 @@ class Shader:
             self.uniforms["view"] = glGetUniformLocation(self.program, "view")
         if glGetUniformLocation(self.program, "projection") != -1:
             self.uniforms["projection"] = glGetUniformLocation(self.program, "projection")
+        if glGetUniformLocation(self.program, "light") != -1:
+            self.uniforms["light"] = glGetUniformLocation(self.program, "light")
+        if glGetUniformLocation(self.program, "eye") != -1:
+            self.uniforms["eye"] = glGetUniformLocation(self.program, "eye")
+        
+
 
 

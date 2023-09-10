@@ -103,19 +103,21 @@ class Controller(metaclass=Singleton):
         # get a reference to the camera
         camera = RendererManager().camera
 
+        camera_speed = 0.001
+
         # camera controls
         if self.states["forward"] == True:
-            camera.move(1 * dt)
+            camera.move(camera_speed * dt)
         if self.states["backwards"] == True:
-            camera.move(-1 * dt)
+            camera.move(-camera_speed * dt)
         if self.states["left"] == True:
-            camera.strafe(1 * dt)
+            camera.strafe(camera_speed * dt)
         if self.states["right"] == True:
-            camera.strafe(-1 * dt)
+            camera.strafe(-camera_speed * dt)
         if self.states["up"] == True:
-            camera.lift(1 * dt)
+            camera.lift(camera_speed * dt)
         if self.states["down"] == True:
-            camera.lift(-1 * dt)
+            camera.lift(-camera_speed * dt)
 
         # control to close the window
         if self.states["close"] == True:
