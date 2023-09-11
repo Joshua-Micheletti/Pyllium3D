@@ -137,11 +137,12 @@ class RendererManager(metaclass=Singleton):
             self.scales[name] = glm.vec3(1.0)
             self.model_matrices[name] = glm.mat4(1.0)
 
-    # function to move the mesh
+    # method to place the mesh in a specific spot
     def place(self, name, x, y, z):
         self.positions[name] = glm.vec3(x, y, z)
         self._calculate_model_matrix(name)
 
+    # method to move a mesh by a certain vector
     def move(self, name, x, y, z):
         self.positions[name] += glm.vec3(x, y, z)
         self._calculate_model_matrix(name)
