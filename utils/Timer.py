@@ -6,6 +6,8 @@ class Timer():
     def __init__(self):
         # intialize the starting time to the current time
         self.start = glfw.get_time()
+        self.laps = []
+        self.max_laps = 5
 
     # method to print and obtain the elapsed time
     def elapsed(self, should_print = False, should_print_fps = False):
@@ -23,6 +25,17 @@ class Timer():
         return(dt)
     
     # method to reset the timer
-    def reset(self):
+    def reset(self, laps = False):
         # reset the starting time to the current time
         self.start = glfw.get_time()
+
+        if laps:
+            self.laps = []
+
+    def record(self):
+        if len(self.laps) == 5:
+            self.laps.pop(0)
+
+        self.laps.append(self.elapsed())
+
+

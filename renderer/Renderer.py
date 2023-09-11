@@ -15,7 +15,11 @@ class Renderer(metaclass=Singleton):
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
+        self.timer = Timer()
+
     def render(self):
+        self.timer.reset()
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) 
 
         rm = RendererManager()       
@@ -33,6 +37,8 @@ class Renderer(metaclass=Singleton):
             
             glBindVertexArray(rm.vaos[name])
             glDrawArrays(GL_TRIANGLES, 0, int(rm.vertices_count[name]))
+
+        self.timer.record()
 
     def _link_static_uniforms(self, shader):
         if "view" in shader.uniforms:

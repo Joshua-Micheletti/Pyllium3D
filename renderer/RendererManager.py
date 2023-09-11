@@ -138,8 +138,12 @@ class RendererManager(metaclass=Singleton):
             self.model_matrices[name] = glm.mat4(1.0)
 
     # function to move the mesh
-    def move(self, name, x, y, z):
+    def place(self, name, x, y, z):
         self.positions[name] = glm.vec3(x, y, z)
+        self._calculate_model_matrix(name)
+
+    def move(self, name, x, y, z):
+        self.positions[name] += glm.vec3(x, y, z)
         self._calculate_model_matrix(name)
     
     # function to rotate the mesh

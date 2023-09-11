@@ -6,6 +6,7 @@ from utils.colors import colors
 from utils.Timer import Timer
 
 from renderer.RendererManager import RendererManager
+from renderer.Renderer import Renderer
 
 class Printer(metaclass=Singleton):
     def __init__(self, interval = 2000):
@@ -14,24 +15,29 @@ class Printer(metaclass=Singleton):
 
         self._timer = Timer()
         self._frametimes = []
+        self._render_times = []
+        self._other_times = []
         
         if platform.system() == "Linux":
             self._clear_command = "clear"
         elif platform.system() == "Window":
-            self._clear_command = "clr"
+            self._clear_command = "cls"
 
         self._print_string = ''
 
-    def write(self, verbose = False, frametime=0.0):
+    def write(self, verbose = False, frametime = 0.0):
         if self._timer.elapsed() > self.interval:
             self._prepare_data(frametime)
 
             os.system(self._clear_command)
 
-            self._write_frametime(verbose)
             self._separator()
             self._write_vertices(verbose)
             self._separator()
+            self._write_frametime(verbose)
+            self._separator()
+
+            self._fill_separators()
 
             print(self._print_string)
             
@@ -41,46 +47,64 @@ class Printer(metaclass=Singleton):
 
 
     def _prepare_data(self, frametime):
-        if len(self._frametimes) < self.frames_count:
-            self._frametimes.append(round(frametime, 2))
-        else:
+        if len(self._frametimes) == self.frames_count:
             self._frametimes.pop(0)
-            self._frametimes.append(round(frametime, 2))
+            self._render_times.pop(0)
+            self._other_times.pop(0)
+            
+        self._frametimes.append(round(frametime, 2))
+        self._render_times.append(round(sum(Renderer().timer.laps) / len(Renderer().timer.laps), 2))
+        self._other_times.append(round(self._frametimes[-1] -
+                                       self._render_times[-1], 2))
+
 
     def _write_frametime(self, verbose):
         frametime_text = "Ft"
+        render_time_text = "Rt"
+        other_time_text = "Ot"
         rounding = 0
 
         if verbose:
             frametime_text = "Frametime"
+            render_time_text = "Render Time"
+            other_time_text = "Other"
             rounding = 2
-            self._print_string = "===================================\n"
-        else:
-            self._print_string = "========================\n"
 
         for i in range(len(self._frametimes)):
             fps = round(1000 / self._frametimes[i], rounding)
             frametime = self._frametimes[i]
+            render_time = self._render_times[i]
+            other_time = self._other_times[i]
 
             if rounding == 0:
                 fps = int(fps)
                 frametime = int(frametime)
+                render_time = int(render_time)
+                other_time = int(other_time)
             
             frametime_spaces = ''
             fps_spaces = ''
+            render_time_spaces = ''
+            other_time_spaces = ''
 
             for j in range((5 + rounding) - len(str(frametime))):
                 frametime_spaces = frametime_spaces + ' '
-
             for j in range((5 + rounding) - len(str(fps))):
                 fps_spaces = fps_spaces + ' '
-
-            
+            for j in range((5 + rounding) - len(str(render_time))):
+                render_time_spaces = render_time_spaces + ' '
+            for j in range((5 + rounding) - len(str(other_time))):
+                other_time_spaces = other_time_spaces + ' '
+                
+            self._print_string += "| FPS: " + str(fps) + fps_spaces
             self._print_string += "| " + frametime_text + ": " + str(frametime) + frametime_spaces
-            self._print_string += "| FPS: " + str(fps) + fps_spaces + "|"
+            self._print_string += "| " + render_time_text + ": " + str(render_time) + render_time_spaces
+            self._print_string += "| " + other_time_text + ": " + str(other_time) + other_time_spaces
+            self._print_string += " |"
 
             if i < len(self._frametimes) - 1:
                 self._print_string += '\n'
+
 
     def _write_vertices(self, verbose):
         vertices_text = "V"
@@ -104,16 +128,53 @@ class Printer(metaclass=Singleton):
         self._print_string += " " + meshes_text + ": " + str(meshes) + " |"
 
     def _separator(self):
-        substrings = self._print_string.splitlines()
-        
-        if len(substrings) == 0:
-            return
-        
-        last_string = substrings[len(substrings) - 1]
+        self._print_string += 'separator'
 
-        separator = ''
+    def _fill_separators(self):
+        components = self._print_string.split("separator")
+        self._print_string = ""
 
-        for i in range(len(last_string)):
-            separator += '='
+        for i in range(len(components)):
+            if i == 0:
+                continue
+            
+            if i == len(components) - 1:
+                continue
 
-        self._print_string += '\n' + separator + '\n'
+            if i == 1 and len(components[0]) == 0:
+                up_phrases = components[i].split("\n")
+                down_phrases = components[i+1].split("\n")
+
+                for j in range(len(up_phrases[0])):
+                    self._print_string += "="
+                self._print_string += "\n"
+                self._print_string += components[i]
+
+                self._print_string += "\n"
+                if len(up_phrases[0]) > len(down_phrases[0]):
+                    for j in range(len(up_phrases[0])):
+                        self._print_string += "="
+                    self._print_string += "\n"
+                else:
+                    for j  in range(len(down_phrases[0])):
+                        self._print_string += "="
+                    self._print_string += "\n"
+
+            else:
+                self._print_string += components[i] + "\n"
+
+                up_phrases = components[i].split("\n")
+                down_phrases = components[i+1].split("\n")
+
+                if len(up_phrases[0]) > len(down_phrases[0]):
+                    for j in range(len(up_phrases[0])):
+                        self._print_string += "="
+                    self._print_string += "\n"
+                else:
+                    for j in range(len(down_phrases[0])):
+                        self._print_string += "="
+                    self._print_string += "\n"
+                
+                    
+            
+

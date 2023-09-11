@@ -8,12 +8,12 @@ in vec3 frag_eye;
 out vec4 frag_color;
 
 void main() {
-    float ambient_strength = 0.1;
+    float ambient_strength = 0.3;
     float specular_strength = 0.5;
     float shininess = 32;
 
     vec3 light_color = vec3(1.0);
-    vec3 object_color = vec3(1.0);
+    vec3 object_color = vec3(0.2, 0.3, 1.0);
 
     vec3 ambient = ambient_strength * light_color;
 

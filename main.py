@@ -37,26 +37,43 @@ def main():
 
     # time passed between frames
     dt = 0
+
+    # 60 tps
+    tickrate = 1000.0 / 60.0
+
+    # 60 fps
+    # framerate = 1000.0 / 1000.0
     
+    tick_accumulator = 0.0
+    # frame_accumulator = 0.0
+
     # game loop
     while not glfw.window_should_close(window.window):
-        # update the game depending on the inputs
-        controller.update(window, dt)
-
-        # render the scene to the screen
-        renderer.render()
-        
-        # refresh the screen and handle events
-        glfw.swap_buffers(window.window)
-        glfw.poll_events()
-
-        # calculate the time it took to render this cycle
+        # calculate the elapsed time from the last cycle
         dt = frametime.elapsed()
         frametime.reset()
 
+        tick_accumulator += dt
+        # frame_accumulator += dt
+
+        while tick_accumulator > tickrate:
+            glfw.poll_events()
+            # update the game depending on the inputs
+            controller.update(window, tickrate)
+
+            scene.update(tickrate)
+
+            tick_accumulator -= tickrate
+            
+        # if frame_accumulator > framerate:
+        # render the scene to the screen
+        renderer.render()
+        glfw.swap_buffers(window.window)
+        # frame_accumulator -= framerate
+
         # print the rendering information
-        printer.write(frametime=dt, verbose=False)
-        
+        printer.write(verbose=False, frametime=dt)
+
     glfw.terminate()
             
 
