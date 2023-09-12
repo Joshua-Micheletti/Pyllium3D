@@ -26,6 +26,17 @@ class Renderer(metaclass=Singleton):
 
     # method to render the 3D models
     def render(self):
+        rm = RendererManager()
+
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
+
+        self._render_scene()
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        self._render_screen()
+        
+
+    def _render_scene(self):
         # reset the timer
         self.timer.reset()
 
@@ -56,6 +67,8 @@ class Renderer(metaclass=Singleton):
 
         # record the time it took to render in the timer
         self.timer.record()
+
+    def _render_screen(self):
 
 
     # method to link static uniforms to the shader (static meaning they don't change between meshes)
