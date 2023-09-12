@@ -76,7 +76,7 @@ def main():
         # frame_accumulator -= framerate
 
         # print the rendering information
-        # printer.write(verbose=False, frametime=dt)
+        printer.write(verbose=False, frametime=dt)
 
     glfw.terminate()
             

@@ -66,7 +66,7 @@ class RendererManager(metaclass=Singleton):
 
         self.depth_stencil_render_texture = glGenTextures(1)
         glBindTexture(GL_TEXTURE_2D, self.depth_stencil_render_texture)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_STENCIL, 800, 600, 0, GL_DEPTH24_STENCIL8, GL_UNSIGNED_BYTE, None)
+        # glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_STENCIL, 800, 600, 0, GL_DEPTH24_STENCIL8, GL_UNSIGNED_BYTE, None)
         # glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         # glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
