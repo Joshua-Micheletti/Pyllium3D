@@ -35,10 +35,12 @@ class RendererManager(metaclass=Singleton):
         self.shaders = dict()
 
         # setup the required data for the engine
-        self.setup()
+        self._setup_entities()
+
+        self._setup_render_framebuffer()
         
     # method to setup the required entities for the engine
-    def setup(self):
+    def _setup_entities(self):
         # compilation of necessary shaders for the engine
         self.shaders["lighting"] = Shader("./shaders/lighting/lighting.vert", "./shaders/lighting/lighting.frag")
         self.shaders["white"] = Shader("./shaders/white/white.vert", "./shaders/white/white.frag")
@@ -48,6 +50,37 @@ class RendererManager(metaclass=Singleton):
 
         # creation of a light source object (just a position for now)
         self.light_source = glm.vec3(10, 10, 10)
+
+    def _setup_render_framebuffer(self):
+        self.render_framebuffer = glGenFramebuffers(1)
+        glBindFramebuffer(GL_FRAMEBUFFER, self.render_framebuffer)
+        
+
+        
+
+        self.color_render_texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, self.color_render_texture)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, None)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+        self.depth_stencil_render_texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, self.depth_stencil_render_texture)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_STENCIL, 800, 600, 0, GL_DEPTH24_STENCIL8, GL_UNSIGNED_BYTE, None)
+        # glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        # glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.color_render_texture, 0)
+        # glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, self.depth_stencil_render_texture, 0);  
+        
+        
+        if glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE:
+            print("framebuffer initialized correctly")
+        else:
+            print("framebuffer error")
+
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
     # method to create a new mesh, a count can be specified to generate more than 1 mesh with the same 3D model
     def new_mesh(self, name, file_path, count = 1):

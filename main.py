@@ -11,9 +11,9 @@ from utils.Timer import Timer
 from utils.Printer import Printer
 
 from window.Window import Window
-from renderer.RendererManager import RendererManager
 from renderer.Renderer import Renderer
 from controller.Controller import Controller
+from ui.UI import UI
 
 
 def main():
@@ -28,6 +28,8 @@ def main():
     renderer = Renderer()
     # controller object
     controller = Controller()
+    # UI object
+    ui = UI()
 
     # printer object to print render information
     printer = Printer(interval = 2000)
@@ -58,6 +60,7 @@ def main():
 
         while tick_accumulator > tickrate:
             glfw.poll_events()
+            # ui.implementation.process_inputs()
             # update the game depending on the inputs
             controller.update(window, tickrate)
 
@@ -68,11 +71,12 @@ def main():
         # if frame_accumulator > framerate:
         # render the scene to the screen
         renderer.render()
+        ui.draw()
         glfw.swap_buffers(window.window)
         # frame_accumulator -= framerate
 
         # print the rendering information
-        printer.write(verbose=False, frametime=dt)
+        # printer.write(verbose=False, frametime=dt)
 
     glfw.terminate()
             
