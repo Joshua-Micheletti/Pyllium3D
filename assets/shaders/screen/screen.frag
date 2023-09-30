@@ -6,6 +6,6 @@ in vec2 frag_uv;
 
 uniform sampler2D screen_texture;
 
-void main() { 
+void main() {
     frag_color = texture(screen_texture, frag_uv);
 }

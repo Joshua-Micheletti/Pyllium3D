@@ -119,8 +119,12 @@ class Printer(metaclass=Singleton):
         vertices_count = 0
         meshes = 0
 
-        for key, value in RendererManager().vertices_count.items():
-            vertices_count += int(value)
+        # for key, value in RendererManager().vertices_count.items():
+        #     vertices_count += int(value)
+            # meshes += 1
+        
+        for key, model in RendererManager().models.items():
+            vertices_count += int(RendererManager().vertices_count[model.mesh])
             meshes += 1
 
         self._print_string += "| " + vertices_text + ": " + str(vertices_count) + " |"

@@ -1,10 +1,11 @@
 from OpenGL.GL import *
 import numpy as np
+from PIL import Image
 import pywavefront
 import glm
 
 from utils.Singleton import Singleton
-from renderer.model.Mesh import Model
+from renderer.model.Model import Model
 from renderer.shader.Shader import Shader
 from renderer.camera.Camera import Camera
 
@@ -13,7 +14,10 @@ class RendererManager(metaclass=Singleton):
     # constructor method
     def __init__(self):
         # UNUSED
-        self.meshes = dict()
+        self.models = dict()
+
+        self.width = 800
+        self.height = 600
 
         # dictionaries of OpenGL VBOs for vertex data (vertex, normal, uv)
         self.vertex_vbos = dict()
@@ -21,6 +25,8 @@ class RendererManager(metaclass=Singleton):
         self.uv_vbos = dict()
         # dictionary of OpenGL VAO for vertex data
         self.vaos = dict()
+
+        self.textures = dict()
 
         # dictionary of model matrices
         self.model_matrices = dict()
@@ -42,10 +48,12 @@ class RendererManager(metaclass=Singleton):
     # method to setup the required entities for the engine
     def _setup_entities(self):
         # compilation of necessary shaders for the engine
-        self.shaders["lighting"] = Shader("./shaders/lighting/lighting.vert", "./shaders/lighting/lighting.frag")
-        self.shaders["white"] = Shader("./shaders/white/white.vert", "./shaders/white/white.frag")
-        self.shaders["screen"] = Shader("./shaders/screen/screen.vert", "./shaders/screen/screen.frag")
+        self.shaders["lighting"] = Shader("./assets/shaders/lighting/lighting.vert", "./assets/shaders/lighting/lighting.frag")
+        self.shaders["white"] = Shader("./assets/shaders/white/white.vert", "./assets/shaders/white/white.frag")
+        self.shaders["screen"] = Shader("./assets/shaders/screen/screen.vert", "./assets/shaders/screen/screen.frag")
         
+        self.new_mesh("screen_quad", "./assets/models/quad.obj")
+
         # creation of a camera object
         self.camera = Camera()
 
@@ -58,13 +66,13 @@ class RendererManager(metaclass=Singleton):
         
         self.color_render_texture = glGenTextures(1)
         glBindTexture(GL_TEXTURE_2D, self.color_render_texture)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, None)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, self.width, self.height, 0, GL_RGB, GL_UNSIGNED_BYTE, None)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
         self.depth_stencil_render_renderbuffer = glGenRenderbuffers(1)
         glBindRenderbuffer(GL_RENDERBUFFER, self.depth_stencil_render_renderbuffer)
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 600)
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, self.width, self.height)
         # self.depth_stencil_render_texture = glGenTextures(1)
         # glBindTexture(GL_TEXTURE_2D, self.depth_stencil_render_texture)
         # glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_STENCIL, 800, 600, 0, GL_DEPTH24_STENCIL8, GL_UNSIGNED_INT_24_8, None)
@@ -76,10 +84,9 @@ class RendererManager(metaclass=Singleton):
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, self.depth_stencil_render_renderbuffer)
         
         if glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE:
-            print("framebuffer initialized correctly")
+            pass
         else:
             print("framebuffer error")
-
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
@@ -165,11 +172,37 @@ class RendererManager(metaclass=Singleton):
             glEnableVertexAttribArray(2)
             glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))     
 
+    def new_texture(self, name, filepath):
+        self.textures[name] = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, self.textures[name])
+
+        im = Image.open(filepath).transpose(Image.FLIP_TOP_BOTTOM)
+        imdata = np.fromstring(im.tobytes(), np.uint8)
+
+        glPixelStorei(GL_UNPACK_ALIGNMENT,1)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, im.size[0], im.size[1], 0, GL_RGB, GL_UNSIGNED_BYTE, imdata)
+
+    def new_model(self, name, mesh = "", shader = "", texture = "", count = 1):
+        original_name = name
+
+        for i in range(count):
+            if count != 1:
+                name = original_name + str(i)
+
+            self.models[name] = Model(mesh, texture, shader)
+
             # initialize the transformation variables for the new mesh
             self.positions[name] = glm.vec3(0.0)
             self.rotations[name] = glm.vec3(0.0)
             self.scales[name] = glm.vec3(1.0)
             self.model_matrices[name] = glm.mat4(1.0)
+
+        
 
     # method to place the mesh in a specific spot
     def place(self, name, x, y, z):
@@ -207,3 +240,33 @@ class RendererManager(metaclass=Singleton):
     # method to obtain an OpenGL ready matrix
     def get_ogl_matrix(self, name):
         return(glm.value_ptr(self.model_matrices[name]))
+
+    def update_dimensions(self, width, height):
+        self.width = width
+        self.height = height
+
+        glBindFramebuffer(GL_FRAMEBUFFER, self.render_framebuffer)
+
+        glDeleteRenderbuffers(1, [self.depth_stencil_render_renderbuffer])
+        glDeleteTextures(1, [self.color_render_texture])
+
+        self.color_render_texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, self.color_render_texture)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, self.width, self.height, 0, GL_RGB, GL_UNSIGNED_BYTE, None)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+        self.depth_stencil_render_renderbuffer = glGenRenderbuffers(1)
+        glBindRenderbuffer(GL_RENDERBUFFER, self.depth_stencil_render_renderbuffer)
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, self.width, self.height)
+        # self.depth_stencil_render_texture = glGenTextures(1)
+        # glBindTexture(GL_TEXTURE_2D, self.depth_stencil_render_texture)
+        # glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_STENCIL, 800, 600, 0, GL_DEPTH24_STENCIL8, GL_UNSIGNED_INT_24_8, None)
+        # glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        # glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.color_render_texture, 0)
+        # glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, self.depth_stencil_render_texture, 0);  
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, self.depth_stencil_render_renderbuffer)
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)

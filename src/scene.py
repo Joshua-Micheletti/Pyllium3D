@@ -6,10 +6,11 @@ import glfw
 def setup():
     rm = RendererManager()
 
-    count = 100
+    count = 600
 
-    rm.new_mesh("sphere", "models/sphere.obj", count=count)
-    rm.new_mesh("light", "models/sphere.obj")
+    rm.new_mesh("sphere", "assets/models/gally.obj")
+    rm.new_model("light", "sphere", "white")
+    rm.new_model("sphere", "sphere", "lighting", "", count)
 
     rm.place("light", 5, 5, 7.5)
     rm.scale("light", 0.25, 0.25, 0.25)
@@ -18,6 +19,8 @@ def setup():
     for i in range(int(count / 10)):
         for j in range(10):
             rm.place("sphere" + str(i * 10 + j), i, 0, j)
+
+    # rm.new_texture("test", "assets/textures/uv-maptemplate.jpg")
 
 def update(dt):
     rm = RendererManager()

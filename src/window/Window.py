@@ -6,6 +6,7 @@ import glm
 from utils.Singleton import Singleton
 from utils.colors import colors
 from controller.Controller import Controller
+from renderer.RendererManager import RendererManager
 
 class Window(metaclass=Singleton):
     def __init__(self, width = 800, height = 600, name = "Pyphics", opengl_M = 4, opengl_m = 3):
@@ -71,6 +72,7 @@ def framebuffer_size_callback(window, width, height):
     Window().width = width
     Window().height = height
     Window().projection_matrix = glm.perspective(glm.radians(Window().fov), float(width)/float(height), 0.1, 10000.0)
+    RendererManager().update_dimensions(width, height)
 
 # pass the mouse events to the controller
 def mouse_callback(window, xpos, ypos):
