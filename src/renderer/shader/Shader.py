@@ -44,7 +44,25 @@ class Shader:
         # camera position uniform (vec3)
         if glGetUniformLocation(self.program, "eye") != -1:
             self.uniforms["eye"] = glGetUniformLocation(self.program, "eye")
-        
-
-
+        # material ambient component
+        if glGetUniformLocation(self.program, "ambient") != -1:
+            self.uniforms["ambient"] = glGetUniformLocation(self.program, "ambient")
+        # material diffuse component
+        if glGetUniformLocation(self.program, "diffuse") != -1:
+            self.uniforms["diffuse"] = glGetUniformLocation(self.program, "diffuse")
+        # material specular component
+        if glGetUniformLocation(self.program, "specular") != -1:
+            self.uniforms["specular"] = glGetUniformLocation(self.program, "specular")
+        # material shininess component
+        if glGetUniformLocation(self.program, "shininess") != -1:
+            self.uniforms["shininess"] = glGetUniformLocation(self.program, "shininess")
+        # light ambient component
+        if glGetUniformLocation(self.program, "light_ambient") != -1:
+            self.uniforms["light_ambient"] = glGetUniformLocation(self.program, "light_ambient")
+        # light diffuse component
+        if glGetUniformLocation(self.program, "light_diffuse") != -1:
+            self.uniforms["light_diffuse"] = glGetUniformLocation(self.program, "light_diffuse")
+        # light specular component
+        if glGetUniformLocation(self.program, "light_specular") != -1:
+            self.uniforms["light_specular"] = glGetUniformLocation(self.program, "light_specular")
 

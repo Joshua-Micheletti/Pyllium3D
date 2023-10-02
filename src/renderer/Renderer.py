@@ -26,33 +26,33 @@ class Renderer(metaclass=Singleton):
 
     # method to render the 3D models
     def render(self):
+        # reset the timer
+        self.timer.reset()
+
+        # draw the scene to it
+        self._render_scene()
+
+        # draw the render quad to it
+        self._render_screen()
+
+        # record the time it took to render in the timer
+        self.timer.record()
+        
+    # method to render the models to the render framebuffer
+    def _render_scene(self):
         # get a reference to the renderer manager
         rm = RendererManager()
 
         # bind the render framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
-        # draw the scene to it
-        self._render_scene()
-
-        # bind the screen framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
-        # draw the render quad to it
-        self._render_screen()
-        
-
-    def _render_scene(self):
-        # reset the timer
-        self.timer.reset()
 
         # clear the framebuffer and depth buffers
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT) 
-
-        # get a reference to the renderer manager
-        rm = RendererManager()
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)         
 
         # variables to keep track of the last used shader and mesh
         last_shader = ""
         last_mesh = ""
+        last_material = ""
         
         # THIS LOOP WILL CHANGE WHEN THE MODELS WILL BE GROUPED BY SHADER, SO THAT THERE ISN'T SO MUCH CONTEXT SWITCHING
         # for every model in the renderer manager
@@ -62,12 +62,19 @@ class Renderer(metaclass=Singleton):
                 # if it has a different shader, change to the current shader
                 rm.shaders[model.shader].use()
                 # link the static uniforms (that don't change between meshes)
-                self._link_static_uniforms(rm.shaders[model.shader])
+                self._link_shader_uniforms(rm.shaders[model.shader])
                 # keep track of the last set shader
                 last_shader = model.shader
 
-            # link the dynamic uniforms (that change from every model)
-            self._link_dynamic_uniforms(rm.shaders[model.shader], name)
+            # check if the new model has a different material
+            if last_material != model.material:
+                # link the corresponding uniforms
+                self._link_material_uniforms(rm.shaders[model.shader], name)
+                # keep track of the last used material
+                last_material = model.material
+
+            # link the model specific uniforms
+            self._link_model_uniforms(rm.shaders[model.shader], name)
 
             # check if the new model has a different mesh
             if last_mesh != model.mesh:
@@ -79,10 +86,12 @@ class Renderer(metaclass=Singleton):
             # draw the mesh
             glDrawArrays(GL_TRIANGLES, 0, int(rm.vertices_count[model.mesh]))
 
-        # record the time it took to render in the timer
-        self.timer.record()
+        
 
     def _render_screen(self):
+        # bind the screen framebuffer
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
         # get a reference to the renderer manager
         rm = RendererManager()
 
@@ -107,8 +116,10 @@ class Renderer(metaclass=Singleton):
 
 
     # method to link static uniforms to the shader (static meaning they don't change between meshes)
-    def _link_static_uniforms(self, shader):
+    def _link_shader_uniforms(self, shader):
+        # get a reference to the renderer manager
         rm = RendererManager()
+
         if "view" in shader.uniforms:
             glUniformMatrix4fv(shader.uniforms["view"], 1, GL_FALSE, rm.camera.get_ogl_matrix())
         if "projection" in shader.uniforms:
@@ -118,11 +129,35 @@ class Renderer(metaclass=Singleton):
         if "eye" in shader.uniforms:
             glUniform3f(shader.uniforms["eye"], rm.camera.position.x, rm.camera.position.y, rm.camera.position.z)
 
+
+        light_material = rm.light_material()
+
+        if "light_ambient" in shader.uniforms:
+            glUniform3f(shader.uniforms["light_ambient"], light_material["ambient"].x, light_material["ambient"].y, light_material["ambient"].z)
+        if "light_diffuse" in shader.uniforms:
+            glUniform3f(shader.uniforms["light_diffuse"], light_material["diffuse"].x, light_material["diffuse"].y, light_material["diffuse"].z)
+        if "light_specular" in shader.uniforms:
+            glUniform3f(shader.uniforms["light_specular"], light_material["specular"].x, light_material["specular"].y, light_material["specular"].z)
+
+
+
     # method to link dynamic uniforms to the shader (dynamic meaning they change between meshes)
-    def _link_dynamic_uniforms(self, shader, name):
+    def _link_model_uniforms(self, shader, name):
         rm = RendererManager()
+
         if "model" in shader.uniforms:
             glUniformMatrix4fv(shader.uniforms["model"], 1, GL_FALSE, rm.get_ogl_matrix(name))
         
-        
-        
+    def _link_material_uniforms(self, shader, name):
+        rm = RendererManager()
+        model = rm.models[name]
+
+        if "ambient" in shader.uniforms:
+            glUniform3f(shader.uniforms["ambient"], rm.materials[model.material]['ambient'].x, rm.materials[model.material]['ambient'].y, rm.materials[model.material]["ambient"].z)
+        if "diffuse" in shader.uniforms:
+            glUniform3f(shader.uniforms["diffuse"], rm.materials[model.material]["diffuse"].x, rm.materials[model.material]["diffuse"].y, rm.materials[model.material]["diffuse"].z)
+        if "specular" in shader.uniforms:
+            glUniform3f(shader.uniforms["specular"], rm.materials[model.material]["specular"].x, rm.materials[model.material]["specular"].y, rm.materials[model.material]["specular"].z)
+        if "shininess" in shader.uniforms:
+            glUniform1f(shader.uniforms["shininess"], rm.materials[model.material]["shininess"])
+       

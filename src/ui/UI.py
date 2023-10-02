@@ -3,6 +3,7 @@ from imgui.integrations.glfw import GlfwRenderer
 from window.Window import Window
 
 from utils.Singleton import Singleton
+from renderer.RendererManager import RendererManager
 
 
 class UI(metaclass=Singleton):
@@ -10,6 +11,45 @@ class UI(metaclass=Singleton):
         imgui.create_context()
         self.implementation = GlfwRenderer(Window().window, attach_callbacks = False)
 
+        self._setup_style()
+
+        self.states = dict()
+        self.states["window"] = True
+        self.states["game_window"] = True
+        
+    
+
+    def draw(self):
+        self.implementation.process_inputs()
+
+        imgui.new_frame()
+
+        if self.states["window"]:
+            _, self.states["window"] = imgui.begin("window", closable=True)
+            imgui.text("Hello world")
+            imgui.end()
+
+        if self.states["game_window"]:
+            _, self.states["game_window"] = imgui.begin("game_window", closable=True)
+            # Using a Child allow to fill all the space of the window.
+            # It also alows customization
+            imgui.begin_child("GameRender")
+            # Get the size of the child (i.e. the whole draw size of the windows).
+            wsize = imgui.get_window_size()
+            print(wsize)
+            # Because I use the texture from OpenGL, I need to invert the V from the UV.
+            imgui.image(RendererManager().color_render_texture, wsize, imgui.Vec2(0, 1), imgui.Vec2(1, 0))
+            imgui.end_child()
+            imgui.end()
+
+        # imgui.show_demo_window()
+
+        imgui.render()
+
+        self.implementation.render(imgui.get_draw_data())
+
+    
+    def _setup_style(self):
         style = imgui.get_style()
         style.colors[imgui.COLOR_TEXT]                         = (1.00, 1.00, 1.00, 1.00)
         style.colors[imgui.COLOR_TEXT_DISABLED]                = (0.50, 0.50, 0.50, 1.00)
@@ -63,19 +103,3 @@ class UI(metaclass=Singleton):
         style.grab_rounding = style.frame_rounding = style.window_rounding = 2.3
         style.window_border_size = 0.0
 
-    def draw(self):
-        self.implementation.process_inputs()
-
-        imgui.new_frame()
-        imgui.begin("a window uwu", True)
-        imgui.text("Hello world")
-        imgui.end()
-
-        imgui.show_demo_window()
-        
-        # print(dir(imgui))
-
-        imgui.render()
-        # imgui.end_frame()
-
-        self.implementation.render(imgui.get_draw_data())

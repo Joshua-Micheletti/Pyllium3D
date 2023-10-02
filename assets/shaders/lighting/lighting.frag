@@ -5,31 +5,55 @@ in vec3 frag_normal;
 in vec3 frag_light;
 in vec3 frag_eye;
 
+in vec3 frag_ambient;
+in vec3 frag_diffuse;
+in vec3 frag_specular;
+in float frag_shininess;
+
+in vec3 frag_light_ambient;
+in vec3 frag_light_diffuse;
+in vec3 frag_light_specular;
+
 out vec4 frag_color;
 
 void main() {
-    float ambient_strength = 0.3;
-    float specular_strength = 0.5;
-    float shininess = 32;
+    float shininess = frag_shininess;
 
-    vec3 light_color = vec3(1.0);
-    vec3 object_color = vec3(0.2, 0.3, 1.0);
+    // ambient
+    vec3 ambient = frag_light_ambient * frag_ambient;
 
-    vec3 ambient = ambient_strength * light_color;
-
+    // diffuse
     vec3 normal = normalize(frag_normal);
     vec3 light_dir = normalize(frag_light - frag_position);
 
     float diffuse_strength = max(dot(normal, light_dir), 0.0);
-    vec3 diffuse = diffuse_strength * light_color;
+    vec3 diffuse =  frag_light_diffuse * (diffuse_strength * frag_diffuse);
 
-    vec3 view_dir = normalize(frag_eye - frag_position);
-    vec3 reflect_dir = reflect(-light_dir, normal);
+    // specular
+    vec3 specular = vec3(0.0);
 
-    float raw_specular = pow(max(dot(view_dir, reflect_dir), 0.0), shininess);
-    vec3 specular = specular_strength * raw_specular * light_color;
+    
 
-    vec3 color = (ambient + diffuse + specular) * object_color;
+    if (diffuse != vec3(0.0)) {
+        vec3 view_dir = normalize(frag_eye - frag_position);
+        // phong model
+        // vec3 reflect_dir = reflect(-light_dir, normal);
+        // blinn model
+        vec3 halfway_dir = normalize(light_dir + view_dir);
+
+        // phong model
+        // float raw_specular = pow(max(dot(view_dir, reflect_dir), 0.0), shininess);
+        // blinn model
+        float raw_specular = pow(max(dot(normal, halfway_dir), 0.0), shininess);
+
+        raw_specular *= dot(normal, light_dir);
+
+        specular = frag_light_specular * (frag_specular * raw_specular);
+    }
+
+    vec3 color = (ambient + diffuse + specular);
 
     frag_color = vec4(color, 1.0);
+
+    
 }
