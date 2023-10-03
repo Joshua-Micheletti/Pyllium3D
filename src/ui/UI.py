@@ -1,14 +1,18 @@
 import imgui
 from imgui.integrations.glfw import GlfwRenderer
-from window.Window import Window
+from OpenGL.GL import *
 
+from window.Window import Window
 from utils.Singleton import Singleton
 from renderer.RendererManager import RendererManager
 
-
+# class to implement UI
 class UI(metaclass=Singleton):
+    # constructor method
     def __init__(self):
+        # create an OpenGL context for imgui
         imgui.create_context()
+        # implement the GLFW backend
         self.implementation = GlfwRenderer(Window().window, attach_callbacks = False)
 
         self._setup_style()
@@ -16,6 +20,23 @@ class UI(metaclass=Singleton):
         self.states = dict()
         self.states["window"] = True
         self.states["game_window"] = True
+        self.states["left_window"] = True
+        self.states["right_window_model_header"] = True
+        self.states["right_window"] = True
+        self.states["bottom_window"] = True
+        self.states["first_draw"] = True
+
+        self.game_window_width = 640
+        self.game_window_height = 480
+
+        self.main_menu_height = 0
+        self.left_window_width = 0
+        self.right_window_width = 0
+        self.bottom_window_height = 0
+
+        self.selected_model_index = 0
+        self.selected_model = ""
+        
         
     
 
@@ -24,31 +45,182 @@ class UI(metaclass=Singleton):
 
         imgui.new_frame()
 
-        if self.states["window"]:
-            _, self.states["window"] = imgui.begin("window", closable=True)
-            imgui.text("Hello world")
-            imgui.end()
+        self._draw_main_menu()
 
-        if self.states["game_window"]:
-            _, self.states["game_window"] = imgui.begin("game_window", closable=True)
-            # Using a Child allow to fill all the space of the window.
-            # It also alows customization
-            imgui.begin_child("GameRender")
-            # Get the size of the child (i.e. the whole draw size of the windows).
-            wsize = imgui.get_window_size()
-            print(wsize)
-            # Because I use the texture from OpenGL, I need to invert the V from the UV.
-            imgui.image(RendererManager().color_render_texture, wsize, imgui.Vec2(0, 1), imgui.Vec2(1, 0))
-            imgui.end_child()
-            imgui.end()
+        self._draw_game_window()
 
-        # imgui.show_demo_window()
+        self._draw_left_window()
+        self._draw_right_window()
+        self._draw_bottom_window()
+
+        self.states["first_draw"] = False
+
+        imgui.show_demo_window()
 
         imgui.render()
 
         self.implementation.render(imgui.get_draw_data())
 
-    
+    def _draw_main_menu(self):
+        if imgui.begin_main_menu_bar():
+            wsize = imgui.get_window_size()
+            self.main_menu_height = wsize.y
+
+            if imgui.begin_menu("File"):
+                imgui.text("uwu")
+                imgui.end_menu()
+
+            imgui.end_main_menu_bar()
+
+    def _draw_game_window(self):
+        if self.states["game_window"] == False:
+            return
+
+        window = Window()
+
+        imgui.set_next_window_position(self.left_window_width, self.main_menu_height)
+        imgui.set_next_window_size(window.width - self.left_window_width - self.right_window_width,
+                                   window.height - self.main_menu_height - self.bottom_window_height)
+
+        _, self.states["game_window"] = imgui.begin("game_window", flags = imgui.WINDOW_NO_TITLE_BAR)
+        # Using a Child allow to fill all the space of the window.
+        # It also alows customization
+        imgui.begin_child("GameRender")
+        # Get the size of the child (i.e. the whole draw size of the windows).
+        wsize = imgui.get_window_size()
+
+        if wsize.x != self.game_window_width or wsize.y != self.game_window_height:
+            self._game_window_resize(wsize.x, wsize.y)
+            
+        # Because I use the texture from OpenGL, I need to invert the V from the UV.
+        imgui.image(RendererManager().color_render_texture, wsize.x, wsize.y, (0, 1), (1, 0))
+        imgui.end_child()
+        imgui.end()
+
+    def _game_window_resize(self, width, height):
+        int_width = int(width)
+        int_height = int(height)
+
+        glViewport(0, 0, int_width, int_height)
+        RendererManager().update_dimensions(int_width, int_height)
+        self.game_window_width = int_width
+        self.game_window_height = int_height
+
+    def _draw_left_window(self):
+        if self.states["left_window"] == False:
+            return
+        
+        window = Window()
+
+        imgui.set_next_window_position(0, self.main_menu_height)
+        imgui.set_next_window_size_constraints((100, window.height - self.main_menu_height), (window.width / 2, window.height - self.main_menu_height))
+
+        if self.states["first_draw"]:
+            imgui.set_next_window_size(window.width / 6, window.height - self.main_menu_height)
+        
+        
+        _, self.states["left_window"] = imgui.begin("left_window", flags = imgui.WINDOW_NO_TITLE_BAR)
+
+        wsize = imgui.get_window_size()
+        self.left_window_width = wsize.x
+
+        imgui.text("Hellow!")
+
+        imgui.end()
+
+    def _draw_right_window(self):
+        if self.states["right_window"] == False:
+            return
+        
+        window = Window()
+        rm = RendererManager()
+
+        imgui.set_next_window_position(window.width, self.main_menu_height, pivot_x = 1.0)
+        imgui.set_next_window_size_constraints((100, window.height - self.main_menu_height), (window.width / 2, window.height - self.main_menu_height))
+
+        if self.states["first_draw"]:
+            imgui.set_next_window_size(window.width / 6, window.height - self.main_menu_height)
+
+        
+        _, self.states["right_window"] = imgui.begin("right_window", flags = imgui.WINDOW_NO_TITLE_BAR)
+
+        wsize = imgui.get_window_size()
+        self.right_window_width = wsize.x
+
+
+        self.states["right_window_model_header"], _ = imgui.collapsing_header("Model")
+
+        if self.states["right_window_model_header"]:
+            models = list(rm.models.keys())
+
+            clicked, self.selected_model_index = imgui.combo("", self.selected_model_index, models)
+            
+            if clicked:
+                self.selected_model = models[self.selected_model_index]
+
+
+        if len(self.selected_model) != 0:
+            self.states["right_window_transformation_header"], _ = imgui.collapsing_header("Transformation")
+
+            if self.states["right_window_transformation_header"]:
+                position = rm.positions[self.selected_model]
+                rotation = rm.rotations[self.selected_model]
+                scale = rm.scales[self.selected_model]
+                imgui.push_item_width(self.right_window_width / 5)
+                imgui.text("Position:")
+                imgui.same_line()
+                changed, x = imgui.drag_float("###p.x", position.x, change_speed = 0.1)
+                imgui.same_line()
+                changed, y = imgui.drag_float("###p.y", position.y, change_speed = 0.1)
+                imgui.same_line()
+                changed, z = imgui.drag_float("###p.z", position.z, change_speed = 0.1)
+                rm.place(self.selected_model, x, y, z)
+
+                imgui.text("Rotation:")
+                imgui.same_line()
+                changed, x = imgui.drag_float("###r.x", rotation.x)
+                imgui.same_line()
+                changed, y = imgui.drag_float("###r.y", rotation.y)
+                imgui.same_line()
+                changed, z = imgui.drag_float("###r.z", rotation.z)
+                rm.rotate(self.selected_model, x, y, z)
+
+                imgui.text("Scale:")
+                imgui.same_line()
+                changed, x = imgui.drag_float("###s.x", scale.x, change_speed = 0.1)
+                imgui.same_line()
+                changed, y = imgui.drag_float("###s.y", scale.y, change_speed = 0.1)
+                imgui.same_line()
+                changed, z = imgui.drag_float("###s.z", scale.z, change_speed = 0.1)
+                rm.scale(self.selected_model, x, y, z)
+                imgui.pop_item_width()
+
+        imgui.end()
+
+    def _draw_bottom_window(self):
+        if self.states["bottom_window"] == False:
+            return
+        
+        window = Window()
+        
+        imgui.set_next_window_position(self.left_window_width, window.height, pivot_y = 1.0)
+        imgui.set_next_window_size_constraints((window.width - self.left_window_width - self.right_window_width, 100),
+                                               (window.width - self.left_window_width - self.right_window_width, window.height / 2))
+
+        if self.states["first_draw"]:
+            imgui.set_next_window_size(window.width - self.left_window_width - self.right_window_width,
+                                       window.height / 6)
+
+        _, self.states["bottom_window"] = imgui.begin("bottom_window", flags = imgui.WINDOW_NO_TITLE_BAR)
+
+        wsize = imgui.get_window_size()
+        self.bottom_window_height = wsize.y
+
+        imgui.text("bottom window")
+
+        imgui.end()
+
+
     def _setup_style(self):
         style = imgui.get_style()
         style.colors[imgui.COLOR_TEXT]                         = (1.00, 1.00, 1.00, 1.00)

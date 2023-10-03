@@ -33,7 +33,13 @@ class Renderer(metaclass=Singleton):
         self._render_scene()
 
         # draw the render quad to it
-        self._render_screen()
+        # self._render_screen()
+
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+        # clear the color buffer
+        glClear(GL_COLOR_BUFFER_BIT)
 
         # record the time it took to render in the timer
         self.timer.record()
@@ -123,7 +129,7 @@ class Renderer(metaclass=Singleton):
         if "view" in shader.uniforms:
             glUniformMatrix4fv(shader.uniforms["view"], 1, GL_FALSE, rm.camera.get_ogl_matrix())
         if "projection" in shader.uniforms:
-            glUniformMatrix4fv(shader.uniforms["projection"], 1, GL_FALSE, Window().get_ogl_matrix())
+            glUniformMatrix4fv(shader.uniforms["projection"], 1, GL_FALSE, rm.get_ogl_projection_matrix())
         if "light" in shader.uniforms:
             glUniform3f(shader.uniforms["light"], rm.light_source.x, rm.light_source.y, rm.light_source.z)
         if "eye" in shader.uniforms:

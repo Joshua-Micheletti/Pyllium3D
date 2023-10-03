@@ -45,6 +45,9 @@ class RendererManager(metaclass=Singleton):
         # dictionary of shaders compiled for the engine
         self.shaders = dict()
 
+        self.fov = 60.0
+        self.projection_matrix = glm.perspective(glm.radians(self.fov), float(self.width)/float(self.height), 0.1, 10000.0)
+
         # setup the required data for the engine
         self._setup_entities()
 
@@ -276,11 +279,16 @@ class RendererManager(metaclass=Singleton):
     def get_ogl_matrix(self, name):
         return(glm.value_ptr(self.model_matrices[name]))
 
+    def get_ogl_projection_matrix(self):
+        return(glm.value_ptr(self.projection_matrix))
+
     # method to update the dimensions of the screen
     def update_dimensions(self, width, height):
         # update the internal dimensions
-        self.width = width
-        self.height = height
+        self.width = int(width)
+        self.height = int(height)
+
+        self.projection_matrix = glm.perspective(glm.radians(self.fov), float(self.width)/float(self.height), 0.1, 10000.0)
 
         # bind the render framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, self.render_framebuffer)

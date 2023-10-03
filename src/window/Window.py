@@ -68,11 +68,11 @@ def key_callback(window, key, scancode, action, mods):
 
 # handle the resizing of the window
 def framebuffer_size_callback(window, width, height):
-    glViewport(0, 0, width, height)
+    # glViewport(0, 0, width, height)
     Window().width = width
     Window().height = height
     Window().projection_matrix = glm.perspective(glm.radians(Window().fov), float(width)/float(height), 0.1, 10000.0)
-    RendererManager().update_dimensions(width, height)
+    # RendererManager().update_dimensions(width, height)
 
 # pass the mouse events to the controller
 def mouse_callback(window, xpos, ypos):
