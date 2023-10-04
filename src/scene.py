@@ -13,7 +13,6 @@ def setup():
     rm.new_mesh("box", "assets/models/box.obj")
     rm.new_mesh("sphere", "assets/models/sphere.obj")
     rm.new_model("light", mesh="sphere", shader="white")
-    # rm.new_model("entity", mesh="sphere", shader="lighting", material="white", count = count)
     rm.new_material("white", (0.2, 0.2, 0.2), (0.4, 0.4, 0.4), (0.8, 0.8, 0.8), 4.0)
 
     rm.place("light", 5, 5, 7.5)
@@ -27,7 +26,7 @@ def setup():
                             (random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
                             (random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
                             random.uniform(1, 256))
-            rm.new_model("entity" + str(i * 10 + j), mesh="box", shader="lighting", material="color" + str(i * 10 + j))
+            rm.new_model("entity" + str(i * 10 + j), mesh="sphere", shader="lighting", material="color" + str(i * 10 + j))
             rm.place("entity" + str(i * 10 + j), i * 3, 0, j * 3)
 
 
