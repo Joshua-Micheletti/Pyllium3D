@@ -26,7 +26,7 @@ def setup():
                             (random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
                             (random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
                             random.uniform(1, 256))
-            rm.new_model("entity" + str(i * 10 + j), mesh="sphere", shader="lighting", material="color" + str(i * 10 + j))
+            rm.new_model("entity" + str(i * 10 + j), mesh="box", shader="lighting", material="color" + str(i * 10 + j))
             rm.place("entity" + str(i * 10 + j), i * 3, 0, j * 3)
 
 

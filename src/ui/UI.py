@@ -2,10 +2,12 @@ import imgui
 from imgui.integrations.glfw import GlfwRenderer
 from OpenGL.GL import *
 import glm
+from array import array
 
 from window.Window import Window
 from utils.Singleton import Singleton
 from renderer.RendererManager import RendererManager
+from renderer.Renderer import Renderer
 from utils.colors import gui_colors
 
 # class to implement UI
@@ -17,12 +19,17 @@ class UI(metaclass=Singleton):
         # implement the GLFW backend
         self.implementation = GlfwRenderer(Window().window, attach_callbacks = False)
 
+        # size of indentation
         self.indent_size = 8
+
+        # setup the initial style of the UI
         self._setup_style()
 
+        # set a font for the UI
         self.font = None
         self._setup_font()
 
+        # create a dictionary to keep track of all the states of the UI
         self.states = dict()
         self.states["window"] = True
         self.states["game_window"] = True
@@ -32,11 +39,14 @@ class UI(metaclass=Singleton):
         self.states["right_window/components_header"] = True
         self.states["right_window"] = True
         self.states["bottom_window"] = True
+        self.states["fps_window"] = True
         self.states["first_draw"] = True
 
+        # dimensions of the game window
         self.game_window_width = 640
         self.game_window_height = 480
 
+        # dimensions of the various windows
         self.main_menu_height = 0
         self.left_window_width = 0
         self.right_window_width = 0
@@ -45,13 +55,18 @@ class UI(metaclass=Singleton):
         self.selected_model_index = 0
         self.selected_model = ""
 
-        self.selected_shaders = []
+        self.selection_shaders = dict()
+        self.selected_shader = ""
         self.selection_meshes = dict()
         self.selected_mesh = ""
         self.selection_materials = dict()
         self.selected_material = ""
 
-    def draw(self):
+        self.fps_values = []
+        self.frametime_values = []
+        self.rendertime_values = []
+
+    def draw(self, dt):
         self.implementation.process_inputs()
 
         imgui.new_frame()
@@ -66,8 +81,9 @@ class UI(metaclass=Singleton):
         self._draw_left_window()
         self._draw_right_window()
         self._draw_bottom_window()
+        self._draw_fps_window(dt)
 
-        imgui.show_demo_window()
+        # imgui.show_demo_window()
 
         imgui.pop_font()
 
@@ -87,13 +103,14 @@ class UI(metaclass=Singleton):
                 imgui.end_menu()
 
             if imgui.begin_menu("View"):
+
                 imgui.align_text_to_frame_padding()
-                imgui.text("Left window")
+                imgui.text("Left window  ")
                 imgui.same_line()
                 _, self.states["left_window"] = imgui.checkbox("###left_window_checkbox", self.states["left_window"])
 
                 imgui.align_text_to_frame_padding()
-                imgui.text("Right window")
+                imgui.text("Right window ")
                 imgui.same_line()
                 _, self.states["right_window"] = imgui.checkbox("###right_window_checkbox", self.states["right_window"])
 
@@ -117,7 +134,7 @@ class UI(metaclass=Singleton):
                                    window.height - self.main_menu_height - self.bottom_window_height)
 
         imgui.push_style_var(imgui.STYLE_WINDOW_PADDING, (0.0, 0.0))
-        _, self.states["game_window"] = imgui.begin("game_window", flags = imgui.WINDOW_NO_TITLE_BAR)
+        _, self.states["game_window"] = imgui.begin("game_window", flags = imgui.WINDOW_NO_TITLE_BAR | imgui.WINDOW_NO_BRING_TO_FRONT_ON_FOCUS)
         # Using a Child allow to fill all the space of the window.
         # It also alows customization
         imgui.begin_child("GameRender")
@@ -438,25 +455,158 @@ class UI(metaclass=Singleton):
 
                 if len(self.selected_material) != 0:
                     imgui.same_line()
-                    imgui.push_item_width(wsize.x - list_box_size[0] - imgui.calc_text_size("Ambient").x - 16)
+                    imgui.begin_child("material_child")
+                    imgui.push_item_width(wsize.x - list_box_size[0] - imgui.calc_text_size("Shininess").x - 16)
                     material = rm.materials[self.selected_material]
-                    changed, ambient = imgui.color_edit3("Ambient", material["ambient"].x, material["ambient"].y, material["ambient"].z)
 
-                    rm.materials[self.selected_material]["ambient"] = glm.vec3(ambient[0], ambient[1], ambient[2])
+                    changed, ambient = imgui.color_edit3("Ambient", material["ambient"].x, material["ambient"].y, material["ambient"].z)
+                    if changed:
+                        rm.materials[self.selected_material]["ambient"] = glm.vec3(ambient[0], ambient[1], ambient[2])
+
+                    changed, diffuse = imgui.color_edit3("Diffuse", material["diffuse"].x, material["diffuse"].y, material["diffuse"].z)
+                    if changed:
+                        rm.materials[self.selected_material]["diffuse"] = glm.vec3(diffuse[0], diffuse[1], diffuse[2])
+
+                    changed, specular = imgui.color_edit3("Specular", material["specular"].x, material["specular"].y, material["specular"].z)
+                    if changed:
+                        rm.materials[self.selected_material]["specular"] = glm.vec3(specular[0], specular[1], specular[2])
+
+                    changed, shininess = imgui.drag_float("Shininess", material["shininess"], change_speed = 0.1)
+                    if changed:
+                        rm.materials[self.selected_material]["shininess"] = shininess
 
                     imgui.pop_item_width()
-
-
+                    imgui.end_child()
                     
                 imgui.end_tab_item()
 
             if imgui.begin_tab_item("Shaders").selected:
-                imgui.text("This is the Cucumber tab!\nblah blah blah blah blah")
+                list_box_size = (wsize.x / 3, self.bottom_window_height - 30)
+
+                if imgui.begin_list_box("###shaders_listbox", *list_box_size).opened:
+                    for shader in rm.shaders.keys():
+                        if shader != self.selected_shader:
+                            self.selection_shaders[shader] = False
+                        else:
+                            self.selection_shaders[shader] = True
+
+                        _, self.selection_shaders[shader] = imgui.selectable(shader, self.selection_shaders[shader])
+
+                        if self.selection_shaders[shader] == True:
+                            self.selected_shader = shader
+
+                    imgui.end_list_box()
+
+                if len(self.selected_shader) != 0:
+                    imgui.same_line()
+
+                    shader = rm.shaders[self.selected_shader]
+
+                    text = "Uniforms:"
+                    
+                    max_uniform_length = 0
+
+                    for key, value in shader.uniforms.items():
+                        if len(key) > max_uniform_length:
+                            max_uniform_length = len(key)
+
+                    for key, value in shader.uniforms.items():
+                        spaces_count = max_uniform_length - len(key)
+
+                        spaces = " "
+
+                        for i in range(spaces_count):
+                            spaces += " "
+
+                        text += "\n  "
+                        text += self._get_uniform_type(key) + " " + key + "" + spaces + str(value)
+
+                    imgui.begin_child("###shader_child")
+
+                    imgui.text(text)
+
+                    imgui.end_child()
+
                 imgui.end_tab_item()
                 
             imgui.end_tab_bar()
 
         imgui.pop_style_var()
+        imgui.end()
+
+    def _draw_fps_window(self, dt):
+        if self.states["fps_window"] == False:
+            return
+        
+        window = Window()
+
+        imgui.set_next_window_position(window.width - self.right_window_width, self.main_menu_height, pivot_x = 1.0)
+        imgui.set_next_window_size_constraints((200, 60), (window.width / 2, window.height / 2 - self.main_menu_height))
+
+        _, self.states["fps_window"] = imgui.begin("fps_window", flags = imgui.WINDOW_NO_TITLE_BAR)
+
+        if len(self.fps_values) < 90:
+            self.fps_values.append(1000 / dt)
+        else:
+            self.fps_values.pop(0)
+            self.fps_values.append(1000 / dt)
+
+        average_fps = sum(self.fps_values) / len(self.fps_values)
+
+        wsize = imgui.get_window_size()
+        av_size = imgui.get_content_region_available()
+
+        graph_size = (av_size.x - imgui.calc_text_size("FPS:").x - imgui.calc_text_size(str(round(average_fps, 1))).x - 16, 20)
+            
+        plot_values = array('f', self.fps_values)
+        imgui.align_text_to_frame_padding()
+        imgui.text("FPS:")
+        imgui.same_line()
+        imgui.plot_lines("###fps_plot", plot_values, graph_size = graph_size, scale_min = 0, scale_max = 300)
+        imgui.same_line()
+        imgui.text(str(round(average_fps, 1)))
+
+        self.states["fps_window/details_header"], _ = imgui.collapsing_header("Details")
+
+        if self.states["fps_window/details_header"]:
+            if len(self.frametime_values) == 90:
+                self.frametime_values.pop(0)
+                
+            self.frametime_values.append(dt)
+
+            average_frametime = sum(self.frametime_values) / len(self.frametime_values)
+
+            av_size = imgui.get_content_region_available()
+
+            graph_size = (av_size.x - imgui.calc_text_size("Frametime: ").x - imgui.calc_text_size(str(round(average_frametime, 1))).x - 16, 20)
+
+            plot_values = array('f', self.frametime_values)
+            imgui.align_text_to_frame_padding()
+            imgui.text("Frametime: ")
+            imgui.same_line()
+            imgui.plot_lines("###ft_plot", plot_values, graph_size = graph_size, scale_min = 0, scale_max = 60)
+            imgui.same_line()
+            imgui.text(str(round(average_frametime, 1)))
+
+            if len(self.rendertime_values) == 90:
+                self.rendertime_values.pop(0)
+                
+            self.rendertime_values.append(Renderer().timer.laps[-1])
+
+            average_rendertime = sum(self.rendertime_values) / len(self.rendertime_values)
+
+            av_size = imgui.get_content_region_available()
+
+            graph_size = (av_size.x - imgui.calc_text_size("Rendertime:").x - imgui.calc_text_size(str(round(average_rendertime, 1))+" ").x - 16, 20)
+
+            plot_values = array('f', self.rendertime_values)
+            imgui.align_text_to_frame_padding()
+            imgui.text("Rendertime:")
+            imgui.same_line()
+            imgui.plot_lines("###rt_plot", plot_values, graph_size = graph_size, scale_min = 0, scale_max = 60)
+            imgui.same_line()
+            imgui.text(str(round(average_rendertime, 1)))
+
         imgui.end()
 
 
@@ -521,3 +671,24 @@ class UI(metaclass=Singleton):
         self.font = io.fonts.add_font_from_file_ttf("./assets/fonts/DroidSansMono/DroidSansMNerdFont-Regular.ttf", 14)
         self.implementation.refresh_font_texture()
         imgui.font(self.font)
+
+    def _get_uniform_type(self, uniform):
+        if uniform == "model" or \
+           uniform == "view" or \
+           uniform == "projection":
+            return("mat4 ")
+        
+        if uniform == "light" or \
+           uniform == "eye" or \
+           uniform == "ambient" or \
+           uniform == "diffuse" or \
+           uniform == "specular" or \
+           uniform == "light_ambient" or \
+           uniform == "light_diffuse" or \
+           uniform == "light_specular":
+            return("vec3 ")
+
+        if uniform == "shininess":
+            return("float")
+        
+        return("?   ")

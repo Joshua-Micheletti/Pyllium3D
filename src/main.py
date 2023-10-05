@@ -71,12 +71,12 @@ def main():
         # if frame_accumulator > framerate:
         # render the scene to the screen
         renderer.render()
-        ui.draw()
+        ui.draw(dt)
         glfw.swap_buffers(window.window)
         # frame_accumulator -= framerate
 
         # print the rendering information
-        printer.write(verbose=False, frametime=dt)
+        # printer.write(verbose=False, frametime=dt)
 
     glfw.terminate()
             
