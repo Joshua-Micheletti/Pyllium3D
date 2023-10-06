@@ -7,7 +7,7 @@ import random
 def setup():
     rm = RendererManager()
 
-    count = 100
+    count = 600
 
     rm.new_mesh("gally", "assets/models/gally.obj")
     rm.new_mesh("box", "assets/models/box.obj")

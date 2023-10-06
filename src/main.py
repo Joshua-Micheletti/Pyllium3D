@@ -2,6 +2,7 @@
 import sys
 # module to create the window
 import glfw
+from OpenGL.GL import *
 
 import scene
 
@@ -17,9 +18,6 @@ from ui.UI import UI
 
 
 def main():
-    # parse the arguments from the command line
-    # ap.parse_arguments(sys.argv)
-
     # window object
     window = Window()
     # setup the scene
@@ -32,7 +30,7 @@ def main():
     ui = UI()
 
     # printer object to print render information
-    printer = Printer(interval = 2000)
+    # printer = Printer(interval = 2000)
 
     # execution timer
     frametime = Timer()
@@ -42,6 +40,11 @@ def main():
 
     # 60 tps
     tickrate = 1000.0 / 60.0
+    
+    swaptime = Timer()
+    swaptime.record()
+    controltime = Timer()
+    controltime.record()
 
     # 60 fps
     # framerate = 1000.0 / 1000.0
@@ -56,24 +59,22 @@ def main():
         frametime.reset()
 
         tick_accumulator += dt
-        # frame_accumulator += dt
 
         while tick_accumulator > tickrate:
+            controltime.reset()
             glfw.poll_events()
-            # ui.implementation.process_inputs()
-            # update the game depending on the inputs
             controller.update(window, tickrate)
-
+            controltime.record()
             scene.update(tickrate)
-
             tick_accumulator -= tickrate
             
-        # if frame_accumulator > framerate:
-        # render the scene to the screen
         renderer.render()
-        ui.draw(dt)
+        ui.draw(dt, swaptime.laps[-1], controltime.laps[-1])
+        # print(f"swaptime: {swaptime.laps[-1]}")
+        swaptime.reset()
         glfw.swap_buffers(window.window)
-        # frame_accumulator -= framerate
+        
+        swaptime.record()
 
         # print the rendering information
         # printer.write(verbose=False, frametime=dt)
