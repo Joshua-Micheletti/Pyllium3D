@@ -2,7 +2,12 @@
 # class that represents the model to be rendered
 class Model:
     # constructor method
-    def __init__(self, mesh = "", texture = "", shader = "", material = ""):
+    def __init__(self, name = "", mesh = "", texture = "", shader = "", material = ""):
+        if len(name) != 0:
+            self.name = name
+        else:
+            self.name = None
+
         if len(mesh) != 0:
             self.mesh = mesh
         else:
