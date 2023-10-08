@@ -8,6 +8,8 @@ import operator
 
 # custom modules imports
 from utils.Singleton import Singleton
+from utils.colors import colors
+from utils.Timer import Timer
 from renderer.model.Model import Model
 from renderer.shader.Shader import Shader
 from renderer.camera.Camera import Camera
@@ -20,6 +22,8 @@ class RendererManager(metaclass=Singleton):
         # dictionary to keep track of model objects
         self.models = dict()
 
+        self.single_render_models = []
+
         # fields for screen dimensions
         self.width = 800
         self.height = 600
@@ -30,9 +34,6 @@ class RendererManager(metaclass=Singleton):
         self.uv_vbos = dict()
         # dictionary of OpenGL VAO for vertex data
         self.vaos = dict()
-
-        # self.render_list = []
-        # self.render_structure = dict()
 
         self.instances = dict()
 
@@ -54,6 +55,8 @@ class RendererManager(metaclass=Singleton):
 
         self.fov = 60.0
         self.projection_matrix = glm.perspective(glm.radians(self.fov), float(self.width)/float(self.height), 0.1, 10000.0)
+
+        self.to_update = True
 
         # setup the required data for the engine
         self._setup_entities()
@@ -219,6 +222,7 @@ class RendererManager(metaclass=Singleton):
         # pass the image data to the texture
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, im.size[0], im.size[1], 0, GL_RGB, GL_UNSIGNED_BYTE, imdata)
 
+    # method to create a new material, composed of ambient, diffuse, specular colors and shininess value
     def new_material(self, name, ambient, diffuse, specular, shininess):
         self.materials[name] = dict()
         self.materials[name]["ambient"] = glm.vec3(ambient[0], ambient[1], ambient[2])
@@ -240,6 +244,7 @@ class RendererManager(metaclass=Singleton):
 
             # create a new model object
             self.models[name] = Model(name, mesh, texture, shader, material)
+            self.single_render_models.append(self.models[name])
 
             # initialize the transformation variables for the new mesh
             self.positions[name] = glm.vec3(0.0)
@@ -247,9 +252,155 @@ class RendererManager(metaclass=Singleton):
             self.scales[name] = glm.vec3(1.0)
             self.model_matrices[name] = glm.mat4(1.0)
 
-        self._build_render_structure()
+    def new_instance(self, name, mesh = "", shader = ""):
+        self.instances[name] = Instance()
+
+        if mesh == "":
+            print(f"{colors.ERROR}Couldn't create the instance, Mesh not set{colors.ENDC}")
+            return
+        
+        if shader == "":
+            print(f"{colors.ERROR}Couldn't create the instance, Shader not set{colors.ENDC}")
+            return
+
+        instance = self.instances[name]
+
+        instance.mesh = mesh
+        instance.shader = shader
+
+        self._initialize_instance(name)
+
+    def _initialize_instance(self, name):
+        instance = self.instances[name]
+
+        instance.model_matrices = []
+
+        for model in instance.models:
+            instance.model_matrices.append(self.model_matrices[model.name])
+
+        # temporary list of model matrices
+        formatted_model_matrices = []
+
+        # extract the values of the model matrices
+        for model_mat in instance.model_matrices:
+            for col in model_mat:
+                for value in col:
+                    formatted_model_matrices.append(value)
 
 
+        # convert the list into an array of 32bit floats
+        formatted_model_matrices = np.array(formatted_model_matrices, dtype=np.float32)
+        # get the size in bits of an item in the matrices list
+        item_size = formatted_model_matrices.itemsize
+
+        # if the model matrices vbo already exists, delete it
+        if instance.model_matrices_vbo != None:
+            glDeleteBuffers(1, instance.model_matrices_vbo)
+
+        # generate a new buffer for the model matrices
+        instance.model_matrices_vbo = glGenBuffers(1)
+        # bind the new buffer
+        glBindBuffer(GL_ARRAY_BUFFER, instance.model_matrices_vbo)
+        # pass the data to the buffer
+        glBufferData(GL_ARRAY_BUFFER, item_size * len(formatted_model_matrices), formatted_model_matrices, GL_STATIC_DRAW)
+        # glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+        # if the vao already exists, delete it
+        if instance.vao != None:
+            glDeleteVertexArrays(1, instance.vao)
+
+        # create a new VAO
+        instance.vao = glGenVertexArrays(1)
+        # bind the newly created VAO
+        glBindVertexArray(instance.vao)
+
+        # bind the vertex vbo of the mesh of the instance
+        glBindBuffer(GL_ARRAY_BUFFER, self.vertex_vbos[instance.mesh])
+        # enable the index 0 of the VAO
+        glEnableVertexAttribArray(0)
+        # link the VBO to the index 0 of the VAO and interpret it as 3 floats
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
+
+        # bind the normals vbo of the mesh of the instance
+        glBindBuffer(GL_ARRAY_BUFFER, self.normal_vbos[instance.mesh])
+        # enable the index 1 of the VAO
+        glEnableVertexAttribArray(1)
+        # link the VBO to the index 1 of the VAO and interpret it as 3 floats
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
+
+        # bind the uv vbo of the mesh of the instance
+        glBindBuffer(GL_ARRAY_BUFFER, self.uv_vbos[instance.mesh])
+        # enable the index 2 of the VAO
+        glEnableVertexAttribArray(2)
+        # link the VBO to the index 2 of the VAO and interpret it as 2 floats
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
+
+        # bind the matrices vbo of the models of the instance
+        glBindBuffer(GL_ARRAY_BUFFER, instance.model_matrices_vbo)
+        # enable the index 3 of the VAO
+        glEnableVertexAttribArray(3)
+        # link the beginning of the VBO to the index 3 of the VAO and interpret it as 4 floats
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, item_size * 16, ctypes.c_void_p(0))
+
+        # enable the index 4 of the VAO
+        glEnableVertexAttribArray(4)
+        # link the second column of the matrix to the index 4 of the VAO and interpret it as 4 floats
+        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, item_size * 16, ctypes.c_void_p(formatted_model_matrices.itemsize * 4 * 1))
+
+        # enable the index 5 of the VAO
+        glEnableVertexAttribArray(5)
+        # link the third column of the matrix to the index 5 of the VAO and intepret it as 4 floats
+        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, item_size * 16, ctypes.c_void_p(formatted_model_matrices.itemsize * 4 * 2))
+
+        # enable the index 6 of the VAO
+        glEnableVertexAttribArray(6)
+        # link the fourth column of the matrix to the index 6 of the VAO and intepret it as 4 floats
+        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, item_size * 16, ctypes.c_void_p(formatted_model_matrices.itemsize * 4 * 3))
+
+        # tell OpenGL that the indices 3, 4, 5 and 6 of the VAO need to change after every call
+        glVertexAttribDivisor(3, 1)
+        glVertexAttribDivisor(4, 1)
+        glVertexAttribDivisor(5, 1)
+        glVertexAttribDivisor(6, 1)
+
+        # bind to the default VAO
+        glBindVertexArray(0)
+
+        instance.to_update = False
+
+    def add_model_to_instance(self, model, instance):
+        name = model
+        model = self.models[model]
+        instance = self.instances[instance]
+
+        instance.models.append(model)
+        instance.model_matrices.append(self.model_matrices[name])
+
+        self.single_render_models.remove(model)
+
+        model.in_instance = True
+        instance.to_update = True
+
+    def remove_model_from_instance(self, model, instance):
+        name = model
+        model = self.models[model]
+        instance = self.instances[instance]
+
+        instance.models.remove(model)
+        instance.model_matrices.remove(self.model_matrices[name])
+
+        self.single_render_models.append(model)
+
+        model.in_instance = False
+        instance.to_update = True
+
+    def set_instance_mesh(self, instance, mesh):
+        self.instances[instance].mesh = mesh
+        self.instances[instance].to_update = True
+
+    def set_instance_shader(self, instance, shader):
+        self.instances[instance].shader = shader
+        self.instances[instance].to_update = True
 
     def light_material(self):
         return(self.materials["light_color"])
@@ -258,21 +409,25 @@ class RendererManager(metaclass=Singleton):
     def place(self, name, x, y, z):
         self.positions[name] = glm.vec3(x, y, z)
         self._calculate_model_matrix(name)
+        self._check_instance_update(name)        
 
     # method to move a mesh by a certain vector
     def move(self, name, x, y, z):
         self.positions[name] += glm.vec3(x, y, z)
         self._calculate_model_matrix(name)
+        self._check_instance_update(name)
     
     # function to rotate the mesh
     def rotate(self, name, x, y, z):
         self.rotations[name] = glm.vec3(x, y, z)
         self._calculate_model_matrix(name)
+        self._check_instance_update(name)
 
     # function to scale the mesh
     def scale(self, name, x, y, z):
         self.scales[name] = glm.vec3(x, y, z)
         self._calculate_model_matrix(name)
+        self._check_instance_update(name)
 
     # function to calculate the model matrix after a transformation
     def _calculate_model_matrix(self, name):
@@ -327,118 +482,16 @@ class RendererManager(metaclass=Singleton):
         # bind the default framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
-    def _build_render_structure(self):
-        # self.render_structure = dict()
 
-        self.instances = dict()
-
-        for model in self.models.values():
-            current_instance_name = model.mesh + "+" + model.shader
-            if current_instance_name not in self.instances:
-                self.instances[current_instance_name] = Instance()
-
-            self.instances[current_instance_name].models.append(model)
-            self.instances[current_instance_name].model_matrices.append(self.model_matrices[model.name])
-            self.instances[current_instance_name].mesh = model.mesh
-            self.instances[current_instance_name].shader = model.shader
-
-        for key, instance in self.instances.items():
-            # print(key)
-            # print(*instance.model_matrices[0])
-
-            # model_mats = [*instance.model_matrices[0][0]]
-
-
-            formatted_model_matrices = []
-
-            # i = 0
-
-            for model_mat in instance.model_matrices:
-                # formatted_model_matrices.append(i)
-                # i += 2
-                for col in model_mat:
-                    for value in col:
-                        formatted_model_matrices.append(value)
-
-            # print(formatted_model_matric<es)
-
-            formatted_model_matrices = np.array(formatted_model_matrices, dtype=np.float32)
-
-            # print(formatted_model_matrices)
-
-            # CREATION OF THE MATRICES BUFFER MAY BE WRONG, IF IT DOESN'T WORK, CHECK THE CONTENT OF THE BUFFER AND THE ORDER OF THE MATRIX
-            instance.model_matrices_vbo = glGenBuffers(1)
-            glBindBuffer(GL_ARRAY_BUFFER, instance.model_matrices_vbo)
-            glBufferData(GL_ARRAY_BUFFER, formatted_model_matrices.itemsize * len(formatted_model_matrices), formatted_model_matrices, GL_STATIC_DRAW)
-            glBindBuffer(GL_ARRAY_BUFFER, 0)
-
-            instance.vao = glGenVertexArrays(1)
-            glBindVertexArray(instance.vao)
-
-            glBindBuffer(GL_ARRAY_BUFFER, self.vertex_vbos[instance.mesh])
-            # enable the index 0 of the VAO
-            glEnableVertexAttribArray(0)
-            # store the data from the VBO in the VAO
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
-
-            glBindBuffer(GL_ARRAY_BUFFER, self.normal_vbos[instance.mesh])
-            glEnableVertexAttribArray(1)
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
-
-            glBindBuffer(GL_ARRAY_BUFFER, self.uv_vbos[instance.mesh])
-            glEnableVertexAttribArray(2)
-            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
-
-            glBindBuffer(GL_ARRAY_BUFFER, instance.model_matrices_vbo)
-            glEnableVertexAttribArray(3)
-            glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
-            # glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
-
-            # print(GLfloat)
-
-            glEnableVertexAttribArray(4)
-            glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(1 * 4))
-
-            glEnableVertexAttribArray(5)
-            glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(2 * 4))
-
-            glEnableVertexAttribArray(6)
-            glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(3 * 4))
-
-            glVertexAttribDivisor(3, 1)
-            glVertexAttribDivisor(4, 1)
-            glVertexAttribDivisor(5, 1)
-            glVertexAttribDivisor(6, 1)
-
-            glBindVertexArray(0)
-
-
+    def _check_instance_update(self, name):
+        if not self.models[name].in_instance:
+            return
         
+        for instance in self.instances.values():
+            if self.models[name] in instance.models:
+                instance.to_update = True
 
-        # for model in self.models.values():
-        #     if model.mesh + "+" + model.shader not in self.render_structure:
-        #         self.render_structure[model.mesh + "+" + model.shader] = []
-
-        #     self.render_structure[model.mesh + "+" + model.shader].append(model)
-
-        # print(self.render_structure)
-
-        # self.instance_vbos = dict()
-
-        # for key in self.render_structure:
-        #     self.instance_vbos[key] = []
-
-        #     instance_model_matrices = []
-        #     for model in self.render_structure[key]:
-        #         instance_model_matrices.append(self.model_matrices[model.name])
-
-
-            
-        
-
-        # self.render_list = []
-        # for model in (sorted(self.models.values(), key=operator.attrgetter('mesh'))):
-        #     self.render_list.append(model)
-            # print(f"{model.name}: {model.mesh}")
-
-        
+    def update(self):
+        for name, instance in self.instances.items():
+            if instance.to_update:
+                self._initialize_instance(name)

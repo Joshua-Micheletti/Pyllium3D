@@ -12,6 +12,7 @@ from utils.Timer import Timer
 from utils.Printer import Printer
 
 from window.Window import Window
+from renderer.RendererManager import RendererManager
 from renderer.Renderer import Renderer
 from controller.Controller import Controller
 from ui.UI import UI
@@ -22,6 +23,8 @@ def main():
     window = Window()
     # setup the scene
     scene.setup()
+
+    rm = RendererManager()
     # renderer object
     renderer = Renderer()
     # controller object
@@ -67,7 +70,8 @@ def main():
             controltime.record()
             scene.update(tickrate)
             tick_accumulator -= tickrate
-            
+        
+        rm.update()
         renderer.render()
         ui.draw(dt, swaptime.laps[-1], controltime.laps[-1])
         # print(f"swaptime: {swaptime.laps[-1]}")

@@ -82,7 +82,7 @@ class RightWindow:
                 imgui.text("X")
                 imgui.pop_style_color()
                 imgui.same_line()
-                changed, x = imgui.drag_float("###p.x", position.x, change_speed = 0.1)
+                changed_x, x = imgui.drag_float("###p.x", position.x, change_speed = 0.1)
                 imgui.pop_style_var()
                 imgui.same_line()
                 
@@ -91,7 +91,7 @@ class RightWindow:
                 imgui.text("Y")
                 imgui.pop_style_color()
                 imgui.same_line()
-                changed, y = imgui.drag_float("###p.y", position.y, change_speed = 0.1)
+                changed_y, y = imgui.drag_float("###p.y", position.y, change_speed = 0.1)
                 imgui.pop_style_var(1)
                 imgui.same_line()
 
@@ -100,10 +100,11 @@ class RightWindow:
                 imgui.text("Z")
                 imgui.pop_style_color()
                 imgui.same_line()
-                changed, z = imgui.drag_float("###p.z", position.z, change_speed = 0.1)
+                changed_z, z = imgui.drag_float("###p.z", position.z, change_speed = 0.1)
                 imgui.pop_style_var()
 
-                rm.place(self.selected_model, x, y, z)
+                if changed_x or changed_y or changed_z:
+                    rm.place(self.selected_model, x, y, z)
 
                 # rotation
                 imgui.text("Rotation:")
@@ -114,7 +115,7 @@ class RightWindow:
                 imgui.text("X")
                 imgui.pop_style_color()
                 imgui.same_line()
-                changed, x = imgui.drag_float("###r.x", rotation.x)
+                changed_x, x = imgui.drag_float("###r.x", rotation.x)
                 imgui.pop_style_var(1)
 
                 imgui.same_line()
@@ -123,7 +124,7 @@ class RightWindow:
                 imgui.text("Y")
                 imgui.pop_style_color()
                 imgui.same_line()
-                changed, y = imgui.drag_float("###r.y", rotation.y)
+                changed_y, y = imgui.drag_float("###r.y", rotation.y)
                 imgui.pop_style_var()
                 
                 imgui.same_line()
@@ -132,9 +133,11 @@ class RightWindow:
                 imgui.text("Z")
                 imgui.pop_style_color()
                 imgui.same_line()
-                changed, z = imgui.drag_float("###r.z", rotation.z)
+                changed_z, z = imgui.drag_float("###r.z", rotation.z)
                 imgui.pop_style_var()
-                rm.rotate(self.selected_model, x, y, z)
+
+                if changed_x or changed_y or changed_z:
+                    rm.rotate(self.selected_model, x, y, z)
 
                 # scale
                 imgui.text("Scale:")
@@ -145,7 +148,7 @@ class RightWindow:
                 imgui.text("X")
                 imgui.pop_style_color()
                 imgui.same_line()
-                changed, x = imgui.drag_float("###s.x", scale.x, change_speed = 0.1)
+                changed_x, x = imgui.drag_float("###s.x", scale.x, change_speed = 0.1)
                 imgui.pop_style_var()
 
                 imgui.same_line()
@@ -154,7 +157,7 @@ class RightWindow:
                 imgui.text("Y")
                 imgui.pop_style_color()
                 imgui.same_line()
-                changed, y = imgui.drag_float("###s.y", scale.y, change_speed = 0.1)
+                changed_y, y = imgui.drag_float("###s.y", scale.y, change_speed = 0.1)
                 imgui.pop_style_var()
 
                 imgui.same_line()
@@ -163,10 +166,11 @@ class RightWindow:
                 imgui.text("Z")
                 imgui.pop_style_color()
                 imgui.same_line()
-                changed, z = imgui.drag_float("###s.z", scale.z, change_speed = 0.1)
+                changed_z, z = imgui.drag_float("###s.z", scale.z, change_speed = 0.1)
                 imgui.pop_style_var()
 
-                rm.scale(self.selected_model, x, y, z)
+                if changed_x or changed_y or changed_z:
+                    rm.scale(self.selected_model, x, y, z)
 
                 imgui.pop_item_width()
                 imgui.unindent()

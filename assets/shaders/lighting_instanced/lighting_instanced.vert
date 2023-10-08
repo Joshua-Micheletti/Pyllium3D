@@ -35,6 +35,7 @@ out vec3 frag_light_diffuse;
 out vec3 frag_light_specular;
 
 // out float frag_instance;
+out mat4 frag_model;
 
 void main() {
     gl_Position = (projection * view * model * vec4(vertex, 1.0));
@@ -54,4 +55,5 @@ void main() {
     frag_light_specular = light_specular;
 
     // frag_instance = instance;
+    frag_model = model;
 }

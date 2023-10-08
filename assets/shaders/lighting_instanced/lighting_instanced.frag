@@ -14,7 +14,7 @@ in vec3 frag_light_ambient;
 in vec3 frag_light_diffuse;
 in vec3 frag_light_specular;
 
-// in float frag_instance;
+in mat4 frag_model;
 
 out vec4 frag_color;
 
@@ -56,6 +56,10 @@ void main() {
     vec3 color = (ambient + diffuse + specular);
 
     frag_color = vec4(color, 1.0);
+
+    // int col = 0;
+    // float divider = 1;
+    // frag_color = vec4(frag_model[col][0] / divider, frag_model[col][1] / divider, frag_model[col][2] / divider, 1);
     // frag_color = vec4(frag_instance, frag_instance, frag_instance, 1.0);
 
     

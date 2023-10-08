@@ -63,42 +63,45 @@ class Renderer(metaclass=Singleton):
         
         # THIS LOOP WILL CHANGE WHEN THE MODELS WILL BE GROUPED BY SHADER, SO THAT THERE ISN'T SO MUCH CONTEXT SWITCHING
         # for every model in the renderer manager
-        # for name, model in rm.models.items():
-        #     # check if the new model has a different shader
-        #     if last_shader != model.shader:
-        #         # if it has a different shader, change to the current shader
-        #         rm.shaders[model.shader].use()
-        #         # link the static uniforms (that don't change between meshes)
-        #         self._link_shader_uniforms(rm.shaders[model.shader])
-        #         # keep track of the last set shader
-        #         last_shader = model.shader
+        for model in rm.single_render_models:
+            # if model.in_instance:
+            #     continue
 
-        #     # check if the new model has a different material
-        #     if last_material != model.material:
-        #         # link the corresponding uniforms
-        #         self._link_material_uniforms(rm.shaders[model.shader], name)
-        #         # keep track of the last used material
-        #         last_material = model.material
+            # check if the new model has a different shader
+            if last_shader != model.shader:
+                # if it has a different shader, change to the current shader
+                rm.shaders[model.shader].use()
+                # link the static uniforms (that don't change between meshes)
+                self._link_shader_uniforms(rm.shaders[model.shader])
+                # keep track of the last set shader
+                last_shader = model.shader
 
-        #     # link the model specific uniforms
-        #     self._link_model_uniforms(rm.shaders[model.shader], name)
+            # check if the new model has a different material
+            if last_material != model.material:
+                # link the corresponding uniforms
+                self._link_material_uniforms(rm.shaders[model.shader], model.name)
+                # keep track of the last used material
+                last_material = model.material
 
-        #     # check if the new model has a different mesh
-        #     if last_mesh != model.mesh:
-        #         # if it does, bind the new VAO
-        #         glBindVertexArray(rm.vaos[model.mesh])
-        #         # and keep track of the last used mesh
-        #         last_mesh = model.mesh
+            # link the model specific uniforms
+            self._link_model_uniforms(rm.shaders[model.shader], model.name)
 
-        #     # draw the mesh
-        #     glDrawArrays(GL_TRIANGLES, 0, int(rm.vertices_count[model.mesh]))
+            # check if the new model has a different mesh
+            if last_mesh != model.mesh:
+                # if it does, bind the new VAO
+                glBindVertexArray(rm.vaos[model.mesh])
+                # and keep track of the last used mesh
+                last_mesh = model.mesh
+
+            # draw the mesh
+            glDrawArrays(GL_TRIANGLES, 0, int(rm.vertices_count[model.mesh]))
 
         for instance in rm.instances.values():
             rm.shaders[instance.shader].use()
             self._link_shader_uniforms(rm.shaders[instance.shader])
 
             self._link_material_uniforms(rm.shaders[instance.shader], instance.models[0].name)
-            self._link_model_uniforms(rm.shaders[instance.shader], instance.models[0].name)
+            # self._link_model_uniforms(rm.shaders[instance.shader], instance.models[0].name)
 
             glBindVertexArray(instance.vao)
             glDrawArraysInstanced(GL_TRIANGLES, 0, int(rm.vertices_count[instance.mesh]), len(instance.models))
