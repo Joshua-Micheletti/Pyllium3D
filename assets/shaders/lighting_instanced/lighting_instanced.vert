@@ -4,6 +4,10 @@ layout(location = 0) in vec3 vertex;
 layout(location = 1) in vec3 normal;
 layout(location = 2) in vec2 uv;
 layout(location = 3) in mat4 model;
+layout(location = 7) in vec3 ambient;
+layout(location = 8) in vec3 diffuse;
+layout(location = 9) in vec3 specular;
+layout(location = 10) in float shininess;
 
 // uniform mat4 model;
 uniform mat4 view;
@@ -11,10 +15,10 @@ uniform mat4 projection;
 uniform vec3 light;
 uniform vec3 eye;
 
-uniform vec3 ambient;
-uniform vec3 diffuse;
-uniform vec3 specular;
-uniform float shininess;
+// uniform vec3 ambient;
+// uniform vec3 diffuse;
+// uniform vec3 specular;
+// uniform float shininess;
 
 uniform vec3 light_ambient;
 uniform vec3 light_diffuse;

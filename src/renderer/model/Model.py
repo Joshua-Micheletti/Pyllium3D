@@ -28,7 +28,7 @@ class Model:
         else:
             self.material = None
 
-        self.in_instance = False
+        self.in_instance = ""
 
         
         

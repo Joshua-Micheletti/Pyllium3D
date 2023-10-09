@@ -11,6 +11,7 @@ from utils.Singleton import Singleton
 from utils.colors import colors
 from utils.Timer import Timer
 from renderer.model.Model import Model
+from renderer.material.material import Material
 from renderer.shader.Shader import Shader
 from renderer.camera.Camera import Camera
 from renderer.instance import Instance
@@ -223,12 +224,17 @@ class RendererManager(metaclass=Singleton):
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, im.size[0], im.size[1], 0, GL_RGB, GL_UNSIGNED_BYTE, imdata)
 
     # method to create a new material, composed of ambient, diffuse, specular colors and shininess value
-    def new_material(self, name, ambient, diffuse, specular, shininess):
-        self.materials[name] = dict()
-        self.materials[name]["ambient"] = glm.vec3(ambient[0], ambient[1], ambient[2])
-        self.materials[name]["diffuse"] = glm.vec3(diffuse[0], diffuse[1], diffuse[2])
-        self.materials[name]["specular"] = glm.vec3(specular[0], specular[1], specular[2])
-        self.materials[name]["shininess"] = shininess
+    def new_material(self,
+                     name,
+                     ambient_r, ambient_g, ambient_b,
+                     diffuse_r, diffuse_g, diffuse_b,
+                     specular_r, specular_g, specular_b,
+                     shininess):
+        self.materials[name] = Material(name,
+                                        ambient_r, ambient_g, ambient_b,
+                                        diffuse_r, diffuse_g, diffuse_b,
+                                        specular_r, specular_g, specular_b,
+                                        shininess)
 
     # method to create a new model
     def new_model(self, name, mesh = "default_mesh", shader = "", texture = "", material = "default_material", count = 1):
@@ -244,6 +250,8 @@ class RendererManager(metaclass=Singleton):
 
             # create a new model object
             self.models[name] = Model(name, mesh, texture, shader, material)
+            self.materials[material].add_model(name)
+
             self.single_render_models.append(self.models[name])
 
             # initialize the transformation variables for the new mesh
@@ -273,25 +281,57 @@ class RendererManager(metaclass=Singleton):
     def _initialize_instance(self, name):
         instance = self.instances[name]
 
-        instance.model_matrices = []
+        instance.model_matrices = dict()
 
         for model in instance.models:
-            instance.model_matrices.append(self.model_matrices[model.name])
+            instance.model_matrices[model.name] = self.model_matrices[model.name]
 
         # temporary list of model matrices
         formatted_model_matrices = []
 
         # extract the values of the model matrices
-        for model_mat in instance.model_matrices:
+        for model_mat in instance.model_matrices.values():
             for col in model_mat:
                 for value in col:
                     formatted_model_matrices.append(value)
 
+        formatted_ambients = []
+        formatted_diffuses = []
+        formatted_speculars = []
+        formatted_shininesses = []
+
+        for model in instance.models:
+            material = self.materials[model.material]
+            formatted_ambients.append(material["ambient"].x)
+            formatted_ambients.append(material["ambient"].y)
+            formatted_ambients.append(material["ambient"].z)
+            
+            formatted_diffuses.append(material["diffuse"].x)
+            formatted_diffuses.append(material["diffuse"].y)
+            formatted_diffuses.append(material["diffuse"].z)
+            
+            formatted_speculars.append(material["specular"].x)
+            formatted_speculars.append(material["specular"].y)
+            formatted_speculars.append(material["specular"].z)
+
+            formatted_shininesses.append(material["shininess"])
+
+        formatted_ambients = np.array(formatted_ambients, dtype=np.float32)
+        formatted_diffuses = np.array(formatted_diffuses, dtype=np.float32)
+        formatted_speculars = np.array(formatted_speculars, dtype=np.float32)
+        formatted_shininesses = np.array(formatted_shininesses, dtype=np.float32)
+            
 
         # convert the list into an array of 32bit floats
         formatted_model_matrices = np.array(formatted_model_matrices, dtype=np.float32)
         # get the size in bits of an item in the matrices list
-        item_size = formatted_model_matrices.itemsize
+        float_size = formatted_model_matrices.itemsize
+
+        instance.model_matrices = formatted_model_matrices
+        instance.ambients = formatted_ambients
+        instance.diffuses = formatted_diffuses
+        instance.speculars = formatted_speculars
+        instance_shininesses = formatted_shininesses
 
         # if the model matrices vbo already exists, delete it
         if instance.model_matrices_vbo != None:
@@ -302,8 +342,30 @@ class RendererManager(metaclass=Singleton):
         # bind the new buffer
         glBindBuffer(GL_ARRAY_BUFFER, instance.model_matrices_vbo)
         # pass the data to the buffer
-        glBufferData(GL_ARRAY_BUFFER, item_size * len(formatted_model_matrices), formatted_model_matrices, GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, float_size * len(formatted_model_matrices), formatted_model_matrices, GL_STATIC_DRAW)
         # glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+        if instance.ambient_vbo != None:
+            instance.ambient_vbo = glGenBuffers(1)
+
+        instance.ambient_vbo = glGenBuffers(1)
+        glBindBuffer(GL_ARRAY_BUFFER, instance.ambient_vbo)
+        glBufferData(GL_ARRAY_BUFFER, float_size * len(formatted_ambients), formatted_ambients, GL_STATIC_DRAW)
+
+        
+        instance.diffuse_vbo = glGenBuffers(1)
+        glBindBuffer(GL_ARRAY_BUFFER, instance.diffuse_vbo)
+        glBufferData(GL_ARRAY_BUFFER, float_size * len(formatted_diffuses), formatted_diffuses, GL_STATIC_DRAW)
+
+        
+        instance.specular_vbo = glGenBuffers(1)
+        glBindBuffer(GL_ARRAY_BUFFER, instance.specular_vbo)
+        glBufferData(GL_ARRAY_BUFFER, float_size * len(formatted_speculars), formatted_speculars, GL_STATIC_DRAW)
+
+        
+        instance.shininess_vbo = glGenBuffers(1)
+        glBindBuffer(GL_ARRAY_BUFFER, instance.shininess_vbo)
+        glBufferData(GL_ARRAY_BUFFER, float_size * len(formatted_shininesses), formatted_shininesses, GL_STATIC_DRAW)
 
         # if the vao already exists, delete it
         if instance.vao != None:
@@ -340,22 +402,22 @@ class RendererManager(metaclass=Singleton):
         # enable the index 3 of the VAO
         glEnableVertexAttribArray(3)
         # link the beginning of the VBO to the index 3 of the VAO and interpret it as 4 floats
-        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, item_size * 16, ctypes.c_void_p(0))
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, float_size * 16, ctypes.c_void_p(0))
 
         # enable the index 4 of the VAO
         glEnableVertexAttribArray(4)
         # link the second column of the matrix to the index 4 of the VAO and interpret it as 4 floats
-        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, item_size * 16, ctypes.c_void_p(formatted_model_matrices.itemsize * 4 * 1))
+        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, float_size * 16, ctypes.c_void_p(float_size * 4 * 1))
 
         # enable the index 5 of the VAO
         glEnableVertexAttribArray(5)
         # link the third column of the matrix to the index 5 of the VAO and intepret it as 4 floats
-        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, item_size * 16, ctypes.c_void_p(formatted_model_matrices.itemsize * 4 * 2))
+        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, float_size * 16, ctypes.c_void_p(float_size * 4 * 2))
 
         # enable the index 6 of the VAO
         glEnableVertexAttribArray(6)
         # link the fourth column of the matrix to the index 6 of the VAO and intepret it as 4 floats
-        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, item_size * 16, ctypes.c_void_p(formatted_model_matrices.itemsize * 4 * 3))
+        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, float_size * 16, ctypes.c_void_p(float_size * 4 * 3))
 
         # tell OpenGL that the indices 3, 4, 5 and 6 of the VAO need to change after every call
         glVertexAttribDivisor(3, 1)
@@ -363,23 +425,47 @@ class RendererManager(metaclass=Singleton):
         glVertexAttribDivisor(5, 1)
         glVertexAttribDivisor(6, 1)
 
+        glBindBuffer(GL_ARRAY_BUFFER, instance.ambient_vbo)
+        glEnableVertexAttribArray(7)
+        glVertexAttribPointer(7, 3, GL_FLOAT, GL_FALSE, float_size * 3, ctypes.c_void_p(0))
+
+        glBindBuffer(GL_ARRAY_BUFFER, instance.diffuse_vbo)
+        glEnableVertexAttribArray(8)
+        glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, float_size * 3, ctypes.c_void_p(0))
+        
+        glBindBuffer(GL_ARRAY_BUFFER, instance.specular_vbo)
+        glEnableVertexAttribArray(9)
+        glVertexAttribPointer(9, 3, GL_FLOAT, GL_FALSE, float_size * 3, ctypes.c_void_p(0))
+        
+        glBindBuffer(GL_ARRAY_BUFFER, instance.shininess_vbo)
+        glEnableVertexAttribArray(10)
+        glVertexAttribPointer(10, 1, GL_FLOAT, GL_FALSE, float_size, ctypes.c_void_p(0))
+
+        glVertexAttribDivisor(7, 1)
+        glVertexAttribDivisor(8, 1)
+        glVertexAttribDivisor(9, 1)
+        glVertexAttribDivisor(10, 1)
+
         # bind to the default VAO
         glBindVertexArray(0)
 
-        instance.to_update = False
-
     def add_model_to_instance(self, model, instance):
-        name = model
+        model_name = model
+        instance_name = instance
         model = self.models[model]
         instance = self.instances[instance]
 
         instance.models.append(model)
-        instance.model_matrices.append(self.model_matrices[name])
+        instance.model_matrices[model] = self.model_matrices[model_name]
 
         self.single_render_models.remove(model)
 
-        model.in_instance = True
-        instance.to_update = True
+        model.in_instance = instance_name
+        instance.to_update["model_matrices"] = True
+        instance.to_update["ambients"] = True
+        instance.to_update["diffuses"] = True
+        instance.to_update["speculars"] = True
+        instance.to_update["shininesses"] = True
 
     def remove_model_from_instance(self, model, instance):
         name = model
@@ -387,20 +473,22 @@ class RendererManager(metaclass=Singleton):
         instance = self.instances[instance]
 
         instance.models.remove(model)
-        instance.model_matrices.remove(self.model_matrices[name])
+        instance.model_matrices.pop(name)
 
         self.single_render_models.append(model)
 
-        model.in_instance = False
-        instance.to_update = True
+        model.in_instance = ""
+        instance.to_update["model_matrices"] = True
 
     def set_instance_mesh(self, instance, mesh):
-        self.instances[instance].mesh = mesh
-        self.instances[instance].to_update = True
+        if mesh != self.instances[instance].mesh:
+            self.instances[instance].set_mesh(mesh, self.vertex_vbos[mesh], self.normal_vbos[mesh], self.uv_vbo[mesh])
+        # self.instances[instance].mesh = mesh
+        # self.instances[instance].to_update = True
 
     def set_instance_shader(self, instance, shader):
         self.instances[instance].shader = shader
-        self.instances[instance].to_update = True
+        # self.instances[instance].to_update = True
 
     def light_material(self):
         return(self.materials["light_color"])
@@ -441,6 +529,22 @@ class RendererManager(metaclass=Singleton):
         self.model_matrices[name] = glm.rotate(self.model_matrices[name], glm.radians(self.rotations[name].z), glm.vec3(0.0, 0.0, 1.0))
         # calculate the scale
         self.model_matrices[name] = glm.scale(self.model_matrices[name], self.scales[name])
+
+    def set_ambient(self, name, r, g, b):
+        self.materials[name].set_ambient(r, g, b)
+        self._check_instance_material_update(name, "ambient")
+
+    def set_diffuse(self, name, r, g, b):
+        self.materials[name].set_diffuse(r, g, b)
+        self._check_instance_material_update(name, "diffuse")
+
+    def set_specular(self, name, r, g, b):
+        self.materials[name].set_specular(r, g, b)
+        self._check_instance_material_update(name, "specular")
+
+    def set_shininess(self, name, s):
+        self.materials[name].set_shininess(s)
+        self._check_instance_material_update(name, "shininess")
 
     # method to obtain an OpenGL ready matrix
     def get_ogl_matrix(self, name):
@@ -484,14 +588,41 @@ class RendererManager(metaclass=Singleton):
 
 
     def _check_instance_update(self, name):
-        if not self.models[name].in_instance:
+        if self.models[name].in_instance == "":
             return
         
+        # print(self.models[name].in_instance)
         for instance in self.instances.values():
             if self.models[name] in instance.models:
-                instance.to_update = True
+                # instance.to_update["ambients"] = True
+                # instance.to_update["diffuses"] = True
+                # instance.to_update["speculars"] = True
+                # instance.to_update["shininesses"] = True
+                instance.to_update["model_matrices"] = True
+                
+
+    def _check_instance_material_update(self, name, component):
+        # for model in self.models.values():
+
+        for model_name in self.materials[name].models:
+            model = self.models[model_name]
+            if model.in_instance != "":
+                self.instances[model.in_instance].to_update[component] = True
+                
+                if component == "ambient":
+                    self.instances[model.in_instance].add_changed_ambient()
+
+        # if model.material == name:
+        #     if model.in_instance != "":
+        #         self.instances[model.in_instance].to_update["ambients"] = True
+        #         self.instances[model.in_instance].to_update["diffuses"] = True
+        #         self.instances[model.in_instance].to_update["speculars"] = True
+        #         self.instances[model.in_instance].to_update["shininesses"] = True
+
 
     def update(self):
         for name, instance in self.instances.items():
-            if instance.to_update:
-                self._initialize_instance(name)
+            instance.update(self.model_matrices, self.materials)
+            # if instance.to_update["model_matrices"]:
+            #     instance.update_model_matrices()
+            

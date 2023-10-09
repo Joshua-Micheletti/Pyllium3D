@@ -7,7 +7,7 @@ import random
 def setup():
     rm = RendererManager()
 
-    count = 2000
+    count = 10000
 
     rm.new_mesh("gally", "assets/models/gally.obj")
     rm.new_mesh("box", "assets/models/box.obj")
@@ -21,14 +21,14 @@ def setup():
 
     # rm.new_model("second_sphere", mesh="sphere", shader="lighting_instanced")
 
-    rm.new_instance("colored_entities", "gally", "lighting_instanced")
+    rm.new_instance("colored_entities", "box", "lighting_instanced")
 
     for i in range(int(count / 10)):
         for j in range(10):
             rm.new_material("color" + str(i * 10 + j),
-                            (random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
-                            (random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
-                            (random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
+                            *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
+                            *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
+                            *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
                             random.uniform(1, 256))
             rm.new_model("entity" + str(i * 10 + j), mesh="box", shader="lighting", material="color" + str(i * 10 + j))
             rm.place("entity" + str(i * 10 + j), i * 3, 0, j * 3)
