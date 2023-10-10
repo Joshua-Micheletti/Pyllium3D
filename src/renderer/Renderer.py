@@ -100,7 +100,7 @@ class Renderer(metaclass=Singleton):
             rm.shaders[instance.shader].use()
             self._link_shader_uniforms(rm.shaders[instance.shader])
 
-            self._link_material_uniforms(rm.shaders[instance.shader], instance.models[0].name)
+            # self._link_material_uniforms(rm.shaders[instance.shader], instance.models[0].name)
             # self._link_model_uniforms(rm.shaders[instance.shader], instance.models[0].name)
 
             glBindVertexArray(instance.vao)
@@ -153,11 +153,11 @@ class Renderer(metaclass=Singleton):
         light_material = rm.light_material()
 
         if "light_ambient" in shader.uniforms:
-            glUniform3f(shader.uniforms["light_ambient"], light_material["ambient"].x, light_material["ambient"].y, light_material["ambient"].z)
+            glUniform3f(shader.uniforms["light_ambient"], light_material.ambient[0], light_material.ambient[1], light_material.ambient[2])
         if "light_diffuse" in shader.uniforms:
-            glUniform3f(shader.uniforms["light_diffuse"], light_material["diffuse"].x, light_material["diffuse"].y, light_material["diffuse"].z)
+            glUniform3f(shader.uniforms["light_diffuse"], light_material.diffuse[0], light_material.diffuse[1], light_material.diffuse[2])
         if "light_specular" in shader.uniforms:
-            glUniform3f(shader.uniforms["light_specular"], light_material["specular"].x, light_material["specular"].y, light_material["specular"].z)
+            glUniform3f(shader.uniforms["light_specular"], light_material.specular[0], light_material.specular[1], light_material.specular[2])
 
 
 
@@ -173,11 +173,11 @@ class Renderer(metaclass=Singleton):
         model = rm.models[name]
 
         if "ambient" in shader.uniforms:
-            glUniform3f(shader.uniforms["ambient"], rm.materials[model.material]['ambient'].x, rm.materials[model.material]['ambient'].y, rm.materials[model.material]["ambient"].z)
+            glUniform3f(shader.uniforms["ambient"], rm.materials[model.material].ambient[0], rm.materials[model.material].ambient[1], rm.materials[model.material].ambient[2])
         if "diffuse" in shader.uniforms:
-            glUniform3f(shader.uniforms["diffuse"], rm.materials[model.material]["diffuse"].x, rm.materials[model.material]["diffuse"].y, rm.materials[model.material]["diffuse"].z)
+            glUniform3f(shader.uniforms["diffuse"], rm.materials[model.material].diffuse[0], rm.materials[model.material].diffuse[1], rm.materials[model.material].diffuse[2])
         if "specular" in shader.uniforms:
-            glUniform3f(shader.uniforms["specular"], rm.materials[model.material]["specular"].x, rm.materials[model.material]["specular"].y, rm.materials[model.material]["specular"].z)
+            glUniform3f(shader.uniforms["specular"], rm.materials[model.material].specular[0], rm.materials[model.material].specular[1], rm.materials[model.material].specular[2])
         if "shininess" in shader.uniforms:
-            glUniform1f(shader.uniforms["shininess"], rm.materials[model.material]["shininess"])
+            glUniform1f(shader.uniforms["shininess"], rm.materials[model.material].shininess)
        

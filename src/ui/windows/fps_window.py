@@ -22,8 +22,9 @@ class FpsWindow:
         self.ui_time_graph =    Graph("UI:        ", scale_max = 60)
         self.swaptime_graph =   Graph("Swaptime:  ", scale_max = 60)
         self.control_graph =    Graph("Control:   ", scale_max = 60)
+        self.update_graph =     Graph("Update:    ", scale_max = 60)
 
-    def draw(self, states, dimensions, dt, ui_time, swaptime, controltime):
+    def draw(self, states, dimensions, dt, ui_time, swaptime, controltime, updatetime):
         if states["fps_window"] == False:
             return(states, dimensions)
         
@@ -44,6 +45,7 @@ class FpsWindow:
             self.ui_time_graph.draw(ui_time)
             self.swaptime_graph.draw(swaptime)
             self.control_graph.draw(controltime)
+            self.update_graph.draw(updatetime)
 
         imgui.end()
 

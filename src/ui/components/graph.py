@@ -15,7 +15,15 @@ class Graph:
                 
         self.graph_values.append(dt)
 
-        average_value = sum(self.graph_values) / len(self.graph_values)
+        last_values = []
+
+        if len(self.graph_values) < 6:
+            average_value = sum(self.graph_values) / len(self.graph_values)
+        else:
+            for i in range(5):
+                last_values.append(self.graph_values[-(i + 1)])
+
+            average_value = sum(last_values) / len(last_values)
 
         av_size = imgui.get_content_region_available()
 

@@ -94,22 +94,22 @@ class BottomWindow:
                     imgui.push_item_width(imgui.get_content_region_available_width() - imgui.calc_text_size("Shininess").x - 16)
                     material = rm.materials[self.selected_material]
 
-                    changed, ambient = imgui.color_edit3("Ambient", material["ambient"].x, material["ambient"].y, material["ambient"].z)
+                    changed, ambient = imgui.color_edit3("Ambient", material.ambient[0], material.ambient[1], material.ambient[2])
                     if changed:
                         rm.set_ambient(self.selected_material, *ambient)
                         # rm.materials[self.selected_material]["ambient"] = glm.vec3(ambient[0], ambient[1], ambient[2])
 
-                    changed, diffuse = imgui.color_edit3("Diffuse", material["diffuse"].x, material["diffuse"].y, material["diffuse"].z)
+                    changed, diffuse = imgui.color_edit3("Diffuse", material.diffuse[0], material.diffuse[1], material.diffuse[2])
                     if changed:
                         rm.set_diffuse(self.selected_material, *diffuse)
                         # rm.materials[self.selected_material]["diffuse"] = glm.vec3(diffuse[0], diffuse[1], diffuse[2])
 
-                    changed, specular = imgui.color_edit3("Specular", material["specular"].x, material["specular"].y, material["specular"].z)
+                    changed, specular = imgui.color_edit3("Specular", material.specular[0], material.specular[1], material.specular[2])
                     if changed:
                         rm.set_specular(self.selected_material, *specular)
                         # rm.materials[self.selected_material]["specular"] = glm.vec3(specular[0], specular[1], specular[2])
 
-                    changed, shininess = imgui.drag_float("Shininess", material["shininess"], change_speed = 0.1)
+                    changed, shininess = imgui.drag_float("Shininess", material.shininess, change_speed = 0.1)
                     if changed:
                         rm.set_shininess(self.selected_material, shininess)
                         # rm.materials[self.selected_material]["shininess"] = shininess

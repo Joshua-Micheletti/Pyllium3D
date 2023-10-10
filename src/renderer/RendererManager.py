@@ -4,12 +4,10 @@ import numpy as np
 from PIL import Image
 import pywavefront
 import glm
-import operator
 
 # custom modules imports
 from utils.Singleton import Singleton
 from utils.colors import colors
-from utils.Timer import Timer
 from renderer.model.Model import Model
 from renderer.material.material import Material
 from renderer.shader.Shader import Shader
@@ -23,6 +21,7 @@ class RendererManager(metaclass=Singleton):
         # dictionary to keep track of model objects
         self.models = dict()
 
+        # list of models to be rendered normally
         self.single_render_models = []
 
         # fields for screen dimensions
@@ -36,10 +35,13 @@ class RendererManager(metaclass=Singleton):
         # dictionary of OpenGL VAO for vertex data
         self.vaos = dict()
 
+        # dictionary of instance objects
         self.instances = dict()
 
+        # dictionary of textures
         self.textures = dict()
 
+        # dictionary of material objects
         self.materials = dict()
 
         # dictionary of model matrices
@@ -54,14 +56,17 @@ class RendererManager(metaclass=Singleton):
         # dictionary of shaders compiled for the engine
         self.shaders = dict()
 
+        # create the projection matrix for rendering
         self.fov = 60.0
         self.projection_matrix = glm.perspective(glm.radians(self.fov), float(self.width)/float(self.height), 0.1, 10000.0)
 
+        # variable to keep track of weather or not the renderer manager should update
         self.to_update = True
 
         # setup the required data for the engine
         self._setup_entities()
 
+        # setup the rendering framebuffer
         self._setup_render_framebuffer()
         
     # method to setup the required entities for the engine
@@ -75,8 +80,8 @@ class RendererManager(metaclass=Singleton):
         self.new_mesh("screen_quad", "./assets/models/quad.obj")
         self.new_mesh("default_mesh", "assets/models/box.obj")
 
-        self.new_material("default_material", (0.2, 0.2, 0.2), (0.6, 0.6, 0.6), (1.0, 1.0, 1.0), 1.0)
-        self.new_material("light_color", (0.2, 0.2, 0.2), (0.5, 0.5, 0.5), (1.0, 1.0, 1.0), 1.0)
+        self.new_material("default_material", *(0.2, 0.2, 0.2), *(0.6, 0.6, 0.6), *(1.0, 1.0, 1.0), 1.0)
+        self.new_material("light_color", *(0.2, 0.2, 0.2), *(0.5, 0.5, 0.5), *(1.0, 1.0, 1.0), 1.0)
 
         # creation of a camera object
         self.camera = Camera()
@@ -250,7 +255,7 @@ class RendererManager(metaclass=Singleton):
 
             # create a new model object
             self.models[name] = Model(name, mesh, texture, shader, material)
-            self.materials[material].add_model(name)
+            self.materials[material].add_model(self.models[name])
 
             self.single_render_models.append(self.models[name])
 
@@ -260,9 +265,9 @@ class RendererManager(metaclass=Singleton):
             self.scales[name] = glm.vec3(1.0)
             self.model_matrices[name] = glm.mat4(1.0)
 
+    # method to create a new instance
     def new_instance(self, name, mesh = "", shader = ""):
-        self.instances[name] = Instance()
-
+        # check if the mesh and shader fields have been provided
         if mesh == "":
             print(f"{colors.ERROR}Couldn't create the instance, Mesh not set{colors.ENDC}")
             return
@@ -271,29 +276,31 @@ class RendererManager(metaclass=Singleton):
             print(f"{colors.ERROR}Couldn't create the instance, Shader not set{colors.ENDC}")
             return
 
+        # create a new instance object
+        self.instances[name] = Instance()
+        # get a reference to the newly created object
         instance = self.instances[name]
 
+        # set the instance constants
         instance.mesh = mesh
         instance.shader = shader
 
+        # intialize the instance
         self._initialize_instance(name)
 
+    # method to initialize an instance, might move this inside the instance object
     def _initialize_instance(self, name):
         instance = self.instances[name]
-
-        instance.model_matrices = dict()
-
-        for model in instance.models:
-            instance.model_matrices[model.name] = self.model_matrices[model.name]
 
         # temporary list of model matrices
         formatted_model_matrices = []
 
         # extract the values of the model matrices
-        for model_mat in instance.model_matrices.values():
-            for col in model_mat:
-                for value in col:
-                    formatted_model_matrices.append(value)
+        for model in instance.models:
+            for model_mat in self.model_matrices[model.name]:
+                for col in model_mat:
+                    for value in col:
+                        formatted_model_matrices.append(value)
 
         formatted_ambients = []
         formatted_diffuses = []
@@ -302,19 +309,19 @@ class RendererManager(metaclass=Singleton):
 
         for model in instance.models:
             material = self.materials[model.material]
-            formatted_ambients.append(material["ambient"].x)
-            formatted_ambients.append(material["ambient"].y)
-            formatted_ambients.append(material["ambient"].z)
+            formatted_ambients.append(material.ambient[0])
+            formatted_ambients.append(material.ambient[1])
+            formatted_ambients.append(material.ambient[2])
             
-            formatted_diffuses.append(material["diffuse"].x)
-            formatted_diffuses.append(material["diffuse"].y)
-            formatted_diffuses.append(material["diffuse"].z)
+            formatted_diffuses.append(material.diffuse[0])
+            formatted_diffuses.append(material.diffuse[1])
+            formatted_diffuses.append(material.diffuse[2])
             
-            formatted_speculars.append(material["specular"].x)
-            formatted_speculars.append(material["specular"].y)
-            formatted_speculars.append(material["specular"].z)
+            formatted_speculars.append(material.specular[0])
+            formatted_speculars.append(material.specular[1])
+            formatted_speculars.append(material.specular[2])
 
-            formatted_shininesses.append(material["shininess"])
+            formatted_shininesses.append(material.shininess)
 
         formatted_ambients = np.array(formatted_ambients, dtype=np.float32)
         formatted_diffuses = np.array(formatted_diffuses, dtype=np.float32)
@@ -331,7 +338,7 @@ class RendererManager(metaclass=Singleton):
         instance.ambients = formatted_ambients
         instance.diffuses = formatted_diffuses
         instance.speculars = formatted_speculars
-        instance_shininesses = formatted_shininesses
+        instance.shininesses = formatted_shininesses
 
         # if the model matrices vbo already exists, delete it
         if instance.model_matrices_vbo != None:
@@ -449,6 +456,7 @@ class RendererManager(metaclass=Singleton):
         # bind to the default VAO
         glBindVertexArray(0)
 
+    # method to add a model to an instance
     def add_model_to_instance(self, model, instance):
         model_name = model
         instance_name = instance
@@ -456,7 +464,19 @@ class RendererManager(metaclass=Singleton):
         instance = self.instances[instance]
 
         instance.models.append(model)
-        instance.model_matrices[model] = self.model_matrices[model_name]
+
+        model_mat_values = []
+
+        for col in self.model_matrices[model_name]:
+            for value in col:
+                model_mat_values.append(value)
+
+        instance.model_matrices = np.append(instance.model_matrices, model_mat_values)
+
+        instance.ambients = np.append(instance.ambients, self.materials[model.material].ambient)
+        instance.diffuses = np.append(instance.diffuses, self.materials[model.material].diffuse)
+        instance.speculars = np.append(instance.speculars, self.materials[model.material].specular)
+        instance.shininesses = np.append(instance.shininesses, self.materials[model.material].shininess)
 
         self.single_render_models.remove(model)
 
@@ -473,7 +493,7 @@ class RendererManager(metaclass=Singleton):
         instance = self.instances[instance]
 
         instance.models.remove(model)
-        instance.model_matrices.pop(name)
+        # instance.model_matrices.pop(name)
 
         self.single_render_models.append(model)
 
@@ -497,7 +517,7 @@ class RendererManager(metaclass=Singleton):
     def place(self, name, x, y, z):
         self.positions[name] = glm.vec3(x, y, z)
         self._calculate_model_matrix(name)
-        self._check_instance_update(name)        
+        self._check_instance_update(name)     
 
     # method to move a mesh by a certain vector
     def move(self, name, x, y, z):
@@ -532,19 +552,19 @@ class RendererManager(metaclass=Singleton):
 
     def set_ambient(self, name, r, g, b):
         self.materials[name].set_ambient(r, g, b)
-        self._check_instance_material_update(name, "ambient")
+        self._check_instance_material_update(name, "ambients")
 
     def set_diffuse(self, name, r, g, b):
         self.materials[name].set_diffuse(r, g, b)
-        self._check_instance_material_update(name, "diffuse")
+        self._check_instance_material_update(name, "diffuses")
 
     def set_specular(self, name, r, g, b):
         self.materials[name].set_specular(r, g, b)
-        self._check_instance_material_update(name, "specular")
+        self._check_instance_material_update(name, "speculars")
 
     def set_shininess(self, name, s):
         self.materials[name].set_shininess(s)
-        self._check_instance_material_update(name, "shininess")
+        self._check_instance_material_update(name, "shininesses")
 
     # method to obtain an OpenGL ready matrix
     def get_ogl_matrix(self, name):
@@ -591,38 +611,28 @@ class RendererManager(metaclass=Singleton):
         if self.models[name].in_instance == "":
             return
         
-        # print(self.models[name].in_instance)
         for instance in self.instances.values():
             if self.models[name] in instance.models:
-                # instance.to_update["ambients"] = True
-                # instance.to_update["diffuses"] = True
-                # instance.to_update["speculars"] = True
-                # instance.to_update["shininesses"] = True
                 instance.to_update["model_matrices"] = True
+                instance.change_model_matrix(self.models[name], self.model_matrices[name])
                 
 
     def _check_instance_material_update(self, name, component):
-        # for model in self.models.values():
-
-        for model_name in self.materials[name].models:
-            model = self.models[model_name]
+        for model in self.materials[name].models:
             if model.in_instance != "":
                 self.instances[model.in_instance].to_update[component] = True
                 
-                if component == "ambient":
-                    self.instances[model.in_instance].add_changed_ambient()
-
-        # if model.material == name:
-        #     if model.in_instance != "":
-        #         self.instances[model.in_instance].to_update["ambients"] = True
-        #         self.instances[model.in_instance].to_update["diffuses"] = True
-        #         self.instances[model.in_instance].to_update["speculars"] = True
-        #         self.instances[model.in_instance].to_update["shininesses"] = True
+                if component == "ambients":
+                    self.instances[model.in_instance].change_ambient(self.materials[name])
+                if component == "diffuses":
+                    self.instances[model.in_instance].change_diffuse(self.materials[name])
+                if component == "speculars":
+                    self.instances[model.in_instance].change_specular(self.materials[name])
+                if component == "shininesses":
+                    self.instances[model.in_instance].change_shininess(self.materials[name])
 
 
     def update(self):
-        for name, instance in self.instances.items():
-            instance.update(self.model_matrices, self.materials)
-            # if instance.to_update["model_matrices"]:
-            #     instance.update_model_matrices()
+        for instance in self.instances.values():
+            instance.update()
             
