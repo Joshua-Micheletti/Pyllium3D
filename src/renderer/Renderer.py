@@ -89,12 +89,15 @@ class Renderer(metaclass=Singleton):
             # check if the new model has a different mesh
             if last_mesh != model.mesh:
                 # if it does, bind the new VAO
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos[model.mesh])
                 glBindVertexArray(rm.vaos[model.mesh])
+                
                 # and keep track of the last used mesh
                 last_mesh = model.mesh
 
             # draw the mesh
-            glDrawArrays(GL_TRIANGLES, 0, int(rm.vertices_count[model.mesh]))
+            # glDrawArrays(GL_TRIANGLES, 0, int(rm.vertices_count[model.mesh]))
+            glDrawElements(GL_TRIANGLES, int(rm.indices_count[model.mesh]), GL_UNSIGNED_INT, None)
 
         for instance in rm.instances.values():
             rm.shaders[instance.shader].use()
@@ -102,9 +105,10 @@ class Renderer(metaclass=Singleton):
 
             # self._link_material_uniforms(rm.shaders[instance.shader], instance.models[0].name)
             # self._link_model_uniforms(rm.shaders[instance.shader], instance.models[0].name)
-
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos[instance.mesh])
             glBindVertexArray(instance.vao)
             glDrawArraysInstanced(GL_TRIANGLES, 0, int(rm.vertices_count[instance.mesh]), len(instance.models))
+            # glDrawElementsInstanced(GL_TRIANGLES, int(rm.indices_count[instance.mesh]), GL_UNSIGNED_INT, None, len(instance.models))
 
         
 

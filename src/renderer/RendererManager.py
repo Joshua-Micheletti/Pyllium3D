@@ -32,6 +32,7 @@ class RendererManager(metaclass=Singleton):
         self.vertex_vbos = dict()
         self.normal_vbos = dict()
         self.uv_vbos = dict()
+        self.ebos = dict()
         # dictionary of OpenGL VAO for vertex data
         self.vaos = dict()
 
@@ -48,6 +49,7 @@ class RendererManager(metaclass=Singleton):
         self.model_matrices = dict()
         # dictionary of number of vertices per mesh
         self.vertices_count = dict()
+        self.indices_count = dict()
         # dictionary of trasformation factors of the meshes
         self.positions = dict()
         self.rotations = dict()
@@ -77,8 +79,8 @@ class RendererManager(metaclass=Singleton):
         self.shaders["screen"] = Shader("./assets/shaders/screen/screen.vert", "./assets/shaders/screen/screen.frag")
         self.shaders["lighting_instanced"] = Shader("assets/shaders/lighting_instanced/lighting_instanced.vert", "assets/shaders/lighting_instanced/lighting_instanced.frag")
         
-        self.new_mesh("screen_quad", "./assets/models/quad.obj")
-        self.new_mesh("default_mesh", "assets/models/box.obj")
+        # self.new_mesh("screen_quad", "./assets/models/quad.obj")
+        # self.new_mesh("default_mesh", "assets/models/box.obj")
 
         self.new_material("default_material", *(0.2, 0.2, 0.2), *(0.6, 0.6, 0.6), *(1.0, 1.0, 1.0), 1.0)
         self.new_material("light_color", *(0.2, 0.2, 0.2), *(0.5, 0.5, 0.5), *(1.0, 1.0, 1.0), 1.0)
@@ -162,49 +164,125 @@ class RendererManager(metaclass=Singleton):
         formatted_normals = np.array(formatted_normals, dtype=np.float32)
         formatted_uvs = np.array(formatted_uvs, dtype=np.float32)
 
+        # print(formatted_vertices)
+
+        indices, indiced_vertices, indiced_normals, indiced_uvs = self.index_vertices(formatted_vertices, formatted_normals, formatted_uvs)
+
+        # print("vertices:")
+        # for i in range(int(len(indiced_vertices) / 3)):
+        #     print(f"({indiced_vertices[i * 3]}, {indiced_vertices[i * 3 + 1]}, {indiced_vertices[i * 3 + 2]})")
+        # print(f"indices: {indices}")
+
+        self.indices_count[name] = len(indices)
+
+        indiced_vertices = np.array(indiced_vertices, dtype=np.float32)
+        indiced_normals = np.array(indiced_normals, dtype=np.float32)
+        indiced_uvs = np.array(indiced_uvs, dtype=np.float32)
+
+        indices = np.array(indices, dtype=np.uint32)
+
         # store the original name to create multiple names out of it, in case the parameter "count" is set
         original_name = name
 
-        # iterate "count" times (1 by default)
-        for i in range(count):
-            # if the count parameter is set
-            if count != 1:
-                # create a new name by adding the counter to the original name
-                name = original_name + str(i)
+        # generate the OpenGL buffers (VBO) for each data type
+        self.vertex_vbos[name] = glGenBuffers(1)
+        self.normal_vbos[name] = glGenBuffers(1)
+        self.uv_vbos[name] = glGenBuffers(1)
+        self.ebos[name] = glGenBuffers(1)
+        # generate the OpenGL buffer (VAO) to store all the data
+        self.vaos[name] = glGenVertexArrays(1)
 
-            # generate the OpenGL buffers (VBO) for each data type
-            self.vertex_vbos[name] = glGenBuffers(1)
-            self.normal_vbos[name] = glGenBuffers(1)
-            self.uv_vbos[name] = glGenBuffers(1)
-            # generate the OpenGL buffer (VAO) to store all the data
-            self.vaos[name] = glGenVertexArrays(1)
+        # store the vertices count
+        self.vertices_count[name] = len(formatted_vertices) / 3
 
-            # store the vertices count
-            self.vertices_count[name] = len(formatted_vertices) / 3
+        # bind the VAO
+        glBindVertexArray(self.vaos[name])
 
-            # bind the VAO
-            glBindVertexArray(self.vaos[name])
+        # bind the vertex VBO
+        glBindBuffer(GL_ARRAY_BUFFER, self.vertex_vbos[name])
+        # store the data into the VBO
+        glBufferData(GL_ARRAY_BUFFER, indiced_vertices.nbytes, indiced_vertices, GL_STATIC_DRAW)
+        # enable the index 0 of the VAO
+        glEnableVertexAttribArray(0)
+        # store the data from the VBO in the VAO
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
 
-            # bind the vertex VBO
-            glBindBuffer(GL_ARRAY_BUFFER, self.vertex_vbos[name])
-            # store the data into the VBO
-            glBufferData(GL_ARRAY_BUFFER, formatted_vertices.nbytes, formatted_vertices, GL_STATIC_DRAW)
-            # enable the index 0 of the VAO
-            glEnableVertexAttribArray(0)
-            # store the data from the VBO in the VAO
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
+        # repeat for normals
+        glBindBuffer(GL_ARRAY_BUFFER, self.normal_vbos[name])
+        glBufferData(GL_ARRAY_BUFFER, indiced_normals.nbytes, indiced_normals, GL_STATIC_DRAW)
+        glEnableVertexAttribArray(1)
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
 
-            # repeat for normals
-            glBindBuffer(GL_ARRAY_BUFFER, self.normal_vbos[name])
-            glBufferData(GL_ARRAY_BUFFER, formatted_normals.nbytes, formatted_normals, GL_STATIC_DRAW)
-            glEnableVertexAttribArray(1)
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
+        # and UVs
+        glBindBuffer(GL_ARRAY_BUFFER, self.uv_vbos[name])
+        glBufferData(GL_ARRAY_BUFFER, indiced_uvs.nbytes, indiced_uvs, GL_STATIC_DRAW)
+        glEnableVertexAttribArray(2)
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
 
-            # and UVs
-            glBindBuffer(GL_ARRAY_BUFFER, self.uv_vbos[name])
-            glBufferData(GL_ARRAY_BUFFER, formatted_uvs.nbytes, formatted_uvs, GL_STATIC_DRAW)
-            glEnableVertexAttribArray(2)
-            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))   
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.ebos[name])
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
+
+
+    def index_vertices(self, vertices, normals, uvs):
+        # print(vertices)
+        vertices_dict = dict()
+        out_vertices = []
+        out_normals = []
+        out_uvs = []
+        out_indices = []
+
+        # print(int(len(vertices) / 3))
+        # print(len(uvs))
+
+        # for each input vertex:
+        for i in range(int(len(vertices) / 3)):
+            # print(f"({vertices[i * 3 + 0]}, {vertices[i * 3 + 1]}, {vertices[i * 3 + 2]})")
+            packed_vertex = PackedVertex(position=glm.vec3(vertices[i * 3 + 0], vertices[i * 3 + 1], vertices[i * 3 + 2]),
+                                         uv = glm.vec2(uvs[i * 2 + 0], uvs[i * 2 + 1]),
+                                         normal = glm.vec3(normals[i * 3 + 0], normals[i * 3 + 1], normals[i * 3 + 2]))
+            # print(f"packed_vertex: {packed_vertex}")
+            # print(f"current pos: ({packed_vertex.position.x}, {packed_vertex.position.y}, {packed_vertex.position.z})")
+            found, index = self.get_similar_vertex_index(packed_vertex, vertices_dict)
+
+            if found:
+                out_indices.append(index)
+            else:
+                # print("new vertex")
+                out_vertices.append(vertices[i * 3 + 0])
+                out_vertices.append(vertices[i * 3 + 1])
+                out_vertices.append(vertices[i * 3 + 2])
+
+                out_uvs.append(uvs[i * 2 + 0])
+                out_uvs.append(uvs[i * 2 + 1])
+                # out_uvs.append(uvs[i + 2])
+
+                out_normals.append(normals[i * 3 + 0])
+                out_normals.append(normals[i * 3 + 1])
+                out_normals.append(normals[i * 3 + 2])
+
+                new_index = int(len(out_vertices) / 3 - 1)
+                out_indices.append(new_index)
+
+                vertices_dict[packed_vertex] = new_index
+
+        return(out_indices, out_vertices, out_normals, out_uvs)
+
+    def get_similar_vertex_index(self, packed, vertices):
+        for vertex, index in vertices.items():
+            # print(f"current vertex: ({vertex.position.x}, {vertex.position.y}, {vertex.position.z})")
+            # print(f"checking new vertex: {index}")
+            if vertex.position.x == packed.position.x and \
+               vertex.position.y == packed.position.y and \
+               vertex.position.z == packed.position.z and \
+               vertex.normal.x == packed.normal.x and \
+               vertex.normal.y == packed.normal.y and \
+               vertex.normal.z == packed.normal.z and \
+               vertex.uv.x == packed.uv.x and \
+               vertex.uv.y == packed.uv.y:
+                # print("FOUND A SIMILAR VERTEX")
+                return(True, index)
+        
+        return(False, None)
 
     # method to generate a new texture (needs double checking if it's correct)
     def new_texture(self, name, filepath):
@@ -297,10 +375,9 @@ class RendererManager(metaclass=Singleton):
 
         # extract the values of the model matrices
         for model in instance.models:
-            for model_mat in self.model_matrices[model.name]:
-                for col in model_mat:
-                    for value in col:
-                        formatted_model_matrices.append(value)
+            for col in self.model_matrices[model.name]:
+                for value in col:
+                    formatted_model_matrices.append(value)
 
         formatted_ambients = []
         formatted_diffuses = []
@@ -427,10 +504,10 @@ class RendererManager(metaclass=Singleton):
         glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, float_size * 16, ctypes.c_void_p(float_size * 4 * 3))
 
         # tell OpenGL that the indices 3, 4, 5 and 6 of the VAO need to change after every call
-        glVertexAttribDivisor(3, 1)
-        glVertexAttribDivisor(4, 1)
-        glVertexAttribDivisor(5, 1)
-        glVertexAttribDivisor(6, 1)
+        glVertexBindingDivisor(3, 1)
+        glVertexBindingDivisor(4, 1)
+        glVertexBindingDivisor(5, 1)
+        glVertexBindingDivisor(6, 1)
 
         glBindBuffer(GL_ARRAY_BUFFER, instance.ambient_vbo)
         glEnableVertexAttribArray(7)
@@ -448,10 +525,10 @@ class RendererManager(metaclass=Singleton):
         glEnableVertexAttribArray(10)
         glVertexAttribPointer(10, 1, GL_FLOAT, GL_FALSE, float_size, ctypes.c_void_p(0))
 
-        glVertexAttribDivisor(7, 1)
-        glVertexAttribDivisor(8, 1)
-        glVertexAttribDivisor(9, 1)
-        glVertexAttribDivisor(10, 1)
+        glVertexBindingDivisor(7, 1)
+        glVertexBindingDivisor(8, 1)
+        glVertexBindingDivisor(9, 1)
+        glVertexBindingDivisor(10, 1)
 
         # bind to the default VAO
         glBindVertexArray(0)
@@ -486,6 +563,18 @@ class RendererManager(metaclass=Singleton):
         instance.to_update["diffuses"] = True
         instance.to_update["speculars"] = True
         instance.to_update["shininesses"] = True
+
+    def set_models_in_instance(self, models, instance_name):
+
+        instance = self.instances[instance_name]
+        instance.models = []
+
+        for model in models:
+            instance.models.append(self.models[model])
+            self.single_render_models.remove(self.models[model])
+            self.models[model].in_instance = instance_name
+
+        self._initialize_instance(instance_name)
 
     def remove_model_from_instance(self, model, instance):
         name = model
@@ -636,3 +725,10 @@ class RendererManager(metaclass=Singleton):
         for instance in self.instances.values():
             instance.update()
             
+
+
+class PackedVertex:
+    def __init__(self, position, uv, normal):
+        self.position = position
+        self.uv = uv
+        self.normal = normal
