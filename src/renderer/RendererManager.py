@@ -8,6 +8,7 @@ import glm
 # custom modules imports
 from utils.Singleton import Singleton
 from utils.colors import colors
+from utils.vbo_indexer import *
 from renderer.model.Model import Model
 from renderer.material.material import Material
 from renderer.shader.Shader import Shader
@@ -32,6 +33,7 @@ class RendererManager(metaclass=Singleton):
         self.vertex_vbos = dict()
         self.normal_vbos = dict()
         self.uv_vbos = dict()
+        # dictionary of OpenGL EBOs for index data
         self.ebos = dict()
         # dictionary of OpenGL VAO for vertex data
         self.vaos = dict()
@@ -49,6 +51,7 @@ class RendererManager(metaclass=Singleton):
         self.model_matrices = dict()
         # dictionary of number of vertices per mesh
         self.vertices_count = dict()
+        # dictionary of number of indices per mesh
         self.indices_count = dict()
         # dictionary of trasformation factors of the meshes
         self.positions = dict()
@@ -125,9 +128,10 @@ class RendererManager(metaclass=Singleton):
         # rebind the default framebuffer 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
+    # --------------------------- Creating Components ----------------------------------
+
     # method to create a new mesh, a count can be specified to generate more than 1 mesh with the same 3D model
-    # count argument is now deprecated
-    def new_mesh(self, name, file_path, count = 1):
+    def new_mesh(self, name, file_path):
         # empty lists to contain the vertices data taken from the file
         formatted_vertices = []
         formatted_normals = []
@@ -159,30 +163,24 @@ class RendererManager(metaclass=Singleton):
                 # v.z              
                 formatted_vertices.append(material.vertices[i+7])
 
-        # format the lists into np.arrays of type float 32
+        # format the lists into np.arrays of type float 32bit
         formatted_vertices = np.array(formatted_vertices, dtype=np.float32)
         formatted_normals = np.array(formatted_normals, dtype=np.float32)
         formatted_uvs = np.array(formatted_uvs, dtype=np.float32)
 
-        # print(formatted_vertices)
+        # convert the lists into indiced lists and obtain an indices list for indexed rendering
+        indices, indiced_vertices, indiced_normals, indiced_uvs = index_vertices(formatted_vertices, formatted_normals, formatted_uvs)
 
-        indices, indiced_vertices, indiced_normals, indiced_uvs = self.index_vertices(formatted_vertices, formatted_normals, formatted_uvs)
-
-        # print("vertices:")
-        # for i in range(int(len(indiced_vertices) / 3)):
-        #     print(f"({indiced_vertices[i * 3]}, {indiced_vertices[i * 3 + 1]}, {indiced_vertices[i * 3 + 2]})")
-        # print(f"indices: {indices}")
-
+        # keep track of the indices count
         self.indices_count[name] = len(indices)
 
+        # convert the indexed lists into indexed arrays of type float 32bit
         indiced_vertices = np.array(indiced_vertices, dtype=np.float32)
         indiced_normals = np.array(indiced_normals, dtype=np.float32)
         indiced_uvs = np.array(indiced_uvs, dtype=np.float32)
 
+        # convert the list of indices into an array of indices of type unsigned int 32bit
         indices = np.array(indices, dtype=np.uint32)
-
-        # store the original name to create multiple names out of it, in case the parameter "count" is set
-        original_name = name
 
         # generate the OpenGL buffers (VBO) for each data type
         self.vertex_vbos[name] = glGenBuffers(1)
@@ -219,70 +217,9 @@ class RendererManager(metaclass=Singleton):
         glEnableVertexAttribArray(2)
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
 
+        # pass the data for the element array buffer of indices
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.ebos[name])
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
-
-
-    def index_vertices(self, vertices, normals, uvs):
-        # print(vertices)
-        vertices_dict = dict()
-        out_vertices = []
-        out_normals = []
-        out_uvs = []
-        out_indices = []
-
-        # print(int(len(vertices) / 3))
-        # print(len(uvs))
-
-        # for each input vertex:
-        for i in range(int(len(vertices) / 3)):
-            # print(f"({vertices[i * 3 + 0]}, {vertices[i * 3 + 1]}, {vertices[i * 3 + 2]})")
-            packed_vertex = PackedVertex(position=glm.vec3(vertices[i * 3 + 0], vertices[i * 3 + 1], vertices[i * 3 + 2]),
-                                         uv = glm.vec2(uvs[i * 2 + 0], uvs[i * 2 + 1]),
-                                         normal = glm.vec3(normals[i * 3 + 0], normals[i * 3 + 1], normals[i * 3 + 2]))
-            # print(f"packed_vertex: {packed_vertex}")
-            # print(f"current pos: ({packed_vertex.position.x}, {packed_vertex.position.y}, {packed_vertex.position.z})")
-            found, index = self.get_similar_vertex_index(packed_vertex, vertices_dict)
-
-            if found:
-                out_indices.append(index)
-            else:
-                # print("new vertex")
-                out_vertices.append(vertices[i * 3 + 0])
-                out_vertices.append(vertices[i * 3 + 1])
-                out_vertices.append(vertices[i * 3 + 2])
-
-                out_uvs.append(uvs[i * 2 + 0])
-                out_uvs.append(uvs[i * 2 + 1])
-                # out_uvs.append(uvs[i + 2])
-
-                out_normals.append(normals[i * 3 + 0])
-                out_normals.append(normals[i * 3 + 1])
-                out_normals.append(normals[i * 3 + 2])
-
-                new_index = int(len(out_vertices) / 3 - 1)
-                out_indices.append(new_index)
-
-                vertices_dict[packed_vertex] = new_index
-
-        return(out_indices, out_vertices, out_normals, out_uvs)
-
-    def get_similar_vertex_index(self, packed, vertices):
-        for vertex, index in vertices.items():
-            # print(f"current vertex: ({vertex.position.x}, {vertex.position.y}, {vertex.position.z})")
-            # print(f"checking new vertex: {index}")
-            if vertex.position.x == packed.position.x and \
-               vertex.position.y == packed.position.y and \
-               vertex.position.z == packed.position.z and \
-               vertex.normal.x == packed.normal.x and \
-               vertex.normal.y == packed.normal.y and \
-               vertex.normal.z == packed.normal.z and \
-               vertex.uv.x == packed.uv.x and \
-               vertex.uv.y == packed.uv.y:
-                # print("FOUND A SIMILAR VERTEX")
-                return(True, index)
-        
-        return(False, None)
 
     # method to generate a new texture (needs double checking if it's correct)
     def new_texture(self, name, filepath):
@@ -533,6 +470,8 @@ class RendererManager(metaclass=Singleton):
         # bind to the default VAO
         glBindVertexArray(0)
 
+    # ---------------------------- Modify Instances -----------------------------------
+
     # method to add a model to an instance
     def add_model_to_instance(self, model, instance):
         model_name = model
@@ -599,8 +538,7 @@ class RendererManager(metaclass=Singleton):
         self.instances[instance].shader = shader
         # self.instances[instance].to_update = True
 
-    def light_material(self):
-        return(self.materials["light_color"])
+    # ---------------------------- Modify Models -------------------------------------
 
     # method to place the mesh in a specific spot
     def place(self, name, x, y, z):
@@ -614,19 +552,19 @@ class RendererManager(metaclass=Singleton):
         self._calculate_model_matrix(name)
         self._check_instance_update(name)
     
-    # function to rotate the mesh
+    # method to rotate the mesh
     def rotate(self, name, x, y, z):
         self.rotations[name] = glm.vec3(x, y, z)
         self._calculate_model_matrix(name)
         self._check_instance_update(name)
 
-    # function to scale the mesh
+    # method to scale the mesh
     def scale(self, name, x, y, z):
         self.scales[name] = glm.vec3(x, y, z)
         self._calculate_model_matrix(name)
         self._check_instance_update(name)
 
-    # function to calculate the model matrix after a transformation
+    # method to calculate the model matrix after a transformation
     def _calculate_model_matrix(self, name):
         # reset the model matrix
         self.model_matrices[name] = glm.mat4(1)
@@ -638,6 +576,18 @@ class RendererManager(metaclass=Singleton):
         self.model_matrices[name] = glm.rotate(self.model_matrices[name], glm.radians(self.rotations[name].z), glm.vec3(0.0, 0.0, 1.0))
         # calculate the scale
         self.model_matrices[name] = glm.scale(self.model_matrices[name], self.scales[name])
+
+    # method to check if an instance should be updated after a transformation
+    def _check_instance_update(self, name):
+        if self.models[name].in_instance == "":
+            return
+        
+        for instance in self.instances.values():
+            if self.models[name] in instance.models:
+                instance.to_update["model_matrices"] = True
+                instance.change_model_matrix(self.models[name], self.model_matrices[name])
+
+    # ----------------------------- Modify Materials ---------------------------------
 
     def set_ambient(self, name, r, g, b):
         self.materials[name].set_ambient(r, g, b)
@@ -655,12 +605,33 @@ class RendererManager(metaclass=Singleton):
         self.materials[name].set_shininess(s)
         self._check_instance_material_update(name, "shininesses")
 
+    def _check_instance_material_update(self, name, component):
+        for model in self.materials[name].models:
+            if model.in_instance != "":
+                self.instances[model.in_instance].to_update[component] = True
+                
+                if component == "ambients":
+                    self.instances[model.in_instance].change_ambient(self.materials[name])
+                if component == "diffuses":
+                    self.instances[model.in_instance].change_diffuse(self.materials[name])
+                if component == "speculars":
+                    self.instances[model.in_instance].change_specular(self.materials[name])
+                if component == "shininesses":
+                    self.instances[model.in_instance].change_shininess(self.materials[name])
+
+    # ---------------------------- Getters ------------------------------------------
+
+    def light_material(self):
+        return(self.materials["light_color"])
+
     # method to obtain an OpenGL ready matrix
     def get_ogl_matrix(self, name):
         return(glm.value_ptr(self.model_matrices[name]))
 
     def get_ogl_projection_matrix(self):
         return(glm.value_ptr(self.projection_matrix))
+
+    # ------------------------------ Updaters ---------------------------------------
 
     # method to update the dimensions of the screen
     def update_dimensions(self, width, height):
@@ -694,41 +665,10 @@ class RendererManager(metaclass=Singleton):
 
         # bind the default framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
-
-
-    def _check_instance_update(self, name):
-        if self.models[name].in_instance == "":
-            return
-        
-        for instance in self.instances.values():
-            if self.models[name] in instance.models:
-                instance.to_update["model_matrices"] = True
-                instance.change_model_matrix(self.models[name], self.model_matrices[name])
                 
-
-    def _check_instance_material_update(self, name, component):
-        for model in self.materials[name].models:
-            if model.in_instance != "":
-                self.instances[model.in_instance].to_update[component] = True
-                
-                if component == "ambients":
-                    self.instances[model.in_instance].change_ambient(self.materials[name])
-                if component == "diffuses":
-                    self.instances[model.in_instance].change_diffuse(self.materials[name])
-                if component == "speculars":
-                    self.instances[model.in_instance].change_specular(self.materials[name])
-                if component == "shininesses":
-                    self.instances[model.in_instance].change_shininess(self.materials[name])
-
-
+    # update method to update components of the rendering manager
     def update(self):
+        # update the instances
         for instance in self.instances.values():
             instance.update()
             
-
-
-class PackedVertex:
-    def __init__(self, position, uv, normal):
-        self.position = position
-        self.uv = uv
-        self.normal = normal

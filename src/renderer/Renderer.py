@@ -30,15 +30,22 @@ class Renderer(metaclass=Singleton):
         # reset the timer
         self.timer.reset()
 
-        # draw the scene to it
-        self._render_scene()
+        rm = RendererManager()
+
+        # bind the render framebuffer
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
+        # clear the framebuffer and depth buffers
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        # draw the single models 
+        self._render_models()
+        # and the instances
+        self._render_instances()
 
         # draw the render quad to it
         # self._render_screen()
 
-
+        # clear the screen
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
-
         # clear the color buffer
         glClear(GL_COLOR_BUFFER_BIT)
 
@@ -46,15 +53,9 @@ class Renderer(metaclass=Singleton):
         self.timer.record()
         
     # method to render the models to the render framebuffer
-    def _render_scene(self):
+    def _render_models(self):
         # get a reference to the renderer manager
-        rm = RendererManager()
-
-        # bind the render framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
-
-        # clear the framebuffer and depth buffers
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)         
+        rm = RendererManager()        
 
         # variables to keep track of the last used shader and mesh
         last_shader = ""
@@ -64,9 +65,6 @@ class Renderer(metaclass=Singleton):
         # THIS LOOP WILL CHANGE WHEN THE MODELS WILL BE GROUPED BY SHADER, SO THAT THERE ISN'T SO MUCH CONTEXT SWITCHING
         # for every model in the renderer manager
         for model in rm.single_render_models:
-            # if model.in_instance:
-            #     continue
-
             # check if the new model has a different shader
             if last_shader != model.shader:
                 # if it has a different shader, change to the current shader
@@ -89,8 +87,9 @@ class Renderer(metaclass=Singleton):
             # check if the new model has a different mesh
             if last_mesh != model.mesh:
                 # if it does, bind the new VAO
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos[model.mesh])
+                
                 glBindVertexArray(rm.vaos[model.mesh])
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos[model.mesh])
                 
                 # and keep track of the last used mesh
                 last_mesh = model.mesh
@@ -99,19 +98,20 @@ class Renderer(metaclass=Singleton):
             # glDrawArrays(GL_TRIANGLES, 0, int(rm.vertices_count[model.mesh]))
             glDrawElements(GL_TRIANGLES, int(rm.indices_count[model.mesh]), GL_UNSIGNED_INT, None)
 
+
+    def _render_instances(self):
+        rm = RendererManager()
+
         for instance in rm.instances.values():
             rm.shaders[instance.shader].use()
             self._link_shader_uniforms(rm.shaders[instance.shader])
-
-            # self._link_material_uniforms(rm.shaders[instance.shader], instance.models[0].name)
-            # self._link_model_uniforms(rm.shaders[instance.shader], instance.models[0].name)
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos[instance.mesh])
+            
             glBindVertexArray(instance.vao)
-            glDrawArraysInstanced(GL_TRIANGLES, 0, int(rm.vertices_count[instance.mesh]), len(instance.models))
-            # glDrawElementsInstanced(GL_TRIANGLES, int(rm.indices_count[instance.mesh]), GL_UNSIGNED_INT, None, len(instance.models))
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos[instance.mesh])
+            # glDrawArraysInstanced(GL_TRIANGLES, 0, int(rm.vertices_count[instance.mesh]), len(instance.models))
+            glDrawElementsInstanced(GL_TRIANGLES, int(rm.indices_count[instance.mesh]), GL_UNSIGNED_INT, None, len(instance.models))
 
         
-
     def _render_screen(self):
         # bind the screen framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
@@ -162,8 +162,6 @@ class Renderer(metaclass=Singleton):
             glUniform3f(shader.uniforms["light_diffuse"], light_material.diffuse[0], light_material.diffuse[1], light_material.diffuse[2])
         if "light_specular" in shader.uniforms:
             glUniform3f(shader.uniforms["light_specular"], light_material.specular[0], light_material.specular[1], light_material.specular[2])
-
-
 
     # method to link dynamic uniforms to the shader (dynamic meaning they change between meshes)
     def _link_model_uniforms(self, shader, name):

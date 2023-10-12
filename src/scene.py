@@ -10,10 +10,11 @@ def setup():
     count = 100
 
     # rm.new_mesh("gally", "assets/models/gally.obj")
-    rm.new_mesh("box", "assets/models/box.obj")
-    rm.new_mesh("sphere", "assets/models/sphere.obj")
+    rm.new_mesh("box", "assets/models/default/box.obj")
+    rm.new_mesh("charmander", "assets/models/charmander/charmander.obj")
+    # rm.new_mesh("sphere", "assets/models/sphere.obj")
     # rm.new_mesh("quad", "assets/models/quad.obj")
-    rm.new_model("light", mesh="sphere", shader="white")
+    rm.new_model("light", mesh="box", shader="white")
     rm.new_material("white", *(0.2, 0.2, 0.2), *(0.4, 0.4, 0.4), *(0.8, 0.8, 0.8), 4.0)
 
     rm.place("light", 0, 1, -1)
@@ -22,7 +23,7 @@ def setup():
 
     # rm.new_model("second_sphere", mesh="sphere", shader="lighting_instanced")
 
-    # rm.new_instance("colored_entities", "box", "lighting_instanced")
+    rm.new_instance("colored_entities", "charmander", "lighting_instanced")
 
     entities = []
 
@@ -36,9 +37,9 @@ def setup():
             rm.new_model("entity" + str(i * 10 + j), mesh="box", shader="lighting", material="color" + str(i * 10 + j))
             rm.place("entity" + str(i * 10 + j), i * 3, 0, j * 3)
             # rm.add_model_to_instance("entity" + str(i * 10 + j), "colored_entities")
-            # entities.append("entity" + str(i * 10 + j))
+            entities.append("entity" + str(i * 10 + j))
         
-    # rm.set_models_in_instance(entities, "colored_entities")
+    rm.set_models_in_instance(entities, "colored_entities")
 
 def update(dt):
     rm = RendererManager()
