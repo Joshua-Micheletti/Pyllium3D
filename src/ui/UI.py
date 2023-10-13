@@ -62,7 +62,7 @@ class UI(metaclass=Singleton):
         self.timer = Timer()
         self.timer.record()
 
-    def draw(self, dt, swaptime, controltime, updatetime):
+    def draw(self, dt, swaptime, controltime, updatetime, rmupdatetime):
         self.timer.reset()
 
         self.implementation.process_inputs()
@@ -76,7 +76,12 @@ class UI(metaclass=Singleton):
         self.states, self.dimensions = self.left_window.draw(self.states, self.dimensions)
         self.states, self.dimensions = self.right_window.draw(self.states, self.dimensions)
         self.states, self.dimensions = self.bottom_window.draw(self.states, self.dimensions)
-        self.states, self.dimensions = self.fps_window.draw(self.states, self.dimensions, dt=dt, swaptime=swaptime, controltime=controltime, ui_time=self.timer.laps[-1], updatetime=updatetime)
+        self.states, self.dimensions = self.fps_window.draw(self.states, self.dimensions,
+                                                            dt=dt, swaptime=swaptime,
+                                                            controltime=controltime,
+                                                            ui_time=self.timer.laps[-1],
+                                                            updatetime=updatetime,
+                                                            rmupdatetime=rmupdatetime)
 
         # imgui.show_demo_window()
 

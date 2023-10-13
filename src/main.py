@@ -50,6 +50,8 @@ def main():
     controltime.record()
     updatetime = Timer()
     updatetime.record()
+    rmupdatetime = Timer()
+    rmupdatetime.record()
 
     # 60 fps
     # framerate = 1000.0 / 1000.0
@@ -71,13 +73,16 @@ def main():
             controller.update(window, tickrate)
             controltime.record()
             updatetime.reset()
-            rm.update()
             scene.update(tickrate)
+            
             updatetime.record()
             tick_accumulator -= tickrate
-    
+        
+        rmupdatetime.reset()
+        rm.update()
+        rmupdatetime.record()
         renderer.render()
-        ui.draw(dt, swaptime.laps[-1], controltime.laps[-1], updatetime.laps[-1])
+        ui.draw(dt, swaptime.laps[-1], controltime.laps[-1], updatetime.laps[-1], rmupdatetime.laps[-1])
         # print(f"swaptime: {swaptime.laps[-1]}")
         swaptime.reset()
         glfw.swap_buffers(window.window)

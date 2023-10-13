@@ -21,6 +21,7 @@ class RendererManager(metaclass=Singleton):
     def __init__(self):
         # dictionary to keep track of model objects
         self.models = dict()
+        self.changed_models = dict()
 
         # list of models to be rendered normally
         self.single_render_models = []
@@ -367,7 +368,7 @@ class RendererManager(metaclass=Singleton):
         # bind the new buffer
         glBindBuffer(GL_ARRAY_BUFFER, instance.model_matrices_vbo)
         # pass the data to the buffer
-        glBufferData(GL_ARRAY_BUFFER, float_size * len(formatted_model_matrices), formatted_model_matrices, GL_DYNAMIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, float_size * len(formatted_model_matrices), formatted_model_matrices, GL_STREAM_DRAW)
         # glBindBuffer(GL_ARRAY_BUFFER, 0)
 
         if instance.ambient_vbo != None:
@@ -547,26 +548,30 @@ class RendererManager(metaclass=Singleton):
     # method to place the mesh in a specific spot
     def place(self, name, x, y, z):
         self.positions[name] = glm.vec3(x, y, z)
-        self._calculate_model_matrix(name)
-        self._check_instance_update(name)     
+        self.changed_models[name] = True
+        # self._calculate_model_matrix(name)
+        # self._check_instance_update(name)     
 
     # method to move a mesh by a certain vector
     def move(self, name, x, y, z):
         self.positions[name] += glm.vec3(x, y, z)
-        self._calculate_model_matrix(name)
-        self._check_instance_update(name)
+        self.changed_models[name] = True
+        # self._calculate_model_matrix(name)
+        # self._check_instance_update(name)
     
     # method to rotate the mesh
     def rotate(self, name, x, y, z):
         self.rotations[name] = glm.vec3(x, y, z)
-        self._calculate_model_matrix(name)
-        self._check_instance_update(name)
+        self.changed_models[name] = True
+        # self._calculate_model_matrix(name)
+        # self._check_instance_update(name)
 
     # method to scale the mesh
     def scale(self, name, x, y, z):
         self.scales[name] = glm.vec3(x, y, z)
-        self._calculate_model_matrix(name)
-        self._check_instance_update(name)
+        self.changed_models[name] = True
+        # self._calculate_model_matrix(name)
+        # self._check_instance_update(name)
 
     # method to calculate the model matrix after a transformation
     def _calculate_model_matrix(self, name):
@@ -675,4 +680,11 @@ class RendererManager(metaclass=Singleton):
         # update the instances
         for instance in self.instances.values():
             instance.update()
+
+        for model in self.changed_models:
+            self._calculate_model_matrix(model)
+            self._check_instance_update(model)
+
+        self.changed_models = dict()
+
             

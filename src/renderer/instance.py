@@ -206,10 +206,10 @@ class Instance:
         # bind the model matrices vbo
         glBindBuffer(GL_ARRAY_BUFFER, self.model_matrices_vbo)
         # pass the new data for the vbo
-        # glBufferData(GL_ARRAY_BUFFER, self.model_matrices.nbytes, self.model_matrices, GL_STATIC_DRAW)
         glBufferSubData(GL_ARRAY_BUFFER, 0, self.model_matrices.nbytes, self.model_matrices)
+        # glBufferSubData(GL_ARRAY_BUFFER, 0, self.model_matrices.nbytes, self.model_matrices)
         # bind back to the default vbo
-        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        # glBindBuffer(GL_ARRAY_BUFFER, 0)
 
     # method to update the ambients vbo
     def update_ambients(self):

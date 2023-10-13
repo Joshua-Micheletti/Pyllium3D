@@ -11,7 +11,7 @@ def setup():
 
     # rm.new_mesh("gally", "assets/models/gally.obj")
     rm.new_mesh("box", "assets/models/default/box.obj")
-    # rm.new_mesh("charmander", "assets/models/charmander/charmander.obj")
+    rm.new_mesh("charmander", "assets/models/charmander/charmander.obj")
     # rm.new_mesh("sphere", "assets/models/sphere.obj")
     # rm.new_mesh("quad", "assets/models/quad.obj")
     rm.new_model("light", mesh="box", shader="white")
@@ -23,7 +23,7 @@ def setup():
 
     # rm.new_model("second_sphere", mesh="sphere", shader="lighting_instanced")
 
-    rm.new_instance("colored_entities", "box", "lighting_instanced")
+    rm.new_instance("colored_entities", "charmander", "lighting_instanced")
 
     entities = []
 
@@ -36,9 +36,12 @@ def setup():
                             random.uniform(1, 256))
             rm.new_model("entity" + str(i * 10 + j), mesh="box", shader="lighting", material="color" + str(i * 10 + j))
             rm.place("entity" + str(i * 10 + j), i * 3, 0, j * 3)
+            # rm.place("entity" + str(i * 10 + j), 1, 0, 1)
             # rm.add_model_to_instance("entity" + str(i * 10 + j), "colored_entities")
             entities.append("entity" + str(i * 10 + j))
-        
+    
+    rm.update()
+
     rm.set_models_in_instance(entities, "colored_entities")
 
 def update(dt):
@@ -50,11 +53,11 @@ def update(dt):
     for model in rm.instances["colored_entities"].models:
         rm.move(model.name, time, time, time)
         rm.rotate(model.name, time, time, time)
-        rm.scale(model.name, time, time, time)
+        rm.scale(model.name, time * 3, time * 3, time * 3)
 
-        i += 1
-        if i == 100:
-            break
+        # i += 1
+        # if i == 400:
+        #     break
 
     # rm.place("light", math.cos(glfw.get_time() / 2) * time * 2 + rm.positions["light"].x, math.sin(glfw.get_time() / 2) * 6, math.sin(glfw.get_time() / 2) * time * 2 + rm.positions["light"].z)
     rm.light_source = rm.positions["light"]
