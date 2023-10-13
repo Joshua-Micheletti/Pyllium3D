@@ -7,11 +7,11 @@ import glfw
 def setup():
     rm = RendererManager()
 
-    count = 100
+    count = 600
 
     # rm.new_mesh("gally", "assets/models/gally.obj")
     rm.new_mesh("box", "assets/models/default/box.obj")
-    rm.new_mesh("charmander", "assets/models/charmander/charmander.obj")
+    # rm.new_mesh("charmander", "assets/models/charmander/charmander.obj")
     # rm.new_mesh("sphere", "assets/models/sphere.obj")
     # rm.new_mesh("quad", "assets/models/quad.obj")
     rm.new_model("light", mesh="box", shader="white")
@@ -23,7 +23,7 @@ def setup():
 
     # rm.new_model("second_sphere", mesh="sphere", shader="lighting_instanced")
 
-    rm.new_instance("colored_entities", "charmander", "lighting_instanced")
+    rm.new_instance("colored_entities", "box", "lighting_instanced")
 
     entities = []
 
@@ -44,6 +44,18 @@ def setup():
 def update(dt):
     rm = RendererManager()
     time = dt / 1000.0
+
+    i = 0
+
+    for model in rm.instances["colored_entities"].models:
+        rm.move(model.name, time, time, time)
+        rm.rotate(model.name, time, time, time)
+        rm.scale(model.name, time, time, time)
+
+        i += 1
+        if i == 100:
+            break
+
     # rm.place("light", math.cos(glfw.get_time() / 2) * time * 2 + rm.positions["light"].x, math.sin(glfw.get_time() / 2) * 6, math.sin(glfw.get_time() / 2) * time * 2 + rm.positions["light"].z)
     rm.light_source = rm.positions["light"]
 

@@ -99,4 +99,4 @@ class PackedVertex:
 
     # method to check if a value can be considered near enough to another value
     def is_near(self, v1, v2):
-        return(abs(v1 - v2) < 0.05)
+        return(abs(v1 - v2) < 0.001)

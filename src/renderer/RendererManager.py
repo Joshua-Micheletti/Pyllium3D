@@ -168,8 +168,12 @@ class RendererManager(metaclass=Singleton):
         formatted_normals = np.array(formatted_normals, dtype=np.float32)
         formatted_uvs = np.array(formatted_uvs, dtype=np.float32)
 
+        print(len(formatted_vertices))
+
         # convert the lists into indiced lists and obtain an indices list for indexed rendering
         indices, indiced_vertices, indiced_normals, indiced_uvs = index_vertices(formatted_vertices, formatted_normals, formatted_uvs)
+
+        print(len(indiced_vertices))
 
         # keep track of the indices count
         self.indices_count[name] = len(indices)
@@ -363,7 +367,7 @@ class RendererManager(metaclass=Singleton):
         # bind the new buffer
         glBindBuffer(GL_ARRAY_BUFFER, instance.model_matrices_vbo)
         # pass the data to the buffer
-        glBufferData(GL_ARRAY_BUFFER, float_size * len(formatted_model_matrices), formatted_model_matrices, GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, float_size * len(formatted_model_matrices), formatted_model_matrices, GL_DYNAMIC_DRAW)
         # glBindBuffer(GL_ARRAY_BUFFER, 0)
 
         if instance.ambient_vbo != None:

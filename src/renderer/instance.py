@@ -84,7 +84,6 @@ class Instance:
         # get the index of the model selected
         model_index = self.models.index(model)
 
-        # offset to keep track of the position in the matrix
         offset = 0
         # scroll through the columns in the matrix
         for col in model_matrix:
@@ -94,6 +93,38 @@ class Instance:
                 self.model_matrices[model_index * 16 + offset] = value
                 # increase the offset
                 offset += 1
+
+
+        # print(f"model matrix:")
+        # print(self.model_matrices[model_index * 16 + 0],
+        #       self.model_matrices[model_index * 16 + 1],
+        #       self.model_matrices[model_index * 16 + 2],
+        #       self.model_matrices[model_index * 16 + 3])
+        # print(self.model_matrices[model_index * 16 + 4],
+        #       self.model_matrices[model_index * 16 + 5],
+        #       self.model_matrices[model_index * 16 + 6],
+        #       self.model_matrices[model_index * 16 + 7])
+        # print(self.model_matrices[model_index * 16 + 8],
+        #       self.model_matrices[model_index * 16 + 9],
+        #       self.model_matrices[model_index * 16 + 10],
+        #       self.model_matrices[model_index * 16 + 11])
+        # print(self.model_matrices[model_index * 16 + 12],
+        #       self.model_matrices[model_index * 16 + 13],
+        #       self.model_matrices[model_index * 16 + 14],
+        #       self.model_matrices[model_index * 16 + 15])
+
+        # array_matrix = np.array(model_matrix)
+        # print(array_matrix)
+        # array_matrix = np.transpose(array_matrix)
+        # print(array_matrix)
+        # array_matrix = array_matrix.flatten()
+        # print(array_matrix)
+
+        # # offset to keep track of the position in the matrix
+        
+        # float_size = array_matrix.itemsize
+        # glBindBuffer(GL_ARRAY_BUFFER, self.model_matrices_vbo)
+        # glBufferSubData(GL_ARRAY_BUFFER, model_index * (float_size * 16), float_size * 16, array_matrix)
 
     # method to change the ambient value in an instance
     def change_ambient(self, material):
@@ -175,7 +206,8 @@ class Instance:
         # bind the model matrices vbo
         glBindBuffer(GL_ARRAY_BUFFER, self.model_matrices_vbo)
         # pass the new data for the vbo
-        glBufferData(GL_ARRAY_BUFFER, self.model_matrices.nbytes, self.model_matrices, GL_STATIC_DRAW)
+        # glBufferData(GL_ARRAY_BUFFER, self.model_matrices.nbytes, self.model_matrices, GL_STATIC_DRAW)
+        glBufferSubData(GL_ARRAY_BUFFER, 0, self.model_matrices.nbytes, self.model_matrices)
         # bind back to the default vbo
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
