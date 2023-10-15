@@ -169,12 +169,9 @@ class RendererManager(metaclass=Singleton):
         formatted_normals = np.array(formatted_normals, dtype=np.float32)
         formatted_uvs = np.array(formatted_uvs, dtype=np.float32)
 
-        print(len(formatted_vertices))
-
         # convert the lists into indiced lists and obtain an indices list for indexed rendering
-        indices, indiced_vertices, indiced_normals, indiced_uvs = index_vertices(formatted_vertices, formatted_normals, formatted_uvs)
-
-        print(len(indiced_vertices))
+        # indices, indiced_vertices, indiced_normals, indiced_uvs = index_vertices(formatted_vertices, formatted_normals, formatted_uvs)
+        indices, indiced_vertices, indiced_normals, indiced_uvs = index_vertices_multi_thread(formatted_vertices, formatted_normals, formatted_uvs)
 
         # keep track of the indices count
         self.indices_count[name] = len(indices)

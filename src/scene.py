@@ -9,12 +9,13 @@ def setup():
 
     count = 600
 
-    # rm.new_mesh("gally", "assets/models/gally.obj")
+    # rm.new_mesh("gally", "assets/models/default/gally.obj")
     rm.new_mesh("box", "assets/models/default/box.obj")
     rm.new_mesh("charmander", "assets/models/charmander/charmander.obj")
-    # rm.new_mesh("sphere", "assets/models/sphere.obj")
-    # rm.new_mesh("quad", "assets/models/quad.obj")
-    rm.new_model("light", mesh="box", shader="white")
+    # rm.new_mesh("sphere", "assets/models/default/sphere.obj")
+    rm.new_mesh("sphere_low", "assets/models/default/sphere_low.obj")
+    # rm.new_mesh("quad", "assets/models/default/quad.obj")
+    rm.new_model("light", mesh="sphere_low", shader="white")
     rm.new_material("white", *(0.2, 0.2, 0.2), *(0.4, 0.4, 0.4), *(0.8, 0.8, 0.8), 4.0)
 
     rm.place("light", 0, 1, -1)
@@ -50,10 +51,10 @@ def update(dt):
 
     i = 0
 
-    for model in rm.instances["colored_entities"].models:
-        rm.move(model.name, time, time, time)
-        rm.rotate(model.name, time, time, time)
-        rm.scale(model.name, time * 3, time * 3, time * 3)
+    # for model in rm.instances["colored_entities"].models:
+    #     rm.move(model.name, time, time, time)
+    #     rm.rotate(model.name, time, time, time)
+    #     rm.scale(model.name, time * 3, time * 3, time * 3)
 
         # i += 1
         # if i == 400:
