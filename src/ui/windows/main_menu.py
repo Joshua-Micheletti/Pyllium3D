@@ -19,19 +19,24 @@ class MainMenu:
             if imgui.begin_menu("View"):
 
                 imgui.align_text_to_frame_padding()
-                imgui.text("Left window  ")
+                imgui.text("Left window       ")
                 imgui.same_line()
                 _, states["left_window"] = imgui.checkbox("###left_window_checkbox", states["left_window"])
 
                 imgui.align_text_to_frame_padding()
-                imgui.text("Right window ")
+                imgui.text("Right window      ")
                 imgui.same_line()
                 _, states["right_window"] = imgui.checkbox("###right_window_checkbox", states["right_window"])
 
                 imgui.align_text_to_frame_padding()
-                imgui.text("Bottom window")
+                imgui.text("Bottom window     ")
                 imgui.same_line()
                 _, states["bottom_window"] = imgui.checkbox("###bottom_window_checkbox", states["bottom_window"])
+
+                imgui.align_text_to_frame_padding()
+                imgui.text("Performance window")
+                imgui.same_line()
+                _, states["fps_window"] = imgui.checkbox("###fps_window_checkbox", states["fps_window"])
 
                 imgui.end_menu()
 

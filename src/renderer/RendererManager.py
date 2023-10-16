@@ -4,6 +4,7 @@ import numpy as np
 from PIL import Image
 import pywavefront
 import glm
+import multiprocessing
 
 # custom modules imports
 from utils.Singleton import Singleton
@@ -674,14 +675,21 @@ class RendererManager(metaclass=Singleton):
                 
     # update method to update components of the rendering manager
     def update(self):
-        # update the instances
-        for instance in self.instances.values():
-            instance.update()
-
         for model in self.changed_models:
             self._calculate_model_matrix(model)
             self._check_instance_update(model)
 
         self.changed_models = dict()
+
+         # update the instances
+        for instance in self.instances.values():
+            instance.update()
+
+       
+
+
+        
+
+    
 
             

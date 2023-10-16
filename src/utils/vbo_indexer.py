@@ -58,8 +58,8 @@ def index_vertices_st_worker(vertices, normals, uvs, procnum, return_dict):
         
 
 def index_vertices_multi_thread(vertices, normals, uvs):
-    # thread_count = multiprocessing.cpu_count() - 1
-    thread_count = 30
+    thread_count = multiprocessing.cpu_count()
+    # thread_count = 30
     vertex_length = int(len(vertices) / thread_count)
     vertex_length -= vertex_length % 3
     uv_length = int(len(uvs) / thread_count)
