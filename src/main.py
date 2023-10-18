@@ -1,5 +1,3 @@
-# module to get the parameters from the command line
-import sys
 # module to create the window
 import glfw
 from OpenGL.GL import *
@@ -7,9 +5,7 @@ from OpenGL.GL import *
 import scene
 
 # local modules
-from utils import argument_parser as ap
 from utils.Timer import Timer
-from utils.Printer import Printer
 
 from window.Window import Window
 from renderer.RendererManager import RendererManager
@@ -31,9 +27,6 @@ def main():
     controller = Controller()
     # UI object
     ui = UI()
-
-    # printer object to print render information
-    # printer = Printer(interval = 2000)
 
     # execution timer
     frametime = Timer()
@@ -72,24 +65,24 @@ def main():
             glfw.poll_events()
             controller.update(window, tickrate)
             controltime.record()
+
             updatetime.reset()
             scene.update(tickrate)
-            
             updatetime.record()
+
             tick_accumulator -= tickrate
         
         rmupdatetime.reset()
         rm.update()
         rmupdatetime.record()
+
         renderer.render()
+
         ui.draw(dt, swaptime.laps[-1], controltime.laps[-1], updatetime.laps[-1], rmupdatetime.laps[-1])
-        # print(f"swaptime: {swaptime.laps[-1]}")
+
         swaptime.reset()
         glfw.swap_buffers(window.window)
         swaptime.record()
-
-        # print the rendering information
-        # printer.write(verbose=False, frametime=dt)
 
     glfw.terminate()
             

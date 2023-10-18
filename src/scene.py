@@ -7,11 +7,13 @@ import glfw
 def setup():
     rm = RendererManager()
 
-    count = 1000
+    count = 50
 
-    # rm.new_mesh("gally", "assets/models/default/gally.obj")
+    rm.new_shader("cel", "assets/shaders/cel_shading/cel_shading.vert", "assets/shaders/cel_shading/cel_shading.frag")
+
+    rm.new_mesh("gally", "assets/models/default/gally.obj")
     rm.new_mesh("box", "assets/models/default/box.obj")
-    # rm.new_mesh("charmander", "assets/models/charmander/charmander.obj")
+    rm.new_mesh("charmander", "assets/models/charmander/charmander.obj")
     # rm.new_mesh("sphere", "assets/models/default/sphere.obj")
     rm.new_mesh("sphere_low", "assets/models/default/sphere_low.obj")
     # rm.new_mesh("quad", "assets/models/default/quad.obj")
@@ -22,9 +24,12 @@ def setup():
     # rm.scale("light", 0.25, 0.25, 0.25)
     rm.light_source = glm.vec3(5, 5, 5)
 
+    rm.new_model("cel", mesh="sphere_low", shader="cel", material="white")
+    rm.place("cel", 2, 2, 2)
+
     # rm.new_model("second_sphere", mesh="sphere", shader="lighting_instanced")
 
-    rm.new_instance("colored_entities", "sphere_low", "lighting_instanced")
+    rm.new_instance("colored_entities", "charmander", "lighting_instanced")
 
     entities = []
 
@@ -49,16 +54,16 @@ def update(dt):
     rm = RendererManager()
     time = dt / 1000.0
 
-    i = 0
+    # i = 0
 
-    for model in rm.instances["colored_entities"].models:
-        rm.move(model.name, time, time, time)
-        rm.rotate(model.name, time, time, time)
-        rm.scale(model.name, time * 3, time * 3, time * 3)
+    # for model in rm.instances["colored_entities"].models:
+    #     rm.move(model.name, time, time, time)
+    #     rm.rotate(model.name, time, time, time)
+    #     rm.scale(model.name, time * 3, time * 3, time * 3)
 
-        i += 1
-        if i == 400:
-            break
+    #     i += 1
+    #     if i == 2000:
+    #         break
 
     # for model in rm.models.values():
     #     rm.move(model.name, time, time, time)

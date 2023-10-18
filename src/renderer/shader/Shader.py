@@ -35,6 +35,10 @@ class Shader:
         # view matrix uniform (mat4)
         if glGetUniformLocation(self.program, "view") != -1:
             self.uniforms["view"] = glGetUniformLocation(self.program, "view")
+
+        if glGetUniformLocation(self.program, "skybox_view") != -1:
+            self.uniforms["skybox_view"] = glGetUniformLocation(self.program, "skybox_view")
+
         # projection matrix uniform (mat4)
         if glGetUniformLocation(self.program, "projection") != -1:
             self.uniforms["projection"] = glGetUniformLocation(self.program, "projection")

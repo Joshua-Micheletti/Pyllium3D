@@ -35,6 +35,10 @@ class Camera:
         self.position += amount * self.front
         self._calculate_vectors()
 
+    def place(self, x, y, z):
+        self.position = glm.vec3(x, y, z)
+        self._calculate_vectors()
+
     # method to strafe the camera left and right
     def strafe(self, amount):
         self.position += amount * self.right
@@ -72,3 +76,6 @@ class Camera:
     # obtain a formatted version of the view matrix ready for opengl uniforms
     def get_ogl_matrix(self):
         return(glm.value_ptr(self.view_matrix))
+
+    # def get_skybox_ogl_matrix(self):
+    #     return(glm.value_ptr(glm.lookAt(glm.vec3(0), self.front, self.world_up)))

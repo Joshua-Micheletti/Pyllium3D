@@ -5,6 +5,8 @@ from PIL import Image
 import pywavefront
 import glm
 import multiprocessing
+from PIL import Image
+import numpy as np
 
 # custom modules imports
 from utils.Singleton import Singleton
@@ -75,6 +77,8 @@ class RendererManager(metaclass=Singleton):
 
         # setup the rendering framebuffer
         self._setup_render_framebuffer()
+
+        self._setup_skybox()
         
     # method to setup the required entities for the engine
     def _setup_entities(self):
@@ -85,7 +89,7 @@ class RendererManager(metaclass=Singleton):
         self.shaders["lighting_instanced"] = Shader("assets/shaders/lighting_instanced/lighting_instanced.vert", "assets/shaders/lighting_instanced/lighting_instanced.frag")
         
         # self.new_mesh("screen_quad", "./assets/models/quad.obj")
-        # self.new_mesh("default_mesh", "assets/models/box.obj")
+        self.new_mesh("default_mesh", "assets/models/default/box.obj")
 
         self.new_material("default_material", *(0.2, 0.2, 0.2), *(0.6, 0.6, 0.6), *(1.0, 1.0, 1.0), 1.0)
         self.new_material("light_color", *(0.2, 0.2, 0.2), *(0.5, 0.5, 0.5), *(1.0, 1.0, 1.0), 1.0)
@@ -130,6 +134,49 @@ class RendererManager(metaclass=Singleton):
         # rebind the default framebuffer 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
+    # method for setting up the skybox
+    def _setup_skybox(self):
+        # directory of the skybox files
+        filepath = "./assets/textures/Epic_BlueSunset/"
+
+        # list of faces
+        texture_faces = []
+        texture_faces.append(filepath + "left.png")
+        texture_faces.append(filepath + "right.png")
+        texture_faces.append(filepath + "top.png")
+        texture_faces.append(filepath + "bottom.png")
+        texture_faces.append(filepath + "back.png")
+        texture_faces.append(filepath + "front.png")
+            
+        # generate a cubemap texture
+        self.skybox_texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_CUBE_MAP, self.skybox_texture)
+
+        # iterate through the faces, load the image and store it in the right face of the cubemap
+        for i in range(len(texture_faces)):
+            im = Image.open(texture_faces[i])#.transpose(Image.FLIP_TOP_BOTTOM)
+
+            # flip the top and bottom images
+            if i == 2 or i == 3:
+                im = im.transpose(Image.FLIP_LEFT_RIGHT)
+                im = im.transpose(Image.FLIP_TOP_BOTTOM)
+
+            # get the data of the loaded face image
+            imdata = np.fromstring(im.tobytes(), np.uint8)
+
+            # store the data of the image in the cubemap texture
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, im.size[0], im.size[1], 0, GL_RGB, GL_UNSIGNED_BYTE, imdata)
+
+        # set the texture behaviour
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
+
+        # load the skybox rendering shader
+        self.shaders["skybox"] = Shader("assets/shaders/skybox/skybox.vert", "assets/shaders/skybox/skybox.frag")
+
     # --------------------------- Creating Components ----------------------------------
 
     # method to create a new mesh, a count can be specified to generate more than 1 mesh with the same 3D model
@@ -172,7 +219,7 @@ class RendererManager(metaclass=Singleton):
 
         # convert the lists into indiced lists and obtain an indices list for indexed rendering
         # indices, indiced_vertices, indiced_normals, indiced_uvs = index_vertices(formatted_vertices, formatted_normals, formatted_uvs)
-        indices, indiced_vertices, indiced_normals, indiced_uvs = index_vertices_multi_thread(formatted_vertices, formatted_normals, formatted_uvs)
+        indices, indiced_vertices, indiced_normals, indiced_uvs = index_vertices(formatted_vertices, formatted_normals, formatted_uvs)
 
         # keep track of the indices count
         self.indices_count[name] = len(indices)
@@ -223,6 +270,9 @@ class RendererManager(metaclass=Singleton):
         # pass the data for the element array buffer of indices
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.ebos[name])
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
+
+    def new_shader(self, name, vert_path, frag_path):
+        self.shaders[name] = Shader(vert_path, frag_path)
 
     # method to generate a new texture (needs double checking if it's correct)
     def new_texture(self, name, filepath):
@@ -684,12 +734,4 @@ class RendererManager(metaclass=Singleton):
          # update the instances
         for instance in self.instances.values():
             instance.update()
-
-       
-
-
-        
-
-    
-
-            
+          

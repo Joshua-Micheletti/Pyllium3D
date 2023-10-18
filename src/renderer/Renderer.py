@@ -16,6 +16,7 @@ class Renderer(metaclass=Singleton):
         glClearColor(0.1, 0.1, 0.1, 1.0)
         # enable depth testing (hide further away triangles if covered)
         glEnable(GL_DEPTH_TEST)
+        glDepthFunc(GL_LEQUAL)
         # enable face culling (don't render the inside of triangles)
         glEnable(GL_CULL_FACE)
         # enable alpha blending (transparency)
@@ -36,10 +37,13 @@ class Renderer(metaclass=Singleton):
         glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
         # clear the framebuffer and depth buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
         # draw the single models 
         self._render_models()
         # and the instances
         self._render_instances()
+
+        self._render_skybox()
 
         # draw the render quad to it
         # self._render_screen()
@@ -111,7 +115,31 @@ class Renderer(metaclass=Singleton):
             # glDrawArraysInstanced(GL_TRIANGLES, 0, int(rm.vertices_count[instance.mesh]), len(instance.models))
             glDrawElementsInstanced(GL_TRIANGLES, int(rm.indices_count[instance.mesh]), GL_UNSIGNED_INT, None, len(instance.models))
 
-        
+    # method to render the skybox
+    def _render_skybox(self):
+        # get a reference to the renderer manager
+        rm = RendererManager()
+
+        # use the skybox shader
+        rm.shaders["skybox"].use()
+
+        # temporarily place the camera at the origin, to cancel camera movement from the skybox rendering
+        old_position = rm.camera.position
+        rm.camera.place(0, 0, 0)
+        self._link_shader_uniforms(rm.shaders["skybox"])
+        rm.camera.place(old_position.x, old_position.y, old_position.z)
+
+        # bind the default mesh vao (cube)
+        glBindVertexArray(rm.vaos["default_mesh"])
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["default_mesh"])
+
+        # disable cull facing
+        glDisable(GL_CULL_FACE)
+        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
+        glDrawElements(GL_TRIANGLES, int(rm.indices_count["default_mesh"]), GL_UNSIGNED_INT, None)
+        glEnable(GL_CULL_FACE)
+
+
     def _render_screen(self):
         # bind the screen framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
@@ -153,6 +181,8 @@ class Renderer(metaclass=Singleton):
         if "eye" in shader.uniforms:
             glUniform3f(shader.uniforms["eye"], rm.camera.position.x, rm.camera.position.y, rm.camera.position.z)
 
+        if "skybox_view" in shader.uniforms:
+            glUniformMatrix4fv(shader.uniforms["skybox_view"], 1, GL_FALSE, rm.camera.get_skybox_ogl_matrix())
 
         light_material = rm.light_material()
 
