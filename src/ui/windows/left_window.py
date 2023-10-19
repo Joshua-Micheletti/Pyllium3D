@@ -40,7 +40,14 @@ class LeftWindow:
         changed = False
 
         if states["left_window/post_processing_header"]:
-            pp_shaders = rm.available_post_processing_shaders
+            imgui.indent()
+
+            # pp_shaders = rm.available_post_processing_shaders
+            pp_shaders = []
+            for shader in rm.available_post_processing_shaders:
+                components = shader.split('/')
+                pp_shaders.append(components[1])
+
             clicked, self.selected_pp_shader_index = imgui.combo("###pp_shader", self.selected_pp_shader_index, pp_shaders)
             imgui.same_line()
              
@@ -77,7 +84,7 @@ class LeftWindow:
             
             for i in range(len(self.active_pp_shaders)):
                 components = self.active_pp_shaders[i].split("###")
-                rm.add_post_processing_shader(components[0])
+                rm.add_post_processing_shader('post_processing/' + components[0])
             
         imgui.pop_style_var()
 
