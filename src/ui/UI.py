@@ -83,7 +83,7 @@ class UI(metaclass=Singleton):
                                                             updatetime=updatetime,
                                                             rmupdatetime=rmupdatetime)
 
-        imgui.show_demo_window()
+        # imgui.show_demo_window()
 
         imgui.pop_font()
 
