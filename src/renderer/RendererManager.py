@@ -72,6 +72,9 @@ class RendererManager(metaclass=Singleton):
         # variable to keep track of weather or not the renderer manager should update
         self.to_update = True
 
+        self.post_processing_shaders = []
+        self.available_post_processing_shaders = []
+
         # setup the required data for the engine
         self._setup_entities()
 
@@ -87,8 +90,24 @@ class RendererManager(metaclass=Singleton):
         self.shaders["white"] = Shader("./assets/shaders/white/white.vert", "./assets/shaders/white/white.frag")
         self.shaders["screen"] = Shader("./assets/shaders/screen/screen.vert", "./assets/shaders/screen/screen.frag")
         self.shaders["lighting_instanced"] = Shader("assets/shaders/lighting_instanced/lighting_instanced.vert", "assets/shaders/lighting_instanced/lighting_instanced.frag")
+        self.shaders["post_processing/inverted_colors"] = Shader("assets/shaders/post_processing/inverted_colors/inverted_colors.vert",
+                                                                 "assets/shaders/post_processing/inverted_colors/inverted_colors.frag")
+
+        self.shaders["post_processing/black_white"] = Shader("assets/shaders/post_processing/black_white/black_white.vert",
+                                                             "assets/shaders/post_processing/black_white/black_white.frag")
         
-        # self.new_mesh("screen_quad", "./assets/models/quad.obj")
+        self.shaders["post_processing/sharpen"] = Shader("assets/shaders/post_processing/sharpen/sharpen.vert",
+                                                         "assets/shaders/post_processing/sharpen/sharpen.frag")
+
+        self.shaders["post_processing/blur"] = Shader("assets/shaders/post_processing/blur/blur.vert",
+                                                      "assets/shaders/post_processing/blur/blur.frag")
+
+        self.available_post_processing_shaders.append("post_processing/black_white")
+        self.available_post_processing_shaders.append("post_processing/inverted_colors")
+        self.available_post_processing_shaders.append("post_processing/sharpen")
+        self.available_post_processing_shaders.append("post_processing/blur")
+
+        self.new_mesh("screen_quad", "assets/models/default/quad.obj")
         self.new_mesh("default_mesh", "assets/models/default/box.obj")
 
         self.new_material("default_material", *(0.2, 0.2, 0.2), *(0.6, 0.6, 0.6), *(1.0, 1.0, 1.0), 1.0)
@@ -735,3 +754,8 @@ class RendererManager(metaclass=Singleton):
         for instance in self.instances.values():
             instance.update()
           
+
+    # ------------------------------ Misc --------------------------------------------
+
+    def add_post_processing_shader(self, name):
+        self.post_processing_shaders.append(self.shaders[name])

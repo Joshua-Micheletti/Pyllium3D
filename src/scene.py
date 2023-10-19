@@ -13,7 +13,7 @@ def setup():
 
     rm.new_mesh("gally", "assets/models/default/gally.obj")
     rm.new_mesh("box", "assets/models/default/box.obj")
-    rm.new_mesh("charmander", "assets/models/charmander/charmander.obj")
+    # rm.new_mesh("charmander", "assets/models/charmander/charmander.obj")
     # rm.new_mesh("sphere", "assets/models/default/sphere.obj")
     rm.new_mesh("sphere_low", "assets/models/default/sphere_low.obj")
     # rm.new_mesh("quad", "assets/models/default/quad.obj")
@@ -29,7 +29,7 @@ def setup():
 
     # rm.new_model("second_sphere", mesh="sphere", shader="lighting_instanced")
 
-    rm.new_instance("colored_entities", "charmander", "lighting_instanced")
+    rm.new_instance("colored_entities", "gally", "lighting_instanced")
 
     entities = []
 
@@ -49,6 +49,12 @@ def setup():
     rm.update()
 
     rm.set_models_in_instance(entities, "colored_entities")
+
+    # rm.add_post_processing_shader("post_processing/inverted_colors")
+    # rm.add_post_processing_shader("post_processing/black_white")
+    # rm.add_post_processing_shader("post_processing/inverted_colors")
+    # rm.add_post_processing_shader("post_processing/inverted_colors")
+
 
 def update(dt):
     rm = RendererManager()

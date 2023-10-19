@@ -45,6 +45,8 @@ class Renderer(metaclass=Singleton):
 
         self._render_skybox()
 
+        self._render_post_processing()
+
         # draw the render quad to it
         # self._render_screen()
 
@@ -165,6 +167,26 @@ class Renderer(metaclass=Singleton):
         # re-enable depth testing and cull face
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_CULL_FACE)
+
+    def _render_post_processing(self):
+        rm = RendererManager()
+
+        if len(rm.post_processing_shaders) == 0:
+            return
+    
+        glDisable(GL_DEPTH_TEST)
+        # glDisable(GL_CULL_FACE)
+    
+        glBindVertexArray(rm.vaos["screen_quad"])
+        glBindTexture(GL_TEXTURE_2D, rm.color_render_texture)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["screen_quad"])
+
+        for i in range(len(rm.post_processing_shaders)):
+            rm.post_processing_shaders[i].use()
+            glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
+    
+        glEnable(GL_DEPTH_TEST)
+        # glEnable(GL_CULL_FACE)
 
 
     # method to link static uniforms to the shader (static meaning they don't change between meshes)

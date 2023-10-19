@@ -1,11 +1,16 @@
 import imgui
+import random
 
 from window.Window import Window
+from renderer.RendererManager import RendererManager
 
 class LeftWindow:
     def __init__(self):
         self.width = 0
         self.height = 0
+        self.active_pp_shaders = []
+        self.selected_pp_shader_index = 0
+        self.selected_active_pp_shader = -1
 
     def draw(self, states, dimensions):
         if states["left_window"] == False:
@@ -13,6 +18,7 @@ class LeftWindow:
             return(states, dimensions)
         
         window = Window()
+        rm = RendererManager()
 
         imgui.set_next_window_position(0, dimensions["main_menu_height"])
         imgui.set_next_window_size_constraints((100, window.height - dimensions["main_menu_height"]),
@@ -29,8 +35,50 @@ class LeftWindow:
         self.width = wsize.x
         self.height = wsize.y
 
-        imgui.text("Hellow!")
+        states["left_window/post_processing_header"], _ = imgui.collapsing_header("Post Processing")
 
+        changed = False
+
+        if states["left_window/post_processing_header"]:
+            pp_shaders = rm.available_post_processing_shaders
+            clicked, self.selected_pp_shader_index = imgui.combo("###pp_shader", self.selected_pp_shader_index, pp_shaders)
+            imgui.same_line()
+             
+            clicked = imgui.button("Add###add_pp_shader")
+
+            if clicked and self.selected_pp_shader_index != None:
+                self.active_pp_shaders.append(pp_shaders[self.selected_pp_shader_index] + '###' + str(random.random()))
+                changed = True
+                
+            for i in range(len(self.active_pp_shaders)):
+                _, selected = imgui.selectable(self.active_pp_shaders[i], self.selected_active_pp_shader == i)
+
+                if selected:
+                    self.selected_active_pp_shader = i
+
+                if imgui.is_item_active() and not imgui.is_item_hovered():
+                    next_index = i + (-1 if imgui.get_mouse_drag_delta(0).y < 0.0 else 1)
+
+                    if next_index >= 0 and next_index < len(self.active_pp_shaders):
+                        tmp = self.active_pp_shaders[i]
+                        self.active_pp_shaders[i] = self.active_pp_shaders[next_index]
+                        self.active_pp_shaders[next_index] = tmp
+                        changed = True
+
+            if self.selected_active_pp_shader != -1:
+                if imgui.button("Remove###remove_pp_shader"):
+                    self.active_pp_shaders.pop(self.selected_active_pp_shader)
+                    self.selected_active_pp_shader = -1
+                    changed = True
+
+
+        if changed:
+            rm.post_processing_shaders = []
+            
+            for i in range(len(self.active_pp_shaders)):
+                components = self.active_pp_shaders[i].split("###")
+                rm.add_post_processing_shader(components[0])
+            
         imgui.pop_style_var()
 
         imgui.end()
