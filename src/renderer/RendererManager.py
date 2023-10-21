@@ -90,6 +90,12 @@ class RendererManager(metaclass=Singleton):
         self.shaders["white"] = Shader("./assets/shaders/white/white.vert", "./assets/shaders/white/white.frag")
         self.shaders["screen"] = Shader("./assets/shaders/screen/screen.vert", "./assets/shaders/screen/screen.frag")
         self.shaders["lighting_instanced"] = Shader("assets/shaders/lighting_instanced/lighting_instanced.vert", "assets/shaders/lighting_instanced/lighting_instanced.frag")
+        self.shaders["depth"] = Shader("assets/shaders/depth/depth.vert", "assets/shaders/depth/depth.frag")
+        print("compiling dof shader")
+        self.shaders["depth_of_field"] = Shader("assets/shaders/depth_of_field/depth_of_field.vert",
+                                                "assets/shaders/depth_of_field/depth_of_field.frag")
+        print("finished compiling dof shader")
+        
         self.shaders["post_processing/inverted_colors"] = Shader("assets/shaders/post_processing/inverted_colors/inverted_colors.vert",
                                                                  "assets/shaders/post_processing/inverted_colors/inverted_colors.frag")
 
@@ -102,10 +108,14 @@ class RendererManager(metaclass=Singleton):
         self.shaders["post_processing/blur"] = Shader("assets/shaders/post_processing/blur/blur.vert",
                                                       "assets/shaders/post_processing/blur/blur.frag")
 
+        self.shaders["post_processing/wave"] = Shader("assets/shaders/post_processing/wave/wave.vert",
+                                                      "assets/shaders/post_processing/wave/wave.frag")
+
         self.available_post_processing_shaders.append("post_processing/black_white")
         self.available_post_processing_shaders.append("post_processing/inverted_colors")
         self.available_post_processing_shaders.append("post_processing/sharpen")
         self.available_post_processing_shaders.append("post_processing/blur")
+        self.available_post_processing_shaders.append("post_processing/wave")
 
         self.new_mesh("screen_quad", "assets/models/default/quad.obj")
         self.new_mesh("default_mesh", "assets/models/default/box.obj")
@@ -136,22 +146,64 @@ class RendererManager(metaclass=Singleton):
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
         # generate the renderbuffer to render the depth and stencil information
-        self.depth_stencil_render_renderbuffer = glGenRenderbuffers(1)
+        # self.depth_stencil_render_renderbuffer = glGenRenderbuffers(1)
         # bind the current renderbuffer
-        glBindRenderbuffer(GL_RENDERBUFFER, self.depth_stencil_render_renderbuffer)
+        # glBindRenderbuffer(GL_RENDERBUFFER, self.depth_stencil_render_renderbuffer)
         # create the storage for the renderbuffer
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, self.width, self.height)
+        # glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, self.width, self.height)
+
+        self.depth_texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, self.depth_texture)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, self.width, self.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, None)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
         # bind the color texture and depth/stencil renderbuffer to the framebuffer
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.color_render_texture, 0)
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, self.depth_stencil_render_renderbuffer)
-        
+        # glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, self.depth_stencil_render_renderbuffer)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, self.depth_texture, 0)
+
         # check that the framebuffer was correctly initialized
         if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
             print("framebuffer error")
 
         # rebind the default framebuffer 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+
+        self.blurred_framebuffer = glGenFramebuffers(1)
+        glBindFramebuffer(GL_FRAMEBUFFER, self.blurred_framebuffer)
+        self.blurred_texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, self.blurred_texture)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, self.width, self.height, 0, GL_RGB, GL_UNSIGNED_BYTE, None)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+        # self.blurred_depth_renderbuffer = glGenRenderbuffers(1)
+        # glBindRenderbuffer(GL_RENDERBUFFER, self.blurred_depth_renderbuffer)
+        # glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, self.width, self.height)
+        
+        self.blurred_depth_texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, self.blurred_depth_texture)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, self.width, self.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, None)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.blurred_texture, 0)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, self.blurred_depth_texture, 0)
+        # glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, self.blurred_depth_renderbuffer)
+
+        # check that the framebuffer was correctly initialized
+        if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
+            print("framebuffer error")
+
+        # rebind the default framebuffer 
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+        self.depth_texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, self.depth_texture)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, self.width, self.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, None)
+
 
     # method for setting up the skybox
     def _setup_skybox(self):
@@ -721,8 +773,8 @@ class RendererManager(metaclass=Singleton):
         glBindFramebuffer(GL_FRAMEBUFFER, self.render_framebuffer)
 
         # delete the renderbuffer and the texture of the framebuffer
-        glDeleteRenderbuffers(1, [self.depth_stencil_render_renderbuffer])
-        glDeleteTextures(1, [self.color_render_texture])
+        # glDeleteRenderbuffers(2, [self.depth_stencil_render_renderbuffer, self.blurred_depth_renderbuffer])
+        glDeleteTextures(4, [self.color_render_texture, self.blurred_texture, self.depth_texture, self.blurred_depth_texture])
 
         # create a new color texture and depth/stencil renderbuffer with the updated dimensions
         self.color_render_texture = glGenTextures(1)
@@ -731,13 +783,48 @@ class RendererManager(metaclass=Singleton):
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
-        self.depth_stencil_render_renderbuffer = glGenRenderbuffers(1)
-        glBindRenderbuffer(GL_RENDERBUFFER, self.depth_stencil_render_renderbuffer)
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, self.width, self.height)
+        # self.depth_stencil_render_renderbuffer = glGenRenderbuffers(1)
+        # glBindRenderbuffer(GL_RENDERBUFFER, self.depth_stencil_render_renderbuffer)
+        # glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, self.width, self.height)
+
+        self.depth_texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, self.depth_texture)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, self.width, self.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, None)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
         # bind the new texture and renderbuffer to the framebuffer
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.color_render_texture, 0)
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, self.depth_stencil_render_renderbuffer)
+        # glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, self.depth_stencil_render_renderbuffer)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, self.depth_texture, 0)
+
+        glBindFramebuffer(GL_FRAMEBUFFER, self.blurred_framebuffer)
+
+        self.blurred_texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, self.blurred_texture)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, self.width, self.height, 0, GL_RGB, GL_UNSIGNED_BYTE, None)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+        # self.blurred_depth_renderbuffer = glGenRenderbuffers(1)
+        # glBindRenderbuffer(GL_RENDERBUFFER, self.blurred_depth_renderbuffer)
+        # glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, self.width, self.height)
+
+        self.blurred_depth_texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, self.blurred_depth_texture)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, self.width, self.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, None)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.blurred_texture, 0)
+        # glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, self.blurred_depth_renderbuffer)
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, self.blurred_depth_texture, 0)
+
+        # self.depth_texture = glGenTextures(1)
+        # glBindTexture(GL_TEXTURE_2D, self.depth_texture)
+        # glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, self.width, self.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, None)
+
 
         # bind the default framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0)

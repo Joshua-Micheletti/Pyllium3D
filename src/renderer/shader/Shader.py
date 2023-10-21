@@ -70,3 +70,17 @@ class Shader:
         if glGetUniformLocation(self.program, "light_specular") != -1:
             self.uniforms["light_specular"] = glGetUniformLocation(self.program, "light_specular")
 
+        if glGetUniformLocation(self.program, "time") != -1:
+            self.uniforms["time"] = glGetUniformLocation(self.program, "time")
+
+        if glGetUniformLocation(self.program, "screen_texture") != -1:
+            print("found screen tex")
+            self.uniforms["screen_texture"] = glGetUniformLocation(self.program, "screen_texture")
+
+        if glGetUniformLocation(self.program, "blurred_texture") != -1:
+            print("found blurred tex")
+            self.uniforms["blurred_texture"] = glGetUniformLocation(self.program, "blurred_texture")
+
+        if glGetUniformLocation(self.program, "depth_texture") != -1:
+            print("found depth tex")
+            self.uniforms["depth_texture"] = glGetUniformLocation(self.program, "depth_texture")

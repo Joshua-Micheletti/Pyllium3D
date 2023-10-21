@@ -2,6 +2,7 @@ from utils.Singleton import Singleton
 from OpenGL.GL import *
 import numpy as np
 import glm
+import glfw
 
 from utils.Timer import Timer
 from renderer.RendererManager import RendererManager
@@ -44,6 +45,8 @@ class Renderer(metaclass=Singleton):
         self._render_instances()
 
         self._render_skybox()
+
+        self._render_depth_of_field()
 
         self._render_post_processing()
 
@@ -141,6 +144,58 @@ class Renderer(metaclass=Singleton):
         glDrawElements(GL_TRIANGLES, int(rm.indices_count["default_mesh"]), GL_UNSIGNED_INT, None)
         glEnable(GL_CULL_FACE)
 
+    def _render_depth_of_field(self):
+        rm = RendererManager()
+
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.blurred_framebuffer)
+        # glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
+        glClear(GL_COLOR_BUFFER_BIT)
+
+        glDisable(GL_DEPTH_TEST)
+        glBindVertexArray(rm.vaos["screen_quad"])
+
+        # glBindTexture(GL_TEXTURE_2D, rm.depth_texture)
+        # glReadBuffer(GL_BACK)
+        # glNamedFramebufferReadBuffer(rm.render_framebuffer, GL_BACK)
+        # glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 0, 0, rm.width, rm.height, 0)
+
+        # glBindTexture(GL_TEXTURE_2D, rm.color_render_texture)
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["screen_quad"])
+
+        rm.shaders["post_processing/blur"].use()
+        glBindTexture(GL_TEXTURE_2D, rm.color_render_texture)
+
+        glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
+
+
+        # rm.shaders["screen"].use()
+        # glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
+        # glBindTexture(GL_TEXTURE_2D, rm.blurred_texture)
+        # glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
+
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
+
+        rm.shaders["depth_of_field"].use()
+        self._link_shader_uniforms(rm.shaders["depth_of_field"])
+
+        glActiveTexture(GL_TEXTURE0 + 0)
+        glBindTexture(GL_TEXTURE_2D, rm.color_render_texture)
+
+        glActiveTexture(GL_TEXTURE0 + 1)
+        glBindTexture(GL_TEXTURE_2D, rm.blurred_texture)
+
+        glActiveTexture(GL_TEXTURE0 + 2)
+        glBindTexture(GL_TEXTURE_2D, rm.depth_texture)
+
+        glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
+
+
+
+
+        glActiveTexture(GL_TEXTURE0)
+
+        glEnable(GL_DEPTH_TEST)
 
     def _render_screen(self):
         # bind the screen framebuffer
@@ -175,7 +230,6 @@ class Renderer(metaclass=Singleton):
             return
     
         glDisable(GL_DEPTH_TEST)
-        # glDisable(GL_CULL_FACE)
     
         glBindVertexArray(rm.vaos["screen_quad"])
         glBindTexture(GL_TEXTURE_2D, rm.color_render_texture)
@@ -183,10 +237,10 @@ class Renderer(metaclass=Singleton):
 
         for i in range(len(rm.post_processing_shaders)):
             rm.post_processing_shaders[i].use()
+            self._link_post_processing_uniforms(rm.post_processing_shaders[i])
             glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
     
         glEnable(GL_DEPTH_TEST)
-        # glEnable(GL_CULL_FACE)
 
 
     # method to link static uniforms to the shader (static meaning they don't change between meshes)
@@ -215,6 +269,13 @@ class Renderer(metaclass=Singleton):
         if "light_specular" in shader.uniforms:
             glUniform3f(shader.uniforms["light_specular"], light_material.specular[0], light_material.specular[1], light_material.specular[2])
 
+        if "screen_texture" in shader.uniforms:
+            glUniform1i(shader.uniforms["screen_texture"], 0)
+        if "blurred_texture" in shader.uniforms:
+            glUniform1i(shader.uniforms["blurred_texture"], 1)
+        if "depth_texture" in shader.uniforms:
+            glUniform1i(shader.uniforms["depth_texture"], 2)
+
     # method to link dynamic uniforms to the shader (dynamic meaning they change between meshes)
     def _link_model_uniforms(self, shader, name):
         rm = RendererManager()
@@ -235,3 +296,7 @@ class Renderer(metaclass=Singleton):
         if "shininess" in shader.uniforms:
             glUniform1f(shader.uniforms["shininess"], rm.materials[model.material].shininess)
        
+    def _link_post_processing_uniforms(self, shader):
+        if "time" in shader.uniforms:
+            glUniform1f(shader.uniforms["time"], glfw.get_time() * 10)
+            print(glfw.get_time())
