@@ -1,6 +1,8 @@
 from OpenGL.GL.shaders import compileProgram, compileShader
 from OpenGL.GL import *
 
+from utils.messages import *
+
 # class to represent a shader object
 class Shader:
     # constructor method, takes the path of the vertex and fragment shaders
@@ -22,6 +24,13 @@ class Shader:
         self.uniforms = dict()
         # check for uniforms in the shader
         self._check_uniforms()
+
+        path_components = vert_path.split("/")
+
+        shader_name_components = path_components[-1].split(".")
+
+        print_info(f"Compiled shader: {shader_name_components[0]}")
+
         
     # function to use this program for rendering
     def use(self):
@@ -74,13 +83,10 @@ class Shader:
             self.uniforms["time"] = glGetUniformLocation(self.program, "time")
 
         if glGetUniformLocation(self.program, "screen_texture") != -1:
-            print("found screen tex")
             self.uniforms["screen_texture"] = glGetUniformLocation(self.program, "screen_texture")
 
         if glGetUniformLocation(self.program, "blurred_texture") != -1:
-            print("found blurred tex")
             self.uniforms["blurred_texture"] = glGetUniformLocation(self.program, "blurred_texture")
 
         if glGetUniformLocation(self.program, "depth_texture") != -1:
-            print("found depth tex")
             self.uniforms["depth_texture"] = glGetUniformLocation(self.program, "depth_texture")

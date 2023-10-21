@@ -168,6 +168,14 @@ class Renderer(metaclass=Singleton):
 
         glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
 
+        glBindTexture(GL_TEXTURE_2D, rm.blurred_texture)
+        for i in range(2):
+            glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
+
+        rm.shaders["post_processing/dilation"].use()
+
+        glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
+
 
         # rm.shaders["screen"].use()
         # glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
@@ -189,9 +197,6 @@ class Renderer(metaclass=Singleton):
         glBindTexture(GL_TEXTURE_2D, rm.depth_texture)
 
         glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
-
-
-
 
         glActiveTexture(GL_TEXTURE0)
 
@@ -238,6 +243,19 @@ class Renderer(metaclass=Singleton):
         for i in range(len(rm.post_processing_shaders)):
             rm.post_processing_shaders[i].use()
             self._link_post_processing_uniforms(rm.post_processing_shaders[i])
+            self._link_shader_uniforms(rm.post_processing_shaders[i])
+
+            glActiveTexture(GL_TEXTURE0 + 0)
+            glBindTexture(GL_TEXTURE_2D, rm.color_render_texture)
+
+            glActiveTexture(GL_TEXTURE0 + 1)
+            glBindTexture(GL_TEXTURE_2D, rm.blurred_texture)
+
+            glActiveTexture(GL_TEXTURE0 + 2)
+            glBindTexture(GL_TEXTURE_2D, rm.depth_texture)
+
+            glActiveTexture(GL_TEXTURE0)
+
             glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
     
         glEnable(GL_DEPTH_TEST)

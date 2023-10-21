@@ -12,6 +12,9 @@ import numpy as np
 from utils.Singleton import Singleton
 from utils.colors import colors
 from utils.vbo_indexer import *
+from utils.messages import *
+from utils.Timer import Timer
+
 from renderer.model.Model import Model
 from renderer.material.material import Material
 from renderer.shader.Shader import Shader
@@ -22,6 +25,7 @@ from renderer.instance import Instance
 class RendererManager(metaclass=Singleton):
     # constructor method
     def __init__(self):
+        timer = Timer()
         # dictionary to keep track of model objects
         self.models = dict()
         self.changed_models = dict()
@@ -82,6 +86,8 @@ class RendererManager(metaclass=Singleton):
         self._setup_render_framebuffer()
 
         self._setup_skybox()
+
+        print_success("Initialized Renderer Manager in " + str(round(timer.elapsed() / 1000, 2)) + "s")
         
     # method to setup the required entities for the engine
     def _setup_entities(self):
@@ -91,10 +97,8 @@ class RendererManager(metaclass=Singleton):
         self.shaders["screen"] = Shader("./assets/shaders/screen/screen.vert", "./assets/shaders/screen/screen.frag")
         self.shaders["lighting_instanced"] = Shader("assets/shaders/lighting_instanced/lighting_instanced.vert", "assets/shaders/lighting_instanced/lighting_instanced.frag")
         self.shaders["depth"] = Shader("assets/shaders/depth/depth.vert", "assets/shaders/depth/depth.frag")
-        print("compiling dof shader")
         self.shaders["depth_of_field"] = Shader("assets/shaders/depth_of_field/depth_of_field.vert",
                                                 "assets/shaders/depth_of_field/depth_of_field.frag")
-        print("finished compiling dof shader")
         
         self.shaders["post_processing/inverted_colors"] = Shader("assets/shaders/post_processing/inverted_colors/inverted_colors.vert",
                                                                  "assets/shaders/post_processing/inverted_colors/inverted_colors.frag")
@@ -111,11 +115,23 @@ class RendererManager(metaclass=Singleton):
         self.shaders["post_processing/wave"] = Shader("assets/shaders/post_processing/wave/wave.vert",
                                                       "assets/shaders/post_processing/wave/wave.frag")
 
+        self.shaders["post_processing/gaussian_blur"] = Shader("assets/shaders/post_processing/gaussian_blur/gaussian_blur.vert",
+                                                               "assets/shaders/post_processing/gaussian_blur/gaussian_blur.frag")
+
+        self.shaders["post_processing/dilation"] = Shader("assets/shaders/post_processing/dilation/dilation.vert",
+                                                          "assets/shaders/post_processing/dilation/dilation.frag")
+        
+        self.shaders["post_processing/fixed_depth_of_field"] = Shader("assets/shaders/post_processing/fixed_depth_of_field/fixed_depth_of_field.vert",
+                                                                      "assets/shaders/post_processing/fixed_depth_of_field/fixed_depth_of_field.frag")
+
         self.available_post_processing_shaders.append("post_processing/black_white")
         self.available_post_processing_shaders.append("post_processing/inverted_colors")
         self.available_post_processing_shaders.append("post_processing/sharpen")
         self.available_post_processing_shaders.append("post_processing/blur")
         self.available_post_processing_shaders.append("post_processing/wave")
+        self.available_post_processing_shaders.append("post_processing/gaussian_blur")
+        self.available_post_processing_shaders.append("post_processing/dilation")
+        self.available_post_processing_shaders.append("post_processing/fixed_depth_of_field")
 
         self.new_mesh("screen_quad", "assets/models/default/quad.obj")
         self.new_mesh("default_mesh", "assets/models/default/box.obj")
@@ -144,6 +160,8 @@ class RendererManager(metaclass=Singleton):
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, self.width, self.height, 0, GL_RGB, GL_UNSIGNED_BYTE, None)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
 
         # generate the renderbuffer to render the depth and stencil information
         # self.depth_stencil_render_renderbuffer = glGenRenderbuffers(1)
@@ -178,6 +196,8 @@ class RendererManager(metaclass=Singleton):
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, self.width, self.height, 0, GL_RGB, GL_UNSIGNED_BYTE, None)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
 
         # self.blurred_depth_renderbuffer = glGenRenderbuffers(1)
         # glBindRenderbuffer(GL_RENDERBUFFER, self.blurred_depth_renderbuffer)
@@ -252,6 +272,7 @@ class RendererManager(metaclass=Singleton):
 
     # method to create a new mesh, a count can be specified to generate more than 1 mesh with the same 3D model
     def new_mesh(self, name, file_path):
+        timer = Timer()
         # empty lists to contain the vertices data taken from the file
         formatted_vertices = []
         formatted_normals = []
@@ -341,6 +362,8 @@ class RendererManager(metaclass=Singleton):
         # pass the data for the element array buffer of indices
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.ebos[name])
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
+
+        print_info("Created mesh: " + name + " in " + str(round(timer.elapsed() / 1000, 2)) + "s")
 
     def new_shader(self, name, vert_path, frag_path):
         self.shaders[name] = Shader(vert_path, frag_path)
@@ -782,6 +805,8 @@ class RendererManager(metaclass=Singleton):
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, self.width, self.height, 0, GL_RGB, GL_UNSIGNED_BYTE, None)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
 
         # self.depth_stencil_render_renderbuffer = glGenRenderbuffers(1)
         # glBindRenderbuffer(GL_RENDERBUFFER, self.depth_stencil_render_renderbuffer)
@@ -805,6 +830,8 @@ class RendererManager(metaclass=Singleton):
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, self.width, self.height, 0, GL_RGB, GL_UNSIGNED_BYTE, None)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
 
         # self.blurred_depth_renderbuffer = glGenRenderbuffers(1)
         # glBindRenderbuffer(GL_RENDERBUFFER, self.blurred_depth_renderbuffer)
