@@ -78,7 +78,7 @@ def main():
 
         renderer.render()
 
-        ui.draw(dt, swaptime.laps[-1], controltime.laps[-1], updatetime.laps[-1], rmupdatetime.laps[-1])
+        ui.draw(dt, swaptime.get_last_record(), controltime.get_last_record(), updatetime.get_last_record(), rmupdatetime.get_last_record())
 
         swaptime.reset()
         glfw.swap_buffers(window.window)

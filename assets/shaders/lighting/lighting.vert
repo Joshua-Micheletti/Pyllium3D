@@ -34,10 +34,13 @@ out vec3 frag_light_diffuse;
 out vec3 frag_light_specular;
 
 void main() {
-    gl_Position = projection * view * model * vec4(vertex, 1.0);
+    mat4 mvp = projection * view * model;
+    gl_Position = mvp * vec4(vertex, 1.0);
     
     frag_position = vec3(model * vec4(vertex, 1.0));
-    frag_normal = vec3(normal.x, normal.y, normal.z);
+
+    frag_normal = mat3(transpose(inverse(model))) * normal;
+
     frag_light = light;
     frag_eye = eye;
 

@@ -6,7 +6,7 @@ class Timer():
     def __init__(self):
         # intialize the starting time to the current time
         self.start = glfw.get_time()
-        self.laps = []
+        self.laps = dict()
         self.max_laps = 5
 
     # method to print and obtain the elapsed time
@@ -30,12 +30,18 @@ class Timer():
         self.start = glfw.get_time()
 
         if laps:
-            self.laps = []
+            self.laps = dict()
 
-    def record(self):
-        if len(self.laps) == 5:
-            self.laps.pop(0)
+    def record(self, target = "default"):
+        if target not in self.laps:
+            self.laps[target] = []
 
-        self.laps.append(self.elapsed())
+        if len(self.laps[target]) == 5:
+            self.laps[target].pop(0)
+
+        self.laps[target].append(self.elapsed())
+
+    def get_last_record(self, target = "default"):
+        return(self.laps[target][-1])
 
 

@@ -43,11 +43,13 @@ class Renderer(metaclass=Singleton):
         self._render_models()
         # and the instances
         self._render_instances()
-
+        # render the skybox
         self._render_skybox()
-
+        # render the blur texture
+        self._render_blur()
+        # apply depth of field effect to the main texture
         self._render_depth_of_field()
-
+        # apply post processing effects
         self._render_post_processing()
 
         # draw the render quad to it
@@ -107,7 +109,6 @@ class Renderer(metaclass=Singleton):
             # glDrawArrays(GL_TRIANGLES, 0, int(rm.vertices_count[model.mesh]))
             glDrawElements(GL_TRIANGLES, int(rm.indices_count[model.mesh]), GL_UNSIGNED_INT, None)
 
-
     def _render_instances(self):
         rm = RendererManager()
 
@@ -144,44 +145,41 @@ class Renderer(metaclass=Singleton):
         glDrawElements(GL_TRIANGLES, int(rm.indices_count["default_mesh"]), GL_UNSIGNED_INT, None)
         glEnable(GL_CULL_FACE)
 
-    def _render_depth_of_field(self):
+    # method to render the blur texture
+    def _render_blur(self):
         rm = RendererManager()
 
+        # only render the blur texture if the depth of field or post processing effects are enabled
+        if not rm.render_states["depth_of_field"] and not rm.render_states["post_processing"]:
+            return()
+
+
         glBindFramebuffer(GL_FRAMEBUFFER, rm.blurred_framebuffer)
-        # glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
+
         glClear(GL_COLOR_BUFFER_BIT)
 
         glDisable(GL_DEPTH_TEST)
         glBindVertexArray(rm.vaos["screen_quad"])
-
-        # glBindTexture(GL_TEXTURE_2D, rm.depth_texture)
-        # glReadBuffer(GL_BACK)
-        # glNamedFramebufferReadBuffer(rm.render_framebuffer, GL_BACK)
-        # glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 0, 0, rm.width, rm.height, 0)
-
-        # glBindTexture(GL_TEXTURE_2D, rm.color_render_texture)
-
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["screen_quad"])
-
         rm.shaders["post_processing/blur"].use()
         glBindTexture(GL_TEXTURE_2D, rm.color_render_texture)
-
         glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
-
         glBindTexture(GL_TEXTURE_2D, rm.blurred_texture)
-        for i in range(2):
-            glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
+        # for i in range(2):
+        #     glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
 
         rm.shaders["post_processing/dilation"].use()
-
         glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
 
+        glEnable(GL_DEPTH_TEST)
 
-        # rm.shaders["screen"].use()
-        # glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
-        # glBindTexture(GL_TEXTURE_2D, rm.blurred_texture)
-        # glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
+    def _render_depth_of_field(self):
+        rm = RendererManager()
 
+        if not rm.render_states["depth_of_field"]:
+            return()
+
+        glDisable(GL_DEPTH_TEST)
         glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
 
         rm.shaders["depth_of_field"].use()
@@ -231,14 +229,19 @@ class Renderer(metaclass=Singleton):
     def _render_post_processing(self):
         rm = RendererManager()
 
+        if not rm.render_states["post_processing"]:
+            return()
+        
         if len(rm.post_processing_shaders) == 0:
-            return
+            return()
     
         glDisable(GL_DEPTH_TEST)
     
         glBindVertexArray(rm.vaos["screen_quad"])
-        glBindTexture(GL_TEXTURE_2D, rm.color_render_texture)
+        # glBindTexture(GL_TEXTURE_2D, rm.color_render_texture)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["screen_quad"])
+
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
 
         for i in range(len(rm.post_processing_shaders)):
             rm.post_processing_shaders[i].use()

@@ -5,6 +5,7 @@ from renderer.RendererManager import RendererManager
 from ui.components.mesh_tab import MeshTab
 from ui.components.material_tab import MaterialTab
 from ui.components.shader_tab import ShaderTab
+from ui.components.texture_tab import TextureTab
 
 class BottomWindow:
     def __init__(self):
@@ -16,6 +17,7 @@ class BottomWindow:
         self.mesh_tab = MeshTab()
         self.material_tab = MaterialTab()
         self.shader_tab = ShaderTab()
+        self.texture_tab = TextureTab()
 
     def draw(self, states, dimensions):
         if states["bottom_window"] == False:
@@ -55,6 +57,10 @@ class BottomWindow:
 
             if imgui.begin_tab_item("Shaders").selected:
                 self.shader_tab.draw()
+                imgui.end_tab_item()
+
+            if imgui.begin_tab_item("Textures").selected:
+                self.texture_tab.draw()
                 imgui.end_tab_item()
                 
             imgui.end_tab_bar()

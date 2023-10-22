@@ -42,7 +42,7 @@ class FpsWindow:
 
         if states["fps_window/details_header"]:
             self.frametime_graph.draw(dt)
-            self.rendertime_graph.draw(Renderer().timer.laps[-1])
+            self.rendertime_graph.draw(Renderer().timer.get_last_record())
             self.ui_time_graph.draw(ui_time)
             self.swaptime_graph.draw(swaptime)
             self.control_graph.draw(controltime)

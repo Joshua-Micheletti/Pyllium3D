@@ -79,11 +79,11 @@ class UI(metaclass=Singleton):
         self.states, self.dimensions = self.fps_window.draw(self.states, self.dimensions,
                                                             dt=dt, swaptime=swaptime,
                                                             controltime=controltime,
-                                                            ui_time=self.timer.laps[-1],
+                                                            ui_time=self.timer.get_last_record(),
                                                             updatetime=updatetime,
                                                             rmupdatetime=rmupdatetime)
 
-        # imgui.show_demo_window()
+        imgui.show_demo_window()
 
         imgui.pop_font()
 

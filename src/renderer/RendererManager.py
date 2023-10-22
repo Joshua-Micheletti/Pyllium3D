@@ -79,6 +79,10 @@ class RendererManager(metaclass=Singleton):
         self.post_processing_shaders = []
         self.available_post_processing_shaders = []
 
+        self.render_states = dict()
+        self.render_states["depth_of_field"] = True
+        self.render_states["post_processing"] = True
+
         # setup the required data for the engine
         self._setup_entities()
 

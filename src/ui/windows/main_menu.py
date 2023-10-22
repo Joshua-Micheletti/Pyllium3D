@@ -1,4 +1,5 @@
 import imgui
+from renderer.RendererManager import RendererManager
 
 class MainMenu:
     def __init__(self):
@@ -7,6 +8,7 @@ class MainMenu:
 
     def draw(self, states, dimensions):
         if imgui.begin_main_menu_bar():
+            rm = RendererManager()
             wsize = imgui.get_window_size()
             dimensions["main_menu_height"] = wsize.y
             self.height = wsize.y
@@ -37,6 +39,19 @@ class MainMenu:
                 imgui.text("Performance window")
                 imgui.same_line()
                 _, states["fps_window"] = imgui.checkbox("###fps_window_checkbox", states["fps_window"])
+
+                imgui.end_menu()
+
+            if imgui.begin_menu("Render"):
+                imgui.align_text_to_frame_padding()
+                imgui.text("Depth of field ")
+                imgui.same_line()
+                _, rm.render_states["depth_of_field"] = imgui.checkbox("###depth_of_field_checkbox", rm.render_states["depth_of_field"])
+
+                imgui.align_text_to_frame_padding()
+                imgui.text("Post processing")
+                imgui.same_line()
+                _, rm.render_states["post_processing"] = imgui.checkbox("###post_processing_checkbox", rm.render_states["post_processing"])
 
                 imgui.end_menu()
 

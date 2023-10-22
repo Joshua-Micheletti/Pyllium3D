@@ -14,7 +14,7 @@ float linearize_depth(float d, float zNear, float zFar) {
 
 void main() {
     float focus_distance = 20;
-    float focus_range = 20;
+    float focus_range = 50;
 
     float pi = 3.14159;
 

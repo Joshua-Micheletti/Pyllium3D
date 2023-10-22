@@ -12,12 +12,13 @@ def setup():
 
     rm = RendererManager()
 
-    count = 200
+    count = 2000
 
     rm.new_shader("cel", "assets/shaders/cel_shading/cel_shading.vert", "assets/shaders/cel_shading/cel_shading.frag")
 
     # rm.new_mesh("gally", "assets/models/default/gally.obj")
     rm.new_mesh("box", "assets/models/default/box.obj")
+    rm.new_mesh("quad", "assets/models/default/quad.obj")
     # rm.new_mesh("charmander", "assets/models/charmander/charmander.obj")
     # rm.new_mesh("sphere", "assets/models/default/sphere.obj")
     rm.new_mesh("sphere_low", "assets/models/default/sphere_low.obj")
@@ -25,12 +26,29 @@ def setup():
     rm.new_model("light", mesh="sphere_low", shader="white")
     rm.new_material("white", *(0.2, 0.2, 0.2), *(0.4, 0.4, 0.4), *(0.8, 0.8, 0.8), 4.0)
 
-    rm.place("light", 0, 1, -1)
+    rm.place("light", 4, 4, 4)
     # rm.scale("light", 0.25, 0.25, 0.25)
     rm.light_source = glm.vec3(5, 5, 5)
 
     rm.new_model("cel", mesh="sphere_low", shader="cel", material="white")
     rm.place("cel", 2, 2, 2)
+
+    rm.new_material("red_wall",   1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 128)
+    rm.new_material("green_wall", 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 128)
+    rm.new_material("blue_wall",  0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 128)
+
+    rm.new_model("red_wall", mesh="quad", shader="lighting", material="red_wall")
+    rm.new_model("green_wall", mesh="quad", shader="lighting", material="green_wall")
+    rm.new_model("blue_wall", mesh="quad", shader="lighting", material="blue_wall")
+
+    rm.place("red_wall", 10, 0, 0)
+    rm.scale("red_wall", 10, 10, 10)
+    rm.place("green_wall", 0, 0, 0)
+    rm.rotate("green_wall", 0, 90, 0)
+    rm.scale("green_wall", 10, 10, 10)
+    rm.place("blue_wall", 10, 0, 10)
+    rm.scale("blue_wall", 10, 10, 10)
+    rm.rotate("blue_wall", 0, 180, 0)
 
     # rm.new_model("second_sphere", mesh="sphere", shader="lighting_instanced")
 
