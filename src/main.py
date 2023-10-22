@@ -1,25 +1,31 @@
 # module to create the window
 import glfw
-from OpenGL.GL import *
 
+# import the scene
 import scene
 
-# local modules
+# local modules:
+# utils
 from utils.Timer import Timer
-
+# window
 from window.Window import Window
+# renderer manager
 from renderer.RendererManager import RendererManager
+# renderer
 from renderer.Renderer import Renderer
+# controller
 from controller.Controller import Controller
+# user interface
 from ui.UI import UI
 
-
+# -------------------------- Main ---------------------------
 def main():
     # window object
     window = Window()
     # setup the scene
     scene.setup()
 
+    # get a reference to the renderer manager
     rm = RendererManager()
     # renderer object
     renderer = Renderer()
@@ -37,6 +43,7 @@ def main():
     # 60 tps
     tickrate = 1000.0 / 60.0
     
+    # setup the timers to keep track of the execution time
     swaptime = Timer()
     swaptime.record()
     controltime = Timer()
@@ -78,7 +85,11 @@ def main():
 
         renderer.render()
 
-        ui.draw(dt, swaptime.get_last_record(), controltime.get_last_record(), updatetime.get_last_record(), rmupdatetime.get_last_record())
+        ui.draw(dt,
+                swaptime.get_last_record(), 
+                controltime.get_last_record(),
+                updatetime.get_last_record(),
+                rmupdatetime.get_last_record())
 
         swaptime.reset()
         glfw.swap_buffers(window.window)

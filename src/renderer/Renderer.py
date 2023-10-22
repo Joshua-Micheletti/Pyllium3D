@@ -27,6 +27,7 @@ class Renderer(metaclass=Singleton):
         # timer to keep track of the rendering time
         self.timer = Timer()
 
+    # ---------------------------- Render methods ---------------------------
     # method to render the 3D models
     def render(self):
         # reset the timer
@@ -109,16 +110,22 @@ class Renderer(metaclass=Singleton):
             # glDrawArrays(GL_TRIANGLES, 0, int(rm.vertices_count[model.mesh]))
             glDrawElements(GL_TRIANGLES, int(rm.indices_count[model.mesh]), GL_UNSIGNED_INT, None)
 
+    # method to render instanced models
     def _render_instances(self):
+        # reference to the renderer manager
         rm = RendererManager()
 
+        # for every instance in the renderer manager
         for instance in rm.instances.values():
+            # use the instance specific shader
             rm.shaders[instance.shader].use()
+            # link the shader specific uniforms
             self._link_shader_uniforms(rm.shaders[instance.shader])
             
+            # bind the VAO and index buffer of the mesh of the instance
             glBindVertexArray(instance.vao)
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos[instance.mesh])
-            # glDrawArraysInstanced(GL_TRIANGLES, 0, int(rm.vertices_count[instance.mesh]), len(instance.models))
+            # draw the indexed models in the instance
             glDrawElementsInstanced(GL_TRIANGLES, int(rm.indices_count[instance.mesh]), GL_UNSIGNED_INT, None, len(instance.models))
 
     # method to render the skybox
@@ -147,44 +154,62 @@ class Renderer(metaclass=Singleton):
 
     # method to render the blur texture
     def _render_blur(self):
+        # reference to the renderer manager
         rm = RendererManager()
 
         # only render the blur texture if the depth of field or post processing effects are enabled
         if not rm.render_states["depth_of_field"] and not rm.render_states["post_processing"]:
             return()
 
-
+        # bind the blurred framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.blurred_framebuffer)
-
+        # clear the blur texture
         glClear(GL_COLOR_BUFFER_BIT)
 
+        # disable depth testing
         glDisable(GL_DEPTH_TEST)
+        # bind the screen quad mesh VAO and indices
         glBindVertexArray(rm.vaos["screen_quad"])
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["screen_quad"])
+        # use the blur shader
         rm.shaders["post_processing/blur"].use()
+        # bind the color texture as source
         glBindTexture(GL_TEXTURE_2D, rm.color_render_texture)
+        # draw the blurred image
         glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
+
+        # bind the blurred texture as source
         glBindTexture(GL_TEXTURE_2D, rm.blurred_texture)
         # for i in range(2):
         #     glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
-
+        # use the dilation shader
         rm.shaders["post_processing/dilation"].use()
+        # render the dilated texture
         glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
 
+        # re-enable depth testing
         glEnable(GL_DEPTH_TEST)
 
+    # method to render the depth of field effect
     def _render_depth_of_field(self):
+        # reference to renderer manager
         rm = RendererManager()
 
+        # execute only if it's enabled
         if not rm.render_states["depth_of_field"]:
             return()
 
+        # disable depth testing
         glDisable(GL_DEPTH_TEST)
+        # bind the main render framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
-
+        
+        # use the depth of field shader
         rm.shaders["depth_of_field"].use()
+        # link the shader specific uniforms
         self._link_shader_uniforms(rm.shaders["depth_of_field"])
 
+        # bind the required textures to the correct texture slots
         glActiveTexture(GL_TEXTURE0 + 0)
         glBindTexture(GL_TEXTURE_2D, rm.color_render_texture)
 
@@ -194,12 +219,15 @@ class Renderer(metaclass=Singleton):
         glActiveTexture(GL_TEXTURE0 + 2)
         glBindTexture(GL_TEXTURE_2D, rm.depth_texture)
 
+        # draw the scene with depth of field
         glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
 
+        # set back the active texture slot to index 0
         glActiveTexture(GL_TEXTURE0)
-
+        # re-enable depth testing
         glEnable(GL_DEPTH_TEST)
 
+    # method to render the screen texture to the main framebuffer
     def _render_screen(self):
         # bind the screen framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
@@ -226,29 +254,41 @@ class Renderer(metaclass=Singleton):
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_CULL_FACE)
 
+    # method to render post processing effects
     def _render_post_processing(self):
+        # reference to the renderer manager
         rm = RendererManager()
 
+        # only execute if the post processing is enabled
         if not rm.render_states["post_processing"]:
             return()
         
+        # only execute if there are effects in the post processing list
         if len(rm.post_processing_shaders) == 0:
             return()
     
+        # disable depth testing
         glDisable(GL_DEPTH_TEST)
     
+        # bind the screen quad mesh VAO and indices buffer
         glBindVertexArray(rm.vaos["screen_quad"])
-        # glBindTexture(GL_TEXTURE_2D, rm.color_render_texture)
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["screen_quad"])
 
+        # bind the render framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
 
+        # for every effect in the post processing list
         for i in range(len(rm.post_processing_shaders)):
+            # use the current post processing effect
             rm.post_processing_shaders[i].use()
+            # link the post processing uniforms
             self._link_post_processing_uniforms(rm.post_processing_shaders[i])
+            # link the shader specific uniforms
             self._link_shader_uniforms(rm.post_processing_shaders[i])
+            # link the user specific uniforms
             self._link_user_uniforms(rm.post_processing_shaders[i])
 
+            # bind the textures to the relative texture slots
             glActiveTexture(GL_TEXTURE0 + 0)
             glBindTexture(GL_TEXTURE_2D, rm.color_render_texture)
 
@@ -258,13 +298,16 @@ class Renderer(metaclass=Singleton):
             glActiveTexture(GL_TEXTURE0 + 2)
             glBindTexture(GL_TEXTURE_2D, rm.depth_texture)
 
+            # set back the active texture slot to 0
             glActiveTexture(GL_TEXTURE0)
 
+            # render the effect
             glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
-    
+
+        # re-enable depth testing
         glEnable(GL_DEPTH_TEST)
 
-
+    # ---------------------------- Link methods ----------------------------
     # method to link static uniforms to the shader (static meaning they don't change between meshes)
     def _link_shader_uniforms(self, shader):
         # get a reference to the renderer manager
