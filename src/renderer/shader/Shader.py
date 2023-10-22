@@ -22,6 +22,7 @@ class Shader:
         
         # create a dictionary containing all the uniforms in the shader
         self.uniforms = dict()
+        self.user_uniforms = dict()
         # check for uniforms in the shader
         self._check_uniforms()
 
@@ -90,3 +91,17 @@ class Shader:
 
         if glGetUniformLocation(self.program, "depth_texture") != -1:
             self.uniforms["depth_texture"] = glGetUniformLocation(self.program, "depth_texture")
+
+        if glGetUniformLocation(self.program, "user_min") != -1:
+            self.uniforms["user_min"] = glGetUniformLocation(self.program, "user_min")
+            self.user_uniforms["user_min"] = 0
+        if glGetUniformLocation(self.program, "user_max") != -1:
+            self.uniforms["user_max"] = glGetUniformLocation(self.program, "user_max")
+            self.user_uniforms["user_max"] = 0
+
+        if glGetUniformLocation(self.program, "user_distance") != -1:
+            self.uniforms["user_distance"] = glGetUniformLocation(self.program, "user_distance")
+            self.user_uniforms["user_distance"] = 0
+        if glGetUniformLocation(self.program, "user_range") != -1:
+            self.uniforms["user_range"] = glGetUniformLocation(self.program, "user_range")
+            self.user_uniforms["user_range"] = 0

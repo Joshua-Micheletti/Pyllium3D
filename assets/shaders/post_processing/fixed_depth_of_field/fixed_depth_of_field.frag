@@ -1,6 +1,8 @@
 #version 330 core
 
 in vec2 frag_uv;
+in float frag_distance;
+in float frag_range;
 
 uniform sampler2D screen_texture;
 uniform sampler2D blurred_texture;
@@ -13,8 +15,8 @@ float linearize_depth(float d, float zNear, float zFar) {
 }
 
 void main() {
-    float focus_distance = 20;
-    float focus_range = 50;
+    float focus_distance = frag_distance;
+    float focus_range = frag_range;
 
     float pi = 3.14159;
 

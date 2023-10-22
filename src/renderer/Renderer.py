@@ -247,6 +247,7 @@ class Renderer(metaclass=Singleton):
             rm.post_processing_shaders[i].use()
             self._link_post_processing_uniforms(rm.post_processing_shaders[i])
             self._link_shader_uniforms(rm.post_processing_shaders[i])
+            self._link_user_uniforms(rm.post_processing_shaders[i])
 
             glActiveTexture(GL_TEXTURE0 + 0)
             glBindTexture(GL_TEXTURE_2D, rm.color_render_texture)
@@ -321,3 +322,9 @@ class Renderer(metaclass=Singleton):
         if "time" in shader.uniforms:
             glUniform1f(shader.uniforms["time"], glfw.get_time() * 10)
             print(glfw.get_time())
+
+    def _link_user_uniforms(self, shader):
+        if "user_distance" in shader.uniforms:
+            glUniform1f(shader.uniforms["user_distance"], shader.user_uniforms["user_distance"])
+        if "user_range" in shader.uniforms:
+            glUniform1f(shader.uniforms["user_range"], shader.user_uniforms["user_range"])
