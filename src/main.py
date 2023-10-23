@@ -24,7 +24,7 @@ def main():
     window = Window()
     # setup the scene
     scene.setup()
-
+    
     # get a reference to the renderer manager
     rm = RendererManager()
     # renderer object

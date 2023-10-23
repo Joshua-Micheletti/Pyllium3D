@@ -31,7 +31,7 @@ class GameWindow:
             self._game_window_resize(wsize.x, wsize.y)
             
         # Because I use the texture from OpenGL, I need to invert the V from the UV.
-        imgui.image(RendererManager().color_render_texture, wsize.x, wsize.y, (0, 1), (1, 0))
+        imgui.image(RendererManager().solved_texture, wsize.x, wsize.y, (0, 1), (1, 0))
         imgui.end_child()
 
         imgui.pop_style_var()

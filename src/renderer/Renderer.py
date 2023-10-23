@@ -20,6 +20,7 @@ class Renderer(metaclass=Singleton):
         glDepthFunc(GL_LEQUAL)
         # enable face culling (don't render the inside of triangles)
         glEnable(GL_CULL_FACE)
+        glEnable(GL_MULTISAMPLE)
         # enable alpha blending (transparency)
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
@@ -46,6 +47,8 @@ class Renderer(metaclass=Singleton):
         self._render_instances()
         # render the skybox
         self._render_skybox()
+
+        self._render_msaa()
         # render the blur texture
         self._render_blur()
         # apply depth of field effect to the main texture
@@ -152,6 +155,22 @@ class Renderer(metaclass=Singleton):
         glDrawElements(GL_TRIANGLES, int(rm.indices_count["default_mesh"]), GL_UNSIGNED_INT, None)
         glEnable(GL_CULL_FACE)
 
+    def _render_msaa(self):
+        rm = RendererManager()
+
+        glDisable(GL_DEPTH_TEST)
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.solved_framebuffer)
+        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, rm.multisample_render_texture)
+
+        glBindVertexArray(rm.vaos["screen_quad"])
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["screen_quad"])
+
+        rm.shaders["msaa"].use()
+
+        glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
+
+        glEnable(GL_DEPTH_TEST)
+
     # method to render the blur texture
     def _render_blur(self):
         # reference to the renderer manager
@@ -174,7 +193,7 @@ class Renderer(metaclass=Singleton):
         # use the blur shader
         rm.shaders["post_processing/blur"].use()
         # bind the color texture as source
-        glBindTexture(GL_TEXTURE_2D, rm.color_render_texture)
+        glBindTexture(GL_TEXTURE_2D, rm.solved_texture)
         # draw the blurred image
         glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
 
@@ -202,7 +221,7 @@ class Renderer(metaclass=Singleton):
         # disable depth testing
         glDisable(GL_DEPTH_TEST)
         # bind the main render framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.solved_framebuffer)
         
         # use the depth of field shader
         rm.shaders["depth_of_field"].use()
@@ -371,3 +390,11 @@ class Renderer(metaclass=Singleton):
             glUniform1f(shader.uniforms["user_distance"], shader.user_uniforms["user_distance"])
         if "user_range" in shader.uniforms:
             glUniform1f(shader.uniforms["user_range"], shader.user_uniforms["user_range"])
+        if "user_parameter_0" in shader.uniforms:
+            glUniform1f(shader.uniforms["user_parameter_0"], shader.user_uniforms["user_parameter_0"])
+        if "user_parameter_1" in shader.uniforms:
+            glUniform1f(shader.uniforms["user_parameter_1"], shader.user_uniforms["user_parameter_1"])
+        if "user_parameter_2" in shader.uniforms:
+            glUniform1f(shader.uniforms["user_parameter_2"], shader.user_uniforms["user_parameter_2"])
+        if "user_parameter_3" in shader.uniforms:
+            glUniform1f(shader.uniforms["user_parameter_3"], shader.user_uniforms["user_parameter_3"])

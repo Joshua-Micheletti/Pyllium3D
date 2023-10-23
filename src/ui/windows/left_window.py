@@ -77,18 +77,16 @@ class LeftWindow:
                     self.active_pp_shaders.pop(self.selected_active_pp_shader)
                     self.selected_active_pp_shader = -1
                     changed = True
+                else:
+                    shader_name = "post_processing/" + self.active_pp_shaders[self.selected_active_pp_shader].split('###')[0]
 
-                shader_name = "post_processing/" + self.active_pp_shaders[self.selected_active_pp_shader].split('###')[0]
-                print(shader_name)
+                    for name, value in rm.shaders[shader_name].user_uniforms.items():
+                        imgui.text(name)
+                        imgui.same_line()
+                        changed, new_value = imgui.drag_float("###" + name, value, change_speed = 0.1)
 
-                for name, value in rm.shaders[shader_name].user_uniforms.items():
-                    print("name")
-                    imgui.text(name)
-                    imgui.same_line()
-                    changed, new_value = imgui.drag_float("###" + name, value, change_speed = 0.1)
-
-                    if changed:
-                        rm.shaders[shader_name].user_uniforms[name] = new_value
+                        if changed:
+                            rm.shaders[shader_name].user_uniforms[name] = new_value
 
 
         if changed:

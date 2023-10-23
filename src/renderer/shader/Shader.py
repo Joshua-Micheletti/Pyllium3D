@@ -101,7 +101,23 @@ class Shader:
 
         if glGetUniformLocation(self.program, "user_distance") != -1:
             self.uniforms["user_distance"] = glGetUniformLocation(self.program, "user_distance")
-            self.user_uniforms["user_distance"] = 0
+            self.user_uniforms["user_distance"] = 10
         if glGetUniformLocation(self.program, "user_range") != -1:
             self.uniforms["user_range"] = glGetUniformLocation(self.program, "user_range")
-            self.user_uniforms["user_range"] = 0
+            self.user_uniforms["user_range"] = 5    
+
+        if glGetUniformLocation(self.program, "user_parameter_0") != -1:
+            self.uniforms["user_parameter_0"] = glGetUniformLocation(self.program, "user_parameter_0")
+            self.user_uniforms["user_parameter_0"] = 1
+        
+        if glGetUniformLocation(self.program, "user_parameter_1") != -1:
+            self.uniforms["user_parameter_1"] = glGetUniformLocation(self.program, "user_parameter_1")
+            self.user_uniforms["user_parameter_1"] = 1
+
+        if glGetUniformLocation(self.program, "user_parameter_2") != -1:
+            self.uniforms["user_parameter_2"] = glGetUniformLocation(self.program, "user_parameter_2")
+            self.user_uniforms["user_parameter_2"] = 1
+
+        if glGetUniformLocation(self.program, "user_parameter_3") != -1:
+            self.uniforms["user_parameter_3"] = glGetUniformLocation(self.program, "user_parameter_3")
+            self.user_uniforms["user_parameter_3"] = 1

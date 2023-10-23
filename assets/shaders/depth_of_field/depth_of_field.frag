@@ -14,7 +14,7 @@ float linearize_depth(float d, float zNear, float zFar) {
 
 void main() {
     float min_distance = 1.0;
-    float max_distance = 10.0;
+    float max_distance = 30.0;
 
     vec4 focus_color = texture(screen_texture, frag_uv);
     vec4 blurred_color = texture(blurred_texture, frag_uv);
