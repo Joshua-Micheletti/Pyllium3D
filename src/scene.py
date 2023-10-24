@@ -12,7 +12,7 @@ def setup():
 
     rm = RendererManager()
 
-    count = 2000
+    count = 50
 
     rm.new_shader("cel", "assets/shaders/cel_shading/cel_shading.vert", "assets/shaders/cel_shading/cel_shading.frag")
 
@@ -52,7 +52,7 @@ def setup():
 
     # rm.new_model("second_sphere", mesh="sphere", shader="lighting_instanced")
 
-    rm.new_instance("colored_entities", "box", "lighting_instanced")
+    rm.new_instance("colored_entities", "sphere_low", "lighting_instanced")
 
     entities = []
 

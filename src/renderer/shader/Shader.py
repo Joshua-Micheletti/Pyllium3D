@@ -121,3 +121,6 @@ class Shader:
         if glGetUniformLocation(self.program, "user_parameter_3") != -1:
             self.uniforms["user_parameter_3"] = glGetUniformLocation(self.program, "user_parameter_3")
             self.user_uniforms["user_parameter_3"] = 1
+
+        if glGetUniformLocation(self.program, "samples") != -1:
+            self.uniforms["samples"] = glGetUniformLocation(self.program, "samples")

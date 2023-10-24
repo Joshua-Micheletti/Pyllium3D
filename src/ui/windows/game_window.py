@@ -4,10 +4,13 @@ from OpenGL.GL import *
 from window.Window import Window
 from renderer.RendererManager import RendererManager
 
+from ui.components.crosshair import Crosshair
+
 class GameWindow:
     def __init__(self):
         self.width = 0
         self.height = 0
+        self.crosshair = Crosshair()
 
     def draw(self, states, dimensions):
         if states["game_window"] == False:
@@ -32,6 +35,10 @@ class GameWindow:
             
         # Because I use the texture from OpenGL, I need to invert the V from the UV.
         imgui.image(RendererManager().solved_texture, wsize.x, wsize.y, (0, 1), (1, 0))
+
+        self.crosshair.draw()
+
+
         imgui.end_child()
 
         imgui.pop_style_var()

@@ -40,6 +40,7 @@ class Renderer(metaclass=Singleton):
         glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
         # clear the framebuffer and depth buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        # glClear(GL_COLOR_BUFFER_BIT)
 
         # draw the single models 
         self._render_models()
@@ -166,8 +167,13 @@ class Renderer(metaclass=Singleton):
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["screen_quad"])
 
         rm.shaders["msaa"].use()
+        self._link_shader_uniforms(rm.shaders["msaa"])
 
         glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, rm.render_framebuffer)
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, rm.solved_framebuffer)
+        glBlitFramebuffer(0, 0, rm.width, rm.height, 0, 0, rm.width, rm.height, GL_DEPTH_BUFFER_BIT, GL_NEAREST)
 
         glEnable(GL_DEPTH_TEST)
 
@@ -199,8 +205,8 @@ class Renderer(metaclass=Singleton):
 
         # bind the blurred texture as source
         glBindTexture(GL_TEXTURE_2D, rm.blurred_texture)
-        # for i in range(2):
-        #     glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
+        for i in range(2):
+            glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
         # use the dilation shader
         rm.shaders["post_processing/dilation"].use()
         # render the dilated texture
@@ -230,13 +236,13 @@ class Renderer(metaclass=Singleton):
 
         # bind the required textures to the correct texture slots
         glActiveTexture(GL_TEXTURE0 + 0)
-        glBindTexture(GL_TEXTURE_2D, rm.color_render_texture)
+        glBindTexture(GL_TEXTURE_2D, rm.solved_texture)
 
         glActiveTexture(GL_TEXTURE0 + 1)
         glBindTexture(GL_TEXTURE_2D, rm.blurred_texture)
 
         glActiveTexture(GL_TEXTURE0 + 2)
-        glBindTexture(GL_TEXTURE_2D, rm.depth_texture)
+        glBindTexture(GL_TEXTURE_2D, rm.solved_depth_texture)
 
         # draw the scene with depth of field
         glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
@@ -294,7 +300,7 @@ class Renderer(metaclass=Singleton):
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["screen_quad"])
 
         # bind the render framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.solved_framebuffer)
 
         # for every effect in the post processing list
         for i in range(len(rm.post_processing_shaders)):
@@ -309,13 +315,13 @@ class Renderer(metaclass=Singleton):
 
             # bind the textures to the relative texture slots
             glActiveTexture(GL_TEXTURE0 + 0)
-            glBindTexture(GL_TEXTURE_2D, rm.color_render_texture)
+            glBindTexture(GL_TEXTURE_2D, rm.solved_texture)
 
             glActiveTexture(GL_TEXTURE0 + 1)
             glBindTexture(GL_TEXTURE_2D, rm.blurred_texture)
 
             glActiveTexture(GL_TEXTURE0 + 2)
-            glBindTexture(GL_TEXTURE_2D, rm.depth_texture)
+            glBindTexture(GL_TEXTURE_2D, rm.solved_depth_texture)
 
             # set back the active texture slot to 0
             glActiveTexture(GL_TEXTURE0)
@@ -359,6 +365,9 @@ class Renderer(metaclass=Singleton):
             glUniform1i(shader.uniforms["blurred_texture"], 1)
         if "depth_texture" in shader.uniforms:
             glUniform1i(shader.uniforms["depth_texture"], 2)
+
+        if "samples" in shader.uniforms:
+            glUniform1i(shader.uniforms["samples"], rm.samples)
 
     # method to link dynamic uniforms to the shader (dynamic meaning they change between meshes)
     def _link_model_uniforms(self, shader, name):

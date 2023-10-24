@@ -53,6 +53,30 @@ class MainMenu:
                 imgui.same_line()
                 _, rm.render_states["post_processing"] = imgui.checkbox("###post_processing_checkbox", rm.render_states["post_processing"])
 
+                imgui.align_text_to_frame_padding()
+                imgui.text("MSAA")
+                imgui.same_line()
+
+
+                sample_values = []
+                sample_values.append(str(rm.max_samples))
+
+                for i in range(rm.max_samples):
+                    new_sample_value = int(sample_values[-1]) / 2
+
+                    if int(new_sample_value) < 1:
+                        break
+
+                    sample_values.append(str(int(new_sample_value)))
+                    
+                changed, sample_index = imgui.combo("###sample_combo", sample_values.index(str(rm.samples)), sample_values)
+
+                if changed:
+                    rm.samples = int(sample_values[sample_index])
+                # _, rm.render_states["msaa"] = imgui.checkbox("###msaa_checkbox", rm.render_states["msaa"])
+
+                
+
                 imgui.end_menu()
 
             imgui.end_main_menu_bar()

@@ -16,10 +16,14 @@ void main() {
     float min_distance = 1.0;
     float max_distance = 30.0;
 
+    // ivec2 texture_size = textureSize(depth_texture);
+
     vec4 focus_color = texture(screen_texture, frag_uv);
     vec4 blurred_color = texture(blurred_texture, frag_uv);
     vec4 depth = texture(depth_texture, frag_uv);
+    // vec4 depth = texelFetch(depth_texture, ivec2(texture_size.x * frag_uv.x, texture_size.y * frag_uv.y), 0);
     vec4 focus_point = texture(depth_texture, vec2(0.5, 0.5));
+    // vec4 focus_point = vec4(1.0, 1.0, 1.0, 1.0);
 
     float dist = length(linearize_depth(depth.x, 0.1, 2000) - linearize_depth(focus_point.x, 0.1, 2000));
     // float linearized_dist = linearize_depth(dist, 0.1, 200);
