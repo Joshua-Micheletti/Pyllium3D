@@ -358,6 +358,9 @@ class Renderer(metaclass=Singleton):
             glUniform3f(shader.uniforms["light_diffuse"], light_material.diffuse[0], light_material.diffuse[1], light_material.diffuse[2])
         if "light_specular" in shader.uniforms:
             glUniform3f(shader.uniforms["light_specular"], light_material.specular[0], light_material.specular[1], light_material.specular[2])
+        if "light_color" in shader.uniforms:
+            glUniform3f(shader.uniforms["light_color"], light_material.diffuse[0], light_material.diffuse[1], light_material.diffuse[2])
+
 
         if "screen_texture" in shader.uniforms:
             glUniform1i(shader.uniforms["screen_texture"], 0)
@@ -388,7 +391,14 @@ class Renderer(metaclass=Singleton):
             glUniform3f(shader.uniforms["specular"], rm.materials[model.material].specular[0], rm.materials[model.material].specular[1], rm.materials[model.material].specular[2])
         if "shininess" in shader.uniforms:
             glUniform1f(shader.uniforms["shininess"], rm.materials[model.material].shininess)
-       
+        if "albedo" in shader.uniforms:
+            glUniform3f(shader.uniforms["albedo"], rm.materials[model.material].diffuse[0], rm.materials[model.material].diffuse[1], rm.materials[model.material].diffuse[2])
+        if "roughness" in shader.uniforms:
+            glUniform1f(shader.uniforms["roughness"], rm.materials[model.material].roughness)
+        if "metallic" in shader.uniforms:
+            glUniform1f(shader.uniforms["metallic"], rm.materials[model.material].metallic)
+        
+
     def _link_post_processing_uniforms(self, shader):
         if "time" in shader.uniforms:
             glUniform1f(shader.uniforms["time"], glfw.get_time() * 10)

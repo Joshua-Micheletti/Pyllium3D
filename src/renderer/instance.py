@@ -22,6 +22,8 @@ class Instance:
         self.diffuses = []
         self.speculars = []
         self.shininesses = []
+        self.roughnesses = []
+        self.metallicnesses = []
 
         # vbos to store instance specific information (model matrices and materials)
         self.model_matrices_vbo = None
@@ -29,6 +31,8 @@ class Instance:
         self.diffuse_vbo = None
         self.specular_vbo = None
         self.shininess_vbo = None
+        self.roughness_vbo = None
+        self.metallic_vbo = None
 
         # vao to interpret the instance informations
         self.vao = None
@@ -45,6 +49,8 @@ class Instance:
         self.to_update["diffuses"] = False
         self.to_update["speculars"] = False
         self.to_update["shininesses"] = False
+        self.to_update["roughnesses"] = False
+        self.to_update["metallicnesses"] = False
 
     # method to set the mesh in the instance
     def set_mesh(self, mesh, vertex_vbo, normal_vbo, uv_vbo):
@@ -180,6 +186,28 @@ class Instance:
             # change the values of the shininess according to the new material change
             self.shininesses[model_index] = material.shininess
 
+    def change_roughness(self, material):
+        # get the list of models in this instance that use the changed material
+        models_changed = list(set(material.models).intersection(self.models))
+
+        # for every model with that material
+        for model in models_changed:
+            # get the index of the current model
+            model_index = self.models.index(model)
+            # change the values of the shininess according to the new material change
+            self.roughnesses[model_index] = material.roughness
+
+    def change_metallic(self, material):
+        # get the list of models in this instance that use the changed material
+        models_changed = list(set(material.models).intersection(self.models))
+
+        # for every model with that material
+        for model in models_changed:
+            # get the index of the current model
+            model_index = self.models.index(model)
+            # change the values of the shininess according to the new material change
+            self.metallicnesses[model_index] = material.metallic
+
     # method to update the properties of the instance
     def update(self):
         # check for each property and update it accordingly
@@ -198,6 +226,12 @@ class Instance:
         if self.to_update["shininesses"]:
             self.update_shininesses()
             self.to_update["shininesses"] = False
+        if self.to_update["roughnesses"]:
+            self.update_roughnesses()
+            self.to_update["roughnesses"] = False
+        if self.to_update["metallicnesses"]:
+            self.update_metallicnesses()
+            self.to_update["metallicnesses"] = False 
         
     # method to update the model matrices vbo
     def update_model_matrices(self):
@@ -254,3 +288,27 @@ class Instance:
         glBufferData(GL_ARRAY_BUFFER, self.shininesses.nbytes, self.shininesses, GL_STATIC_DRAW)
         # bind back to the default vbo
         glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+    # method to update the ambients vbo
+    def update_roughnesses(self):
+        # convert the array into a numpy array of float 32bit
+        self.roughnesses = np.array(self.roughnesses, dtype=np.float32)
+        # bind the shininess vbo
+        glBindBuffer(GL_ARRAY_BUFFER, self.roughness_vbo)
+        # pass the new data for the vbo
+        glBufferData(GL_ARRAY_BUFFER, self.roughnesses.nbytes, self.roughnesses, GL_STATIC_DRAW)
+        # bind back to the default vbo
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        # print("updated roughnesses")
+
+    # method to update the ambients vbo
+    def update_metallicnesses(self):
+        # convert the array into a numpy array of float 32bit
+        self.metallicnesses = np.array(self.metallicnesses, dtype=np.float32)
+        # bind the shininess vbo
+        glBindBuffer(GL_ARRAY_BUFFER, self.metallic_vbo)
+        # pass the new data for the vbo
+        glBufferData(GL_ARRAY_BUFFER, self.metallicnesses.nbytes, self.metallicnesses, GL_STATIC_DRAW)
+        # bind back to the default vbo
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+        # print("updated metallicnesses")

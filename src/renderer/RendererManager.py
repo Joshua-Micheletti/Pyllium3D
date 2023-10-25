@@ -108,6 +108,8 @@ class RendererManager(metaclass=Singleton):
         self.shaders["depth_of_field"] = Shader("assets/shaders/depth_of_field/depth_of_field.vert",
                                                 "assets/shaders/depth_of_field/depth_of_field.frag")
         self.shaders["msaa"] = Shader("assets/shaders/msaa/msaa.vert", "assets/shaders/msaa/msaa.frag")
+        self.shaders["pbr"] = Shader("assets/shaders/pbr/pbr.vert", "assets/shaders/pbr/pbr.frag")
+        self.shaders["pbr_instanced"] = Shader("assets/shaders/pbr_instanced/pbr_instanced.vert", "assets/shaders/pbr_instanced/pbr_instanced.frag")
         
         self.shaders["post_processing/inverted_colors"] = Shader("assets/shaders/post_processing/inverted_colors/inverted_colors.vert",
                                                                  "assets/shaders/post_processing/inverted_colors/inverted_colors.frag")
@@ -146,7 +148,7 @@ class RendererManager(metaclass=Singleton):
         self.new_mesh("default_mesh", "assets/models/default/box.obj")
 
         self.new_material("default_material", *(0.2, 0.2, 0.2), *(0.6, 0.6, 0.6), *(1.0, 1.0, 1.0), 1.0)
-        self.new_material("light_color", *(0.2, 0.2, 0.2), *(0.5, 0.5, 0.5), *(1.0, 1.0, 1.0), 1.0)
+        self.new_material("light_color", *(0.2, 0.2, 0.2), *(1.0, 1.0, 1.0), *(1.0, 1.0, 1.0), 1.0)
 
         # creation of a camera object
         self.camera = Camera()
@@ -452,15 +454,19 @@ class RendererManager(metaclass=Singleton):
     # method to create a new material, composed of ambient, diffuse, specular colors and shininess value
     def new_material(self,
                      name,
-                     ambient_r, ambient_g, ambient_b,
-                     diffuse_r, diffuse_g, diffuse_b,
-                     specular_r, specular_g, specular_b,
-                     shininess):
+                     ambient_r = 1.0, ambient_g = 1.0, ambient_b = 1.0,
+                     diffuse_r = 1.0, diffuse_g = 1.0, diffuse_b = 1.0,
+                     specular_r = 1.0, specular_g = 1.0, specular_b = 1.0,
+                     shininess = 1.0,
+                     roughness = 0.5,
+                     metallic = 0.5):
         self.materials[name] = Material(name,
                                         ambient_r, ambient_g, ambient_b,
                                         diffuse_r, diffuse_g, diffuse_b,
                                         specular_r, specular_g, specular_b,
-                                        shininess)
+                                        shininess,
+                                        roughness,
+                                        metallic)
 
     # method to create a new model
     def new_model(self, name, mesh = "default_mesh", shader = "", texture = "", material = "default_material", count = 1):
@@ -526,6 +532,8 @@ class RendererManager(metaclass=Singleton):
         formatted_diffuses = []
         formatted_speculars = []
         formatted_shininesses = []
+        formatted_roughnesses = []
+        formatted_metallicnesses = []
 
         for model in instance.models:
             material = self.materials[model.material]
@@ -543,12 +551,16 @@ class RendererManager(metaclass=Singleton):
 
             formatted_shininesses.append(material.shininess)
 
+            formatted_roughnesses.append(material.roughness)
+            formatted_metallicnesses.append(material.metallic)
+
         formatted_ambients = np.array(formatted_ambients, dtype=np.float32)
         formatted_diffuses = np.array(formatted_diffuses, dtype=np.float32)
         formatted_speculars = np.array(formatted_speculars, dtype=np.float32)
         formatted_shininesses = np.array(formatted_shininesses, dtype=np.float32)
+        formatted_roughnesses = np.array(formatted_roughnesses, dtype=np.float32)
+        formatted_metallicnesses = np.array(formatted_metallicnesses, dtype=np.float32)
             
-
         # convert the list into an array of 32bit floats
         formatted_model_matrices = np.array(formatted_model_matrices, dtype=np.float32)
         # get the size in bits of an item in the matrices list
@@ -559,6 +571,8 @@ class RendererManager(metaclass=Singleton):
         instance.diffuses = formatted_diffuses
         instance.speculars = formatted_speculars
         instance.shininesses = formatted_shininesses
+        instance.roughnesses = formatted_roughnesses
+        instance.metallicnesses = formatted_metallicnesses
 
         # if the model matrices vbo already exists, delete it
         if instance.model_matrices_vbo != None:
@@ -593,6 +607,14 @@ class RendererManager(metaclass=Singleton):
         instance.shininess_vbo = glGenBuffers(1)
         glBindBuffer(GL_ARRAY_BUFFER, instance.shininess_vbo)
         glBufferData(GL_ARRAY_BUFFER, float_size * len(formatted_shininesses), formatted_shininesses, GL_STATIC_DRAW)
+
+        instance.roughness_vbo = glGenBuffers(1)
+        glBindBuffer(GL_ARRAY_BUFFER, instance.roughness_vbo)
+        glBufferData(GL_ARRAY_BUFFER, float_size * len(formatted_roughnesses), formatted_roughnesses, GL_STATIC_DRAW)
+
+        instance.metallic_vbo = glGenBuffers(1)
+        glBindBuffer(GL_ARRAY_BUFFER, instance.metallic_vbo)
+        glBufferData(GL_ARRAY_BUFFER, float_size * len(formatted_metallicnesses), formatted_metallicnesses, GL_STATIC_DRAW)
 
         # if the vao already exists, delete it
         if instance.vao != None:
@@ -668,10 +690,21 @@ class RendererManager(metaclass=Singleton):
         glEnableVertexAttribArray(10)
         glVertexAttribPointer(10, 1, GL_FLOAT, GL_FALSE, float_size, ctypes.c_void_p(0))
 
+        glBindBuffer(GL_ARRAY_BUFFER, instance.roughness_vbo)
+        glEnableVertexAttribArray(11)
+        glVertexAttribPointer(11, 1, GL_FLOAT, GL_FALSE, float_size, ctypes.c_void_p(0))
+
+        glBindBuffer(GL_ARRAY_BUFFER, instance.metallic_vbo)
+        glEnableVertexAttribArray(12)
+        glVertexAttribPointer(12, 1, GL_FLOAT, GL_FALSE, float_size, ctypes.c_void_p(0))
+
+
         glVertexBindingDivisor(7, 1)
         glVertexBindingDivisor(8, 1)
         glVertexBindingDivisor(9, 1)
         glVertexBindingDivisor(10, 1)
+        glVertexBindingDivisor(11, 1)
+        glVertexBindingDivisor(12, 1)
 
         # bind to the default VAO
         glBindVertexArray(0)
@@ -710,7 +743,6 @@ class RendererManager(metaclass=Singleton):
         instance.to_update["shininesses"] = True
 
     def set_models_in_instance(self, models, instance_name):
-
         instance = self.instances[instance_name]
         instance.models = []
 
@@ -815,6 +847,14 @@ class RendererManager(metaclass=Singleton):
         self.materials[name].set_shininess(s)
         self._check_instance_material_update(name, "shininesses")
 
+    def set_roughness(self, name, r):
+        self.materials[name].set_roughness(r)
+        self._check_instance_material_update(name, "roughnesses")
+
+    def set_metallic(self, name, m):
+        self.materials[name].set_metallic(m)
+        self._check_instance_material_update(name, "metallicnesses")
+
     def _check_instance_material_update(self, name, component):
         for model in self.materials[name].models:
             if model.in_instance != "":
@@ -828,6 +868,10 @@ class RendererManager(metaclass=Singleton):
                     self.instances[model.in_instance].change_specular(self.materials[name])
                 if component == "shininesses":
                     self.instances[model.in_instance].change_shininess(self.materials[name])
+                if component == "roughnesses":
+                    self.instances[model.in_instance].change_roughness(self.materials[name])
+                if component == "metallicnesses":
+                    self.instances[model.in_instance].change_metallic(self.materials[name])
 
     # ---------------------------- Getters ------------------------------------------
 

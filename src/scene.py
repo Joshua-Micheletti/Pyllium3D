@@ -12,14 +12,14 @@ def setup():
 
     rm = RendererManager()
 
-    count = 50
+    count = 1000
 
     rm.new_shader("cel", "assets/shaders/cel_shading/cel_shading.vert", "assets/shaders/cel_shading/cel_shading.frag")
 
-    # rm.new_mesh("gally", "assets/models/default/gally.obj")
+    rm.new_mesh("gally", "assets/models/default/gally.obj")
     rm.new_mesh("box", "assets/models/default/box.obj")
     rm.new_mesh("quad", "assets/models/default/quad.obj")
-    # rm.new_mesh("charmander", "assets/models/charmander/charmander.obj")
+    rm.new_mesh("charmander", "assets/models/charmander/charmander.obj")
     # rm.new_mesh("sphere", "assets/models/default/sphere.obj")
     rm.new_mesh("sphere_low", "assets/models/default/sphere_low.obj")
     # rm.new_mesh("quad", "assets/models/default/quad.obj")
@@ -30,7 +30,7 @@ def setup():
     # rm.scale("light", 0.25, 0.25, 0.25)
     rm.light_source = glm.vec3(5, 5, 5)
 
-    rm.new_model("cel", mesh="sphere_low", shader="cel", material="white")
+    rm.new_model("cel", mesh="gally", shader="pbr", material="white")
     rm.place("cel", 2, 2, 2)
 
     rm.new_material("red_wall",   1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 128)
@@ -50,9 +50,25 @@ def setup():
     rm.scale("blue_wall", 10, 10, 10)
     rm.rotate("blue_wall", 0, 180, 0)
 
+
+    for i in range(5):
+        for j in range(5):
+            name = "pbr_" + str(i) + str(j)
+            rm.new_material(name,
+                            diffuse_r = 1.0, diffuse_g = 0.0, diffuse_b = 0.0,
+                            roughness = i / 5,
+                            metallic = j / 5)
+
+            rm.new_model(name,
+                         mesh = "charmander",
+                         shader = "pbr",
+                         material = "pbr_" + str(i) + str(j))
+            
+            rm.place(name, -8, i * 2, j * 2)
+
     # rm.new_model("second_sphere", mesh="sphere", shader="lighting_instanced")
 
-    rm.new_instance("colored_entities", "sphere_low", "lighting_instanced")
+    rm.new_instance("colored_entities", "charmander", "pbr_instanced")
 
     entities = []
 
@@ -62,7 +78,9 @@ def setup():
                             *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
                             *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
                             *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
-                            random.uniform(1, 256))
+                            random.uniform(1, 256),
+                            random.uniform(0, 1),
+                            random.uniform(0, 1))
             rm.new_model("entity" + str(i * 10 + j), mesh="box", shader="lighting", material="color" + str(i * 10 + j))
             rm.place("entity" + str(i * 10 + j), i * 3, 0, j * 3)
             # rm.place("entity" + str(i * 10 + j), 1, 0, 1)

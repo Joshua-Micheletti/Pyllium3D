@@ -124,3 +124,16 @@ class Shader:
 
         if glGetUniformLocation(self.program, "samples") != -1:
             self.uniforms["samples"] = glGetUniformLocation(self.program, "samples")
+
+        if glGetUniformLocation(self.program, "albedo") != -1:
+            self.uniforms["albedo"] = glGetUniformLocation(self.program, "albedo")
+
+        if glGetUniformLocation(self.program, "metallic") != -1:
+            self.uniforms["metallic"] = glGetUniformLocation(self.program, "metallic")
+
+        if glGetUniformLocation(self.program, "roughness") != -1:
+            self.uniforms["roughness"] = glGetUniformLocation(self.program, "roughness")
+
+        if glGetUniformLocation(self.program, "light_color") != -1:
+            self.uniforms["light_color"] = glGetUniformLocation(self.program, "light_color")
+        

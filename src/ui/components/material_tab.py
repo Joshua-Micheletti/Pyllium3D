@@ -49,5 +49,14 @@ class MaterialTab:
             if changed:
                 rm.set_shininess(self.selected_material, shininess)
 
+            
+            changed, roughness = imgui.drag_float("Roughness", material.roughness, change_speed = 0.001)
+            if changed:
+                rm.set_roughness(self.selected_material, roughness)
+
+            changed, metallic = imgui.drag_float("Metallic", material.metallic, change_speed = 0.001)
+            if changed:
+                rm.set_metallic(self.selected_material, metallic)
+
             imgui.pop_item_width()
             imgui.end_child()
