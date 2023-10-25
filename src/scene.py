@@ -19,7 +19,7 @@ def setup():
     rm.new_mesh("gally", "assets/models/default/gally.obj")
     rm.new_mesh("box", "assets/models/default/box.obj")
     rm.new_mesh("quad", "assets/models/default/quad.obj")
-    rm.new_mesh("charmander", "assets/models/charmander/charmander.obj")
+    # rm.new_mesh("charmander", "assets/models/charmander/charmander.obj")
     # rm.new_mesh("sphere", "assets/models/default/sphere.obj")
     rm.new_mesh("sphere_low", "assets/models/default/sphere_low.obj")
     # rm.new_mesh("quad", "assets/models/default/quad.obj")
@@ -60,7 +60,7 @@ def setup():
                             metallic = j / 5)
 
             rm.new_model(name,
-                         mesh = "charmander",
+                         mesh = "gally",
                          shader = "pbr",
                          material = "pbr_" + str(i) + str(j))
             
@@ -68,7 +68,7 @@ def setup():
 
     # rm.new_model("second_sphere", mesh="sphere", shader="lighting_instanced")
 
-    rm.new_instance("colored_entities", "charmander", "pbr_instanced")
+    rm.new_instance("colored_entities", "gally", "pbr_instanced")
 
     entities = []
 
