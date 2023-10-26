@@ -7,6 +7,10 @@ from utils.messages import *
 class Shader:
     # constructor method, takes the path of the vertex and fragment shaders
     def __init__(self, vert_path, frag_path):
+        self.vertex_path = vert_path
+        self.frag_path = frag_path
+
+
         # open the vertex shader file and store its content
         f = open(vert_path)
         vertex_src = f.read()
@@ -33,6 +37,28 @@ class Shader:
         print_info(f"Compiled shader: {shader_name_components[0]}")
 
         
+    def compile(self):
+        f = open(self.vertex_path)
+        vertex_src = f.read()
+        f.close()
+
+        # open the fragment shader file and store its content
+        f = open(self.frag_path)
+        fragment_src = f.read()
+        f.close()
+
+        self.program = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
+
+        self.uniforms = dict()
+        self.user_uniforms = dict()
+        self._check_uniforms()
+
+        path_components = self.vertex_path.split("/")
+
+        shader_name_components = path_components[-1].split(".")
+
+        print_info(f"Compiled shader: {shader_name_components[0]}")
+
     # function to use this program for rendering
     def use(self):
         glUseProgram(self.program)

@@ -1019,6 +1019,11 @@ class RendererManager(metaclass=Singleton):
         for instance in self.instances.values():
             instance.update()
           
+    def recompile_shaders(self):
+        for name, shader in self.shaders.items():
+            glDeleteProgram(shader.program)
+            shader.compile()
+
 
     # ------------------------------ Misc --------------------------------------------
 

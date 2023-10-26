@@ -19,6 +19,7 @@ class Controller(metaclass=Singleton):
         self.states["right"] = False
         self.states["close"] = False
         self.states["cursor"] = False
+        self.states["recompile"] = False
 
         # variables to track the mouse movement
         self.first_mouse = True
@@ -43,11 +44,16 @@ class Controller(metaclass=Singleton):
         if key == glfw.KEY_ESCAPE:
             self.states["close"] = True
 
+        if key == glfw.KEY_R:
+            self.states["recompile"] = True
+
 
         if key == glfw.KEY_LEFT_ALT and self.states["cursor"] == False:
             self.states["cursor"] = True
         elif key == glfw.KEY_LEFT_ALT and self.states["cursor"] == True:
             self.states["cursor"] = False
+
+        
         
 
     # function called by the window when a key is released
@@ -64,6 +70,8 @@ class Controller(metaclass=Singleton):
             self.states["up"] = False
         if key == glfw.KEY_LEFT_CONTROL:
             self.states["down"] = False
+
+        
 
     # function called by the window when the cursor is moved
     def handle_mouse_movement(self, window, xpos, ypos):
@@ -100,8 +108,9 @@ class Controller(metaclass=Singleton):
 
     # method called on every frame to update the entities depending on the states
     def update(self, window, dt):
+        rm = RendererManager()
         # get a reference to the camera
-        camera = RendererManager().camera
+        camera = rm.camera
 
         camera_speed = 0.001
 
@@ -127,5 +136,9 @@ class Controller(metaclass=Singleton):
             glfw.set_input_mode(window.window, glfw.CURSOR, glfw.CURSOR_NORMAL)
         elif self.states["cursor"] == False:
             glfw.set_input_mode(window.window, glfw.CURSOR, glfw.CURSOR_DISABLED)
+
+        if self.states["recompile"] == True:
+            rm.recompile_shaders()
+            self.states["recompile"] = False
         
         
