@@ -162,4 +162,7 @@ class Shader:
 
         if glGetUniformLocation(self.program, "light_color") != -1:
             self.uniforms["light_color"] = glGetUniformLocation(self.program, "light_color")
+
+        if glGetUniformLocation(self.program, "light_strength") != -1:
+            self.uniforms["light_strength"] = glGetUniformLocation(self.program, "light_strength")
         

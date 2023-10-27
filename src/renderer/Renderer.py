@@ -343,7 +343,7 @@ class Renderer(metaclass=Singleton):
         if "projection" in shader.uniforms:
             glUniformMatrix4fv(shader.uniforms["projection"], 1, GL_FALSE, rm.get_ogl_projection_matrix())
         if "light" in shader.uniforms:
-            glUniform3f(shader.uniforms["light"], rm.light_source.x, rm.light_source.y, rm.light_source.z)
+            glUniform3f(shader.uniforms["light"], rm.light_source.position.x, rm.light_source.position.y, rm.light_source.position.z)
         if "eye" in shader.uniforms:
             glUniform3f(shader.uniforms["eye"], rm.camera.position.x, rm.camera.position.y, rm.camera.position.z)
 
@@ -360,7 +360,8 @@ class Renderer(metaclass=Singleton):
             glUniform3f(shader.uniforms["light_specular"], light_material.specular[0], light_material.specular[1], light_material.specular[2])
         if "light_color" in shader.uniforms:
             glUniform3f(shader.uniforms["light_color"], light_material.diffuse[0], light_material.diffuse[1], light_material.diffuse[2])
-
+        if "light_strength" in shader.uniforms:
+            glUniform1f(shader.uniforms["light_strength"], rm.light_source.strength)
 
         if "screen_texture" in shader.uniforms:
             glUniform1i(shader.uniforms["screen_texture"], 0)

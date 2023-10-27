@@ -7,6 +7,7 @@ import glm
 import multiprocessing
 from PIL import Image
 import numpy as np
+import json
 
 # custom modules imports
 from utils.Singleton import Singleton
@@ -20,6 +21,7 @@ from renderer.material.material import Material
 from renderer.shader.Shader import Shader
 from renderer.camera.Camera import Camera
 from renderer.instance import Instance
+from renderer.model.light import Light
 
 # method to setup and handle all the required data for the renderer
 class RendererManager(metaclass=Singleton):
@@ -144,8 +146,8 @@ class RendererManager(metaclass=Singleton):
         self.available_post_processing_shaders.append("post_processing/dilation")
         self.available_post_processing_shaders.append("post_processing/fixed_depth_of_field")
 
-        self.new_mesh("screen_quad", "assets/models/default/quad.obj")
-        self.new_mesh("default_mesh", "assets/models/default/box.obj")
+        self.new_json_mesh("screen_quad", "assets/models/default/quad.json")
+        self.new_json_mesh("default_mesh", "assets/models/default/box.json")
 
         self.new_material("default_material", *(0.2, 0.2, 0.2), *(0.6, 0.6, 0.6), *(1.0, 1.0, 1.0), 1.0)
         self.new_material("light_color", *(0.2, 0.2, 0.2), *(1.0, 1.0, 1.0), *(1.0, 1.0, 1.0), 1.0)
@@ -154,7 +156,7 @@ class RendererManager(metaclass=Singleton):
         self.camera = Camera()
 
         # creation of a light source object (just a position for now)
-        self.light_source = glm.vec3(10, 10, 10)
+        self.light_source = Light()
 
     # method for setting up the render framebuffer
     def _setup_render_framebuffer(self):
@@ -395,6 +397,66 @@ class RendererManager(metaclass=Singleton):
 
         # store the vertices count
         self.vertices_count[name] = len(formatted_vertices) / 3
+
+        # bind the VAO
+        glBindVertexArray(self.vaos[name])
+
+        # bind the vertex VBO
+        glBindBuffer(GL_ARRAY_BUFFER, self.vertex_vbos[name])
+        # store the data into the VBO
+        glBufferData(GL_ARRAY_BUFFER, indiced_vertices.nbytes, indiced_vertices, GL_STATIC_DRAW)
+        # enable the index 0 of the VAO
+        glEnableVertexAttribArray(0)
+        # store the data from the VBO in the VAO
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
+
+        # repeat for normals
+        glBindBuffer(GL_ARRAY_BUFFER, self.normal_vbos[name])
+        glBufferData(GL_ARRAY_BUFFER, indiced_normals.nbytes, indiced_normals, GL_STATIC_DRAW)
+        glEnableVertexAttribArray(1)
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
+
+        # and UVs
+        glBindBuffer(GL_ARRAY_BUFFER, self.uv_vbos[name])
+        glBufferData(GL_ARRAY_BUFFER, indiced_uvs.nbytes, indiced_uvs, GL_STATIC_DRAW)
+        glEnableVertexAttribArray(2)
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
+
+        # pass the data for the element array buffer of indices
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.ebos[name])
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
+
+        print_info("Created mesh: " + name + " in " + str(round(timer.elapsed() / 1000, 2)) + "s")
+
+    def new_json_mesh(self, name, file_path):
+        timer = Timer()
+
+        f = open(file_path, "r")
+        data = json.load(f)
+
+        
+
+        # keep track of the indices count
+        self.indices_count[name] = len(data["indices"])
+
+        # convert the indexed lists into indexed arrays of type float 32bit
+        indiced_vertices = np.array(data["vertices"], dtype=np.float32)
+        indiced_normals = np.array(data["normals"], dtype=np.float32)
+        indiced_uvs = np.array(data["uvs"], dtype=np.float32)
+
+        # convert the list of indices into an array of indices of type unsigned int 32bit
+        indices = np.array(data["indices"], dtype=np.uint32)
+
+        # generate the OpenGL buffers (VBO) for each data type
+        self.vertex_vbos[name] = glGenBuffers(1)
+        self.normal_vbos[name] = glGenBuffers(1)
+        self.uv_vbos[name] = glGenBuffers(1)
+        self.ebos[name] = glGenBuffers(1)
+        # generate the OpenGL buffer (VAO) to store all the data
+        self.vaos[name] = glGenVertexArrays(1)
+
+        # store the vertices count
+        self.vertices_count[name] = len(indiced_vertices) / 3
 
         # bind the VAO
         glBindVertexArray(self.vaos[name])

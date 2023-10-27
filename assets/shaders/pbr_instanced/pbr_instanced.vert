@@ -14,6 +14,7 @@ uniform vec3 light;
 uniform vec3 eye;
 
 uniform vec3 light_color;
+uniform float light_strength;
 
 out vec3 frag_position;
 out vec3 frag_normal;
@@ -25,6 +26,7 @@ out float frag_roughness;
 out float frag_metallic;
 
 out vec3 frag_light_color;
+out float frag_light_strength;
 
 void main() {
     mat4 mvp = projection * view * model;
@@ -41,5 +43,8 @@ void main() {
     frag_roughness = roughness;
     frag_metallic = metallic;
 
-    frag_light_color = light_color;    
+    frag_light_color = light_color;
+    frag_light_strength = light_strength;
+
+    float ls = light_strength; 
 }

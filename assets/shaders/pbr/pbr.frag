@@ -10,6 +10,7 @@ in float frag_roughness;
 in float frag_metallic;
 
 in vec3 frag_light_color;
+in float frag_light_strength;
 
 out vec4 frag_color;
 
@@ -58,7 +59,7 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 
 void main() {
     float ao = 1.0;
-    float light_strength = 16.0;
+    float light_strength = frag_light_strength;
 
     vec3 N = normalize(frag_normal);
     vec3 V = normalize(frag_eye - frag_position);

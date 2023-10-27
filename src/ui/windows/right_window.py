@@ -35,7 +35,7 @@ class RightWindow:
         self.height = wsize.y
 
 
-        states["right_window/model_header"], _ = imgui.collapsing_header("Model")
+        states["right_window/model_header"], _ = imgui.collapsing_header("Models")
 
         if states["right_window/model_header"]:
             imgui.indent()
@@ -49,7 +49,6 @@ class RightWindow:
                 self.selected_model = models[self.selected_model_index]
 
             imgui.unindent()
-
 
         if len(self.selected_model) != 0:
             states["right_window/transformation_header"], _ = imgui.collapsing_header("Transformation")
@@ -175,7 +174,6 @@ class RightWindow:
                 imgui.pop_item_width()
                 imgui.unindent()
 
-
         if len(self.selected_model) != 0:
             states["right_window/components_header"], _ = imgui.collapsing_header("Components")
 
@@ -212,6 +210,17 @@ class RightWindow:
                 imgui.pop_item_width()
 
                 imgui.unindent()
+
+        states["right_window/lights_header"], _ = imgui.collapsing_header("Lights")
+
+        if states["right_window/lights_header"]:
+            imgui.indent()
+            value = rm.light_source.strength
+            changed, value = imgui.drag_float("light strength", value, change_speed=0.1)
+
+            if changed:
+                rm.light_source.set_strength(value)
+
 
         imgui.pop_style_var()
         imgui.end()
