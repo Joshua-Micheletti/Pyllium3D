@@ -12,7 +12,7 @@ def setup():
 
     rm = RendererManager()
 
-    count = 1000
+    count = 200
 
     rm.new_shader("cel", "assets/shaders/cel_shading/cel_shading.vert", "assets/shaders/cel_shading/cel_shading.frag")
 
@@ -21,7 +21,7 @@ def setup():
     rm.new_json_mesh("quad", "assets/models/default/quad.json")
     # rm.new_mesh("charmander", "assets/models/charmander/charmander.obj")
     rm.new_json_mesh("charmander", "assets/models/charmander/charmander.json")
-    # rm.new_mesh("sphere", "assets/models/default/sphere.obj")
+    rm.new_json_mesh("sphere", "assets/models/default/sphere.json")
     rm.new_json_mesh("sphere_low", "assets/models/default/sphere_low.json")
     # rm.new_mesh("quad", "assets/models/default/quad.obj")
     rm.new_model("light", mesh="sphere_low", shader="white")
@@ -38,38 +38,38 @@ def setup():
     rm.new_material("green_wall", 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 128)
     rm.new_material("blue_wall",  0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 128)
 
-    rm.new_model("red_wall", mesh="quad", shader="lighting", material="red_wall")
-    rm.new_model("green_wall", mesh="quad", shader="lighting", material="green_wall")
-    rm.new_model("blue_wall", mesh="quad", shader="lighting", material="blue_wall")
+    # rm.new_model("red_wall", mesh="quad", shader="lighting", material="red_wall")
+    # rm.new_model("green_wall", mesh="quad", shader="lighting", material="green_wall")
+    # rm.new_model("blue_wall", mesh="quad", shader="lighting", material="blue_wall")
 
-    rm.place("red_wall", 10, 0, 0)
-    rm.scale("red_wall", 10, 10, 10)
-    rm.place("green_wall", 0, 0, 0)
-    rm.rotate("green_wall", 0, 90, 0)
-    rm.scale("green_wall", 10, 10, 10)
-    rm.place("blue_wall", 10, 0, 10)
-    rm.scale("blue_wall", 10, 10, 10)
-    rm.rotate("blue_wall", 0, 180, 0)
+    # rm.place("red_wall", 10, 0, 0)
+    # rm.scale("red_wall", 10, 10, 10)
+    # rm.place("green_wall", 0, 0, 0)
+    # rm.rotate("green_wall", 0, 90, 0)
+    # rm.scale("green_wall", 10, 10, 10)
+    # rm.place("blue_wall", 10, 0, 10)
+    # rm.scale("blue_wall", 10, 10, 10)
+    # rm.rotate("blue_wall", 0, 180, 0)
 
 
     for i in range(5):
         for j in range(5):
             name = "pbr_" + str(i) + str(j)
-            rm.new_material(name,
-                            diffuse_r = 1.0, diffuse_g = 0.0, diffuse_b = 0.0,
-                            roughness = i / 5,
-                            metallic = j / 5)
+            # rm.new_material(name,
+            #                 diffuse_r = 1.0, diffuse_g = 0.0, diffuse_b = 0.0,
+            #                 roughness = i / 5,
+            #                 metallic = j / 5)
 
-            rm.new_model(name,
-                         mesh = "charmander",
-                         shader = "pbr",
-                         material = "pbr_" + str(i) + str(j))
+            # rm.new_model(name,
+            #              mesh = "charmander",
+            #              shader = "pbr",
+            #              material = "pbr_" + str(i) + str(j))
             
-            rm.place(name, -8, i * 2, j * 2)
+            # rm.place(name, -8, i * 2, j * 2)
 
     # rm.new_model("second_sphere", mesh="sphere", shader="lighting_instanced")
 
-    rm.new_instance("colored_entities", "charmander", "pbr_instanced")
+    rm.new_instance("colored_entities", "sphere", "pbr_instanced")
 
     entities = []
 
