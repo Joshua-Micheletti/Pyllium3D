@@ -343,7 +343,7 @@ class Renderer(metaclass=Singleton):
         if "projection" in shader.uniforms:
             glUniformMatrix4fv(shader.uniforms["projection"], 1, GL_FALSE, rm.get_ogl_projection_matrix())
         if "light" in shader.uniforms:
-            glUniform3f(shader.uniforms["light"], rm.light_source.position.x, rm.light_source.position.y, rm.light_source.position.z)
+            glUniform3f(shader.uniforms["light"], rm.light_positions[0], rm.light_positions[1], rm.light_positions[2])
         if "eye" in shader.uniforms:
             glUniform3f(shader.uniforms["eye"], rm.camera.position.x, rm.camera.position.y, rm.camera.position.z)
 
@@ -361,7 +361,20 @@ class Renderer(metaclass=Singleton):
         if "light_color" in shader.uniforms:
             glUniform3f(shader.uniforms["light_color"], light_material.diffuse[0], light_material.diffuse[1], light_material.diffuse[2])
         if "light_strength" in shader.uniforms:
-            glUniform1f(shader.uniforms["light_strength"], rm.light_source.strength)
+            glUniform1f(shader.uniforms["light_strength"], rm.light_strengths[0])
+
+        if "lights" in shader.uniforms:
+            glUniform3fv(shader.uniforms["lights"], rm.lights_count, rm.light_positions)
+        
+        if "light_colors" in shader.uniforms:
+            glUniform3fv(shader.uniforms["light_colors"], rm.lights_count, rm.light_colors)
+        
+        if "light_strengths" in shader.uniforms:
+            glUniform1fv(shader.uniforms["light_strengths"], rm.lights_count, rm.light_strengths)
+
+        if "lights_count" in shader.uniforms:
+            glUniform1f(shader.uniforms["lights_count"], rm.lights_count)
+
 
         if "screen_texture" in shader.uniforms:
             glUniform1i(shader.uniforms["screen_texture"], 0)
@@ -403,7 +416,6 @@ class Renderer(metaclass=Singleton):
     def _link_post_processing_uniforms(self, shader):
         if "time" in shader.uniforms:
             glUniform1f(shader.uniforms["time"], glfw.get_time() * 10)
-            print(glfw.get_time())
 
     def _link_user_uniforms(self, shader):
         if "user_distance" in shader.uniforms:

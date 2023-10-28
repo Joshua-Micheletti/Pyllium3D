@@ -12,6 +12,9 @@ class RightWindow:
         self.selected_model_index = 0
         self.selected_model = ""
 
+        self.selected_light_index = 0
+        self.selected_light = ""
+
     def draw(self, states, dimensions):
         if states["right_window"] == False:
             dimensions["right_window_width"] = 0
@@ -215,11 +218,30 @@ class RightWindow:
 
         if states["right_window/lights_header"]:
             imgui.indent()
-            value = rm.light_source.strength
-            changed, value = imgui.drag_float("light strength", value, change_speed=0.1)
 
+            lights = list(rm.lights.keys())
+            imgui.push_item_width(dimensions["right_window_width"] - dimensions["indent_size"] * 2)
+            clicked, self.selected_light_index = imgui.combo("###lights", self.selected_light_index, lights)
+            imgui.pop_item_width()
+
+            if clicked:
+                self.selected_light = lights[self.selected_light_index]
+
+            imgui.unindent()
+
+        if len(self.selected_light) != 0:
+            light_color_r = rm.light_colors[rm.lights[self.selected_light] + 0]
+            light_color_g = rm.light_colors[rm.lights[self.selected_light] + 1]
+            light_color_b = rm.light_colors[rm.lights[self.selected_light] + 2]
+
+            changed, light_color = imgui.color_edit3("Light color", light_color_r, light_color_g, light_color_b)
             if changed:
-                rm.light_source.set_strength(value)
+                rm.set_light_color(self.selected_light, *light_color)
+
+            changed, light_strength = imgui.drag_float("Strength", rm.light_strengths[rm.lights[self.selected_light]])
+            if changed:
+                rm.set_light_strength(self.selected_light, light_strength)
+        
 
 
         imgui.pop_style_var()

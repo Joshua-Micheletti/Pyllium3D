@@ -89,6 +89,12 @@ class RendererManager(metaclass=Singleton):
         self.max_samples = glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES)
         self.samples = self.max_samples
 
+        self.lights = dict()
+        self.light_colors = []
+        self.light_positions = []
+        self.light_strengths = []
+        self.lights_count = 0
+
         # setup the required data for the engine
         self._setup_entities()
 
@@ -156,7 +162,8 @@ class RendererManager(metaclass=Singleton):
         self.camera = Camera()
 
         # creation of a light source object (just a position for now)
-        self.light_source = Light()
+        # self.lights["main"] = Light()
+        self.new_light("main")
 
     # method for setting up the render framebuffer
     def _setup_render_framebuffer(self):
@@ -490,6 +497,21 @@ class RendererManager(metaclass=Singleton):
 
     def new_shader(self, name, vert_path, frag_path):
         self.shaders[name] = Shader(vert_path, frag_path)
+
+    def new_light(self, name, light_position = (0.0, 0.0, 0.0), light_color = (1.0, 1.0, 1.0), light_strength = 8.0):
+        self.lights_count += 1
+
+        self.lights[name] = self.lights_count - 1
+
+        self.light_positions.append(light_position[0])
+        self.light_positions.append(light_position[1])
+        self.light_positions.append(light_position[2])
+        
+        self.light_colors.append(light_color[0])
+        self.light_colors.append(light_color[1])
+        self.light_colors.append(light_color[2])
+
+        self.light_strengths.append(light_strength)
 
     # method to generate a new texture (needs double checking if it's correct)
     def new_texture(self, name, filepath):
@@ -868,6 +890,14 @@ class RendererManager(metaclass=Singleton):
         # self._calculate_model_matrix(name)
         # self._check_instance_update(name)
 
+    def place_light(self, name, x, y, z):
+        if name in self.lights:
+            self.light_positions[self.lights[name] * 3 + 0] = x
+            self.light_positions[self.lights[name] * 3 + 1] = y
+            self.light_positions[self.lights[name] * 3 + 2] = z
+        else:
+            print_error(f"Light '{name}' not found")
+
     # method to calculate the model matrix after a transformation
     def _calculate_model_matrix(self, name):
         # reset the model matrix
@@ -916,6 +946,20 @@ class RendererManager(metaclass=Singleton):
     def set_metallic(self, name, m):
         self.materials[name].set_metallic(m)
         self._check_instance_material_update(name, "metallicnesses")
+
+    def set_light_color(self, name, r, g, b):
+        if name in self.lights:
+            self.light_colors[self.lights[name] * 3 + 0] = r
+            self.light_colors[self.lights[name] * 3 + 1] = g
+            self.light_colors[self.lights[name] * 3 + 2] = b
+        else:
+            print_error(f"Light '{name}' not found")
+
+    def set_light_strength(self, name, s):
+        if name in self.lights:
+            self.light_strengths[self.lights[name]] = s
+        else:
+            print_error(f"Light '{name}' not found")
 
     def _check_instance_material_update(self, name, component):
         for model in self.materials[name].models:

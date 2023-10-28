@@ -2,7 +2,7 @@ import imgui
 
 class Crosshair:
     def __init__(self):
-        self.color = (0.5, 0.5, 0.5, 0.2)
+        self.color = (0.5, 0.5, 0.5, 0.4)
         self.radius = 3
 
     def draw(self):

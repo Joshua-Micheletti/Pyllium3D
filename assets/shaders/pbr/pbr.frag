@@ -2,15 +2,17 @@
 
 in vec3 frag_position;
 in vec3 frag_normal;
-in vec3 frag_light;
+uniform vec3 lights[100];
 in vec3 frag_eye;
 
 in vec3 frag_albedo;
 in float frag_roughness;
 in float frag_metallic;
 
-in vec3 frag_light_color;
-in float frag_light_strength;
+uniform vec3 light_colors[100];
+uniform float light_strengths[100];
+
+uniform float lights_count;
 
 out vec4 frag_color;
 
@@ -59,7 +61,7 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 
 void main() {
     float ao = 1.0;
-    float light_strength = frag_light_strength;
+    // float light_strength = frag_light_strength;
 
     vec3 N = normalize(frag_normal);
     vec3 V = normalize(frag_eye - frag_position);
@@ -69,29 +71,33 @@ void main() {
 	           
     // reflectance equation
     vec3 Lo = vec3(0.0);
-    // calculate per-light radiance
-    vec3 L = normalize(frag_light - frag_position);
-    vec3 H = normalize(V + L);
-    float distance    = length(frag_light - frag_position) / light_strength;
-    float attenuation = 1.0 / (distance * distance);
-    vec3 radiance     = frag_light_color * attenuation;        
-    
-    // cook-torrance brdf
-    float NDF = DistributionGGX(N, H, frag_roughness);        
-    float G   = GeometrySmith(N, V, L, frag_roughness);      
-    vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);       
-    
-    vec3 kS = F;
-    vec3 kD = vec3(1.0) - kS;
-    kD *= 1.0 - frag_metallic;	  
-    
-    vec3 numerator    = NDF * G * F;
-    float denominator = 1.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
-    vec3 specular     = numerator / denominator;  
+
+    for (int i = 0; i < lights_count; i++) {
+
+        // calculate per-light radiance
+        vec3 L = normalize(lights[i] - frag_position);
+        vec3 H = normalize(V + L);
+        float distance    = length(lights[i] - frag_position) / light_strengths[i];
+        float attenuation = 1.0 / (distance * distance);
+        vec3 radiance     = light_colors[i] * attenuation;        
         
-    // add to outgoing radiance Lo
-    float NdotL = max(dot(N, L), 0.0);                
-    Lo += (kD * frag_albedo / PI + specular) * radiance * NdotL; 
+        // cook-torrance brdf
+        float NDF = DistributionGGX(N, H, frag_roughness);        
+        float G   = GeometrySmith(N, V, L, frag_roughness);      
+        vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);       
+        
+        vec3 kS = F;
+        vec3 kD = vec3(1.0) - kS;
+        kD *= 1.0 - frag_metallic;	  
+        
+        vec3 numerator    = NDF * G * F;
+        float denominator = 1.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+        vec3 specular     = numerator / denominator;  
+            
+        // add to outgoing radiance Lo
+        float NdotL = max(dot(N, L), 0.0);                
+        Lo += (kD * frag_albedo / PI + specular) * radiance * NdotL;
+    }
 
     vec3 ambient = vec3(0.03) * frag_albedo * ao;
     vec3 color = ambient + Lo;

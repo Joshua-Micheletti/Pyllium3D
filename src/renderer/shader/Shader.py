@@ -10,6 +10,10 @@ class Shader:
         self.vertex_path = vert_path
         self.frag_path = frag_path
 
+        path_components = vert_path.split("/")
+
+        shader_name_components = path_components[-1].split(".")
+
 
         # open the vertex shader file and store its content
         f = open(vert_path)
@@ -23,16 +27,13 @@ class Shader:
 
         # compile the OpenGL program from the vertex and fragment shaders
         self.program = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
-        
         # create a dictionary containing all the uniforms in the shader
         self.uniforms = dict()
         self.user_uniforms = dict()
         # check for uniforms in the shader
         self._check_uniforms()
 
-        path_components = vert_path.split("/")
-
-        shader_name_components = path_components[-1].split(".")
+        
 
         print_info(f"Compiled shader: {shader_name_components[0]}")
 
@@ -165,4 +166,16 @@ class Shader:
 
         if glGetUniformLocation(self.program, "light_strength") != -1:
             self.uniforms["light_strength"] = glGetUniformLocation(self.program, "light_strength")
+
+        if glGetUniformLocation(self.program, "lights") != -1:
+            self.uniforms["lights"] = glGetUniformLocation(self.program, "lights")
+
+        if glGetUniformLocation(self.program, "light_colors") != -1:
+            self.uniforms["light_colors"] = glGetUniformLocation(self.program, "light_colors")
+
+        if glGetUniformLocation(self.program, "light_strengths") != -1:
+            self.uniforms["light_strengths"] = glGetUniformLocation(self.program, "light_strengths")
+
+        if glGetUniformLocation(self.program, "lights_count") != -1:
+            self.uniforms["lights_count"] = glGetUniformLocation(self.program, "lights_count")
         
