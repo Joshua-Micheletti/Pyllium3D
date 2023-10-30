@@ -1,7 +1,7 @@
 import imgui
 
-from window.Window import Window
-from renderer.RendererManager import RendererManager
+from window.window import Window
+from renderer.renderer_manager import RendererManager
 from utils.colors import gui_colors
 
 class RightWindow:
@@ -22,6 +22,7 @@ class RightWindow:
         
         window = Window()
         rm = RendererManager()
+        style = imgui.get_style()
 
         imgui.set_next_window_position(window.width, dimensions["main_menu_height"], pivot_x = 1.0)
         imgui.set_next_window_size_constraints((100, window.height - dimensions["main_menu_height"]), (window.width / 2, window.height - dimensions["main_menu_height"]))
@@ -57,6 +58,8 @@ class RightWindow:
             states["right_window/transformation_header"], _ = imgui.collapsing_header("Transformation")
 
             if states["right_window/transformation_header"]:
+                available_region = imgui.get_content_region_available()
+
                 imgui.indent()
 
                 position = rm.positions[self.selected_model]
@@ -66,13 +69,15 @@ class RightWindow:
                 item_spacing = 2.0
                 normal_item_spacing = 8.0
 
-                available_slider_width = dimensions["right_window_width"] - \
-                                         dimensions["indent_size"] * 3 - \
-                                         item_spacing * 3 - \
-                                         normal_item_spacing * 3 - \
-                                         imgui.calc_text_size("Z").x
+                # available_slider_width = dimensions["right_window_width"] - \
+                #                          dimensions["indent_size"] * 3 - \
+                #                          item_spacing * 3 - \
+                #                          normal_item_spacing * 3 - \
+                #                          imgui.calc_text_size("Z").x
+                slider_width = available_region.x \
+                             - style.indent_spacing - imgui.calc_text_size("X").x - style.item_spacing.x - style.indent_spacing
 
-                imgui.push_item_width(available_slider_width / 3)
+                imgui.push_item_width(slider_width)
                 
                 # with imgui.font(self.font):
                 # position
@@ -86,8 +91,9 @@ class RightWindow:
                 imgui.same_line()
                 changed_x, x = imgui.drag_float("###p.x", position.x, change_speed = 0.1)
                 imgui.pop_style_var()
-                imgui.same_line()
+                # imgui.same_line()
                 
+                imgui.align_text_to_frame_padding()
                 imgui.push_style_var(imgui.STYLE_ITEM_SPACING, (item_spacing, 8.0))
                 imgui.push_style_color(imgui.COLOR_TEXT, *gui_colors.green)
                 imgui.text("Y")
@@ -95,8 +101,9 @@ class RightWindow:
                 imgui.same_line()
                 changed_y, y = imgui.drag_float("###p.y", position.y, change_speed = 0.1)
                 imgui.pop_style_var(1)
-                imgui.same_line()
+                # imgui.same_line()
 
+                imgui.align_text_to_frame_padding()
                 imgui.push_style_var(imgui.STYLE_ITEM_SPACING, (item_spacing, 8.0))
                 imgui.push_style_color(imgui.COLOR_TEXT, *gui_colors.blue)
                 imgui.text("Z")
@@ -120,7 +127,8 @@ class RightWindow:
                 changed_x, x = imgui.drag_float("###r.x", rotation.x)
                 imgui.pop_style_var(1)
 
-                imgui.same_line()
+                # imgui.same_line()
+                imgui.align_text_to_frame_padding()
                 imgui.push_style_var(imgui.STYLE_ITEM_SPACING, (item_spacing, 8.0))
                 imgui.push_style_color(imgui.COLOR_TEXT, *gui_colors.green)
                 imgui.text("Y")
@@ -129,7 +137,8 @@ class RightWindow:
                 changed_y, y = imgui.drag_float("###r.y", rotation.y)
                 imgui.pop_style_var()
                 
-                imgui.same_line()
+                # imgui.same_line()
+                imgui.align_text_to_frame_padding()
                 imgui.push_style_var(imgui.STYLE_ITEM_SPACING, (item_spacing, 8.0))
                 imgui.push_style_color(imgui.COLOR_TEXT, *gui_colors.blue)
                 imgui.text("Z")
@@ -153,7 +162,8 @@ class RightWindow:
                 changed_x, x = imgui.drag_float("###s.x", scale.x, change_speed = 0.1)
                 imgui.pop_style_var()
 
-                imgui.same_line()
+                # imgui.same_line()
+                imgui.align_text_to_frame_padding()
                 imgui.push_style_var(imgui.STYLE_ITEM_SPACING, (item_spacing, 8.0))
                 imgui.push_style_color(imgui.COLOR_TEXT, *gui_colors.green)
                 imgui.text("Y")
@@ -162,7 +172,8 @@ class RightWindow:
                 changed_y, y = imgui.drag_float("###s.y", scale.y, change_speed = 0.1)
                 imgui.pop_style_var()
 
-                imgui.same_line()
+                # imgui.same_line()
+                imgui.align_text_to_frame_padding()
                 imgui.push_style_var(imgui.STYLE_ITEM_SPACING, (item_spacing, 8.0))
                 imgui.push_style_color(imgui.COLOR_TEXT, *gui_colors.blue)
                 imgui.text("Z")
@@ -230,17 +241,30 @@ class RightWindow:
             imgui.unindent()
 
         if len(self.selected_light) != 0:
-            light_color_r = rm.light_colors[rm.lights[self.selected_light] + 0]
-            light_color_g = rm.light_colors[rm.lights[self.selected_light] + 1]
-            light_color_b = rm.light_colors[rm.lights[self.selected_light] + 2]
+            available_region = imgui.get_content_region_available()
 
-            changed, light_color = imgui.color_edit3("Light color", light_color_r, light_color_g, light_color_b)
+            item_width = available_region.x - style.indent_spacing * 2
+
+            imgui.push_item_width(item_width)
+
+            imgui.indent()
+            light_color_r = rm.light_colors[rm.lights[self.selected_light] * 3 + 0]
+            light_color_g = rm.light_colors[rm.lights[self.selected_light] * 3 + 1]
+            light_color_b = rm.light_colors[rm.lights[self.selected_light] * 3 + 2]
+
+            imgui.text("Light Color:")
+            changed, light_color = imgui.color_edit3("###light_color", light_color_r, light_color_g, light_color_b)
             if changed:
                 rm.set_light_color(self.selected_light, *light_color)
 
-            changed, light_strength = imgui.drag_float("Strength", rm.light_strengths[rm.lights[self.selected_light]])
+            imgui.text("Strength:")
+            changed, light_strength = imgui.drag_float("###strength", rm.light_strengths[rm.lights[self.selected_light]])
             if changed:
                 rm.set_light_strength(self.selected_light, light_strength)
+
+            imgui.pop_item_width()
+
+            imgui.unindent()
         
 
 

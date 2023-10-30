@@ -1,8 +1,8 @@
 import imgui
 from OpenGL.GL import *
 
-from window.Window import Window
-from renderer.RendererManager import RendererManager
+from window.window import Window
+from renderer.renderer_manager import RendererManager
 
 from ui.components.crosshair import Crosshair
 

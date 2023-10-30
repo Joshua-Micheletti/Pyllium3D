@@ -1,5 +1,5 @@
 import imgui
-from renderer.RendererManager import RendererManager
+from renderer.renderer_manager import RendererManager
 
 class MainMenu:
     def __init__(self):

@@ -1,13 +1,11 @@
-from utils.Singleton import Singleton
+from utils.singleton import Singleton
 from OpenGL.GL import *
 import numpy as np
 import glm
 import glfw
 
-from utils.Timer import Timer
-from renderer.RendererManager import RendererManager
-from window.Window import Window
-from renderer.instance import Instance
+from utils.timer import Timer
+from renderer.renderer_manager import RendererManager
 
 # class to render 3D models
 class Renderer(metaclass=Singleton):

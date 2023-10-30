@@ -1,8 +1,8 @@
 import imgui
 import random
 
-from window.Window import Window
-from renderer.RendererManager import RendererManager
+from window.window import Window
+from renderer.renderer_manager import RendererManager
 
 class LeftWindow:
     def __init__(self):

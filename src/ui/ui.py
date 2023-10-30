@@ -2,9 +2,9 @@ import imgui
 from imgui.integrations.glfw import GlfwRenderer
 from OpenGL.GL import *
 
-from window.Window import Window
-from utils.Singleton import Singleton
-from utils.Timer import Timer
+from window.window import Window
+from utils.singleton import Singleton
+from utils.timer import Timer
 
 from ui.windows.main_menu import MainMenu
 from ui.windows.game_window import GameWindow

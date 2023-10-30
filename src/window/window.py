@@ -1,12 +1,11 @@
 import glfw
-from pyrr import Matrix44
 from OpenGL.GL import *
 import glm
 
-from utils.Singleton import Singleton
+from utils.singleton import Singleton
 from utils.colors import colors
-from controller.Controller import Controller
-from renderer.RendererManager import RendererManager
+from controller.controller import Controller
+from renderer.renderer_manager import RendererManager
 
 class Window(metaclass=Singleton):
     def __init__(self, width = 800, height = 600, name = "Pyphics", opengl_M = 4, opengl_m = 3):

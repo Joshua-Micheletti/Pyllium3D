@@ -1,8 +1,8 @@
 import imgui
 from array import array
 
-from window.Window import Window
-from renderer.Renderer import Renderer
+from window.window import Window
+from renderer.renderer import Renderer
 
 from ui.components.graph import Graph
 

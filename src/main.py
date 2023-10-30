@@ -6,17 +6,17 @@ import scene
 
 # local modules:
 # utils
-from utils.Timer import Timer
+from utils.timer import Timer
 # window
-from window.Window import Window
+from window.window import Window
 # renderer manager
-from renderer.RendererManager import RendererManager
+from renderer.renderer_manager import RendererManager
 # renderer
-from renderer.Renderer import Renderer
+from renderer.renderer import Renderer
 # controller
-from controller.Controller import Controller
+from controller.controller import Controller
 # user interface
-from ui.UI import UI
+from ui.ui import UI
 
 # -------------------------- Main ---------------------------
 def main():

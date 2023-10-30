@@ -4,24 +4,22 @@ import numpy as np
 from PIL import Image
 import pywavefront
 import glm
-import multiprocessing
 from PIL import Image
 import numpy as np
 import json
 
 # custom modules imports
-from utils.Singleton import Singleton
+from utils.singleton import Singleton
 from utils.colors import colors
 from utils.vbo_indexer import *
 from utils.messages import *
-from utils.Timer import Timer
+from utils.timer import Timer
 
-from renderer.model.Model import Model
+from renderer.model.model import Model
 from renderer.material.material import Material
-from renderer.shader.Shader import Shader
-from renderer.camera.Camera import Camera
+from renderer.shader.shader import Shader
+from renderer.camera.camera import Camera
 from renderer.instance import Instance
-from renderer.model.light import Light
 
 # method to setup and handle all the required data for the renderer
 class RendererManager(metaclass=Singleton):
