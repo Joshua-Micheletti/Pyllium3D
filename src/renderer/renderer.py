@@ -75,6 +75,7 @@ class Renderer(metaclass=Singleton):
         last_shader = ""
         last_mesh = ""
         last_material = ""
+        last_texture = ""
         
         # THIS LOOP WILL CHANGE WHEN THE MODELS WILL BE GROUPED BY SHADER, SO THAT THERE ISN'T SO MUCH CONTEXT SWITCHING
         # for every model in the renderer manager
@@ -94,6 +95,11 @@ class Renderer(metaclass=Singleton):
                 self._link_material_uniforms(rm.shaders[model.shader], model.name)
                 # keep track of the last used material
                 last_material = model.material
+
+            if last_texture != model.texture:
+                if model.texture != None:
+                    glBindTexture(GL_TEXTURE_2D, rm.textures[model.texture])
+                    last_texture = model.texture
 
             # link the model specific uniforms
             self._link_model_uniforms(rm.shaders[model.shader], model.name)
@@ -145,13 +151,13 @@ class Renderer(metaclass=Singleton):
         rm.camera.place(old_position.x, old_position.y, old_position.z)
 
         # bind the default mesh vao (cube)
-        glBindVertexArray(rm.vaos["default_mesh"])
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["default_mesh"])
+        glBindVertexArray(rm.vaos["default"])
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["default"])
 
         # disable cull facing
         glDisable(GL_CULL_FACE)
         glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
-        glDrawElements(GL_TRIANGLES, int(rm.indices_count["default_mesh"]), GL_UNSIGNED_INT, None)
+        glDrawElements(GL_TRIANGLES, int(rm.indices_count["default"]), GL_UNSIGNED_INT, None)
         glEnable(GL_CULL_FACE)
 
     def _render_msaa(self):

@@ -1,12 +1,12 @@
 import os
 import platform
 
-from utils.Singleton import Singleton
+from utils.singleton import Singleton
 from utils.colors import colors
-from utils.Timer import Timer
+from utils.timer import Timer
 
-from renderer.RendererManager import RendererManager
-from renderer.Renderer import Renderer
+from renderer.renderer_manager import RendererManager
+from renderer.renderer import Renderer
 
 class Printer(metaclass=Singleton):
     def __init__(self, interval = 2000):

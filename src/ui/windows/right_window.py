@@ -197,6 +197,7 @@ class RightWindow:
                 meshes = list(rm.vaos.keys())
                 shaders = list(rm.shaders.keys())
                 materials = list(rm.materials.keys())
+                textures = list(rm.textures.keys())
 
                 available_width = dimensions["right_window_width"] - dimensions["indent_size"] * 2
 
@@ -220,6 +221,13 @@ class RightWindow:
 
                 if clicked:
                     rm.models[self.selected_model].material = materials[selected_material]
+
+                
+                imgui.text("Texture")
+                clicked, selected_texture = imgui.combo("###combo_texture", textures.index(rm.models[self.selected_model].texture), textures)
+
+                if clicked:
+                    rm.models[self.selected_model].texture = textures[selected_texture]
 
                 imgui.pop_item_width()
 

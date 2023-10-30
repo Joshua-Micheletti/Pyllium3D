@@ -151,10 +151,12 @@ class RendererManager(metaclass=Singleton):
         self.available_post_processing_shaders.append("post_processing/fixed_depth_of_field")
 
         self.new_json_mesh("screen_quad", "assets/models/default/quad.json")
-        self.new_json_mesh("default_mesh", "assets/models/default/box.json")
+        self.new_json_mesh("default", "assets/models/default/box.json")
 
-        self.new_material("default_material", *(0.2, 0.2, 0.2), *(0.6, 0.6, 0.6), *(1.0, 1.0, 1.0), 1.0)
+        self.new_material("default", *(0.2, 0.2, 0.2), *(0.6, 0.6, 0.6), *(1.0, 1.0, 1.0), 1.0)
         self.new_material("light_color", *(0.2, 0.2, 0.2), *(1.0, 1.0, 1.0), *(1.0, 1.0, 1.0), 1.0)
+
+        self.new_texture("default", "assets/textures/uv-maptemplate.jpg")
 
         # creation of a camera object
         self.camera = Camera()
@@ -296,7 +298,8 @@ class RendererManager(metaclass=Singleton):
     # method for setting up the skybox
     def _setup_skybox(self):
         # directory of the skybox files
-        filepath = "./assets/textures/Epic_BlueSunset/"
+        # filepath = "./assets/textures/Epic_BlueSunset/"
+        filepath = "./assets/textures/dark/"
 
         # list of faces
         texture_faces = []
@@ -519,19 +522,30 @@ class RendererManager(metaclass=Singleton):
         glBindTexture(GL_TEXTURE_2D, self.textures[name])
 
         # open the image using pillow, flip the image to make it compatible with OpenGL
-        im = Image.open(filepath).transpose(Image.FLIP_TOP_BOTTOM)
-        # get the image data
-        imdata = np.fromstring(im.tobytes(), np.uint8)
+        # im = Image.open(filepath).transpose(Image.FLIP_TOP_BOTTOM)
+        # # get the image data
+        # # imdata = np.fromstring(im.tobytes(), np.uint8)
+        # imdata = im.convert("RGBA").tobytes()
 
         # setup the texture parameters
-        glPixelStorei(GL_UNPACK_ALIGNMENT,1)
+        # glPixelStorei(GL_UNPACK_ALIGNMENT,1)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
 
         # pass the image data to the texture
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, im.size[0], im.size[1], 0, GL_RGB, GL_UNSIGNED_BYTE, imdata)
+        # glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, im.width, im.height, 0, GL_RGB, GL_UNSIGNED_BYTE, imdata)
+
+        image = Image.open(filepath)
+        convert = image.convert("RGBA")
+        image_data = convert.transpose(Image.FLIP_TOP_BOTTOM).tobytes()
+        width = image.width
+        height = image.height
+        image.close()
+
+        glBindTexture(GL_TEXTURE_2D, self.textures[name])
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data)
 
     # method to create a new material, composed of ambient, diffuse, specular colors and shininess value
     def new_material(self,
@@ -551,7 +565,7 @@ class RendererManager(metaclass=Singleton):
                                         metallic)
 
     # method to create a new model
-    def new_model(self, name, mesh = "default_mesh", shader = "", texture = "", material = "default_material", count = 1):
+    def new_model(self, name, mesh = "default", shader = "default", texture = "default", material = "default", count = 1):
         # keep track of the original name of the model (in case there is mulitple counts)
         original_name = name
 
