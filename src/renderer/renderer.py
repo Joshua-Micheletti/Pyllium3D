@@ -204,13 +204,21 @@ class Renderer(metaclass=Singleton):
         rm.shaders["post_processing/blur"].use()
         # bind the color texture as source
         glBindTexture(GL_TEXTURE_2D, rm.solved_texture)
+
         # draw the blurred image
         glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
 
         # bind the blurred texture as source
         glBindTexture(GL_TEXTURE_2D, rm.blurred_texture)
-        for i in range(2):
-            glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
+
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.tmp_framebuffer)
+        glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
+
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.blurred_framebuffer)
+        glBindTexture(GL_TEXTURE_2D, rm.tmp_texture)
+
+        # for i in range(2):
+        #     glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
         # use the dilation shader
         rm.shaders["post_processing/dilation"].use()
         # render the dilated texture
@@ -303,11 +311,17 @@ class Renderer(metaclass=Singleton):
         glBindVertexArray(rm.vaos["screen_quad"])
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["screen_quad"])
 
-        # bind the render framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.solved_framebuffer)
+        i = 0
 
         # for every effect in the post processing list
         for i in range(len(rm.post_processing_shaders)):
+            if i % 2 == 0:
+                glBindFramebuffer(GL_FRAMEBUFFER, rm.tmp_framebuffer)
+                glBindTexture(GL_TEXTURE_2D, rm.solved_texture)
+            else:
+                glBindFramebuffer(GL_FRAMEBUFFER, rm.solved_framebuffer)
+                glBindTexture(GL_TEXTURE_2D, rm.tmp_texture)
+
             # use the current post processing effect
             rm.post_processing_shaders[i].use()
             # link the post processing uniforms
@@ -318,8 +332,8 @@ class Renderer(metaclass=Singleton):
             self._link_user_uniforms(rm.post_processing_shaders[i])
 
             # bind the textures to the relative texture slots
-            glActiveTexture(GL_TEXTURE0 + 0)
-            glBindTexture(GL_TEXTURE_2D, rm.solved_texture)
+            # glActiveTexture(GL_TEXTURE0 + 0)
+            # glBindTexture(GL_TEXTURE_2D, rm.solved_texture)
 
             glActiveTexture(GL_TEXTURE0 + 1)
             glBindTexture(GL_TEXTURE_2D, rm.blurred_texture)
@@ -331,6 +345,12 @@ class Renderer(metaclass=Singleton):
             glActiveTexture(GL_TEXTURE0)
 
             # render the effect
+            glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
+
+        if i % 2 == 0:
+            glBindFramebuffer(GL_FRAMEBUFFER, rm.solved_framebuffer)
+            glBindTexture(GL_TEXTURE_2D, rm.tmp_texture)
+            rm.shaders["screen"].use()
             glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
 
         # re-enable depth testing

@@ -13,7 +13,7 @@ float linearize_depth(float d, float zNear, float zFar) {
 }
 
 void main() {
-    float min_distance = 1.0;
+    float min_distance = 5.0;
     float max_distance = 30.0;
 
     // ivec2 texture_size = textureSize(depth_texture);

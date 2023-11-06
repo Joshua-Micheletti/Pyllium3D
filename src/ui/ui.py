@@ -24,8 +24,8 @@ class UI(metaclass=Singleton):
 
         # size of indentation
         self.dimensions = dict()
-        self.dimensions["game_window_width"] = 640
-        self.dimensions["game_window_height"] = 480
+        self.dimensions["game_window_width"] = 800
+        self.dimensions["game_window_height"] = 600
         self.dimensions["main_menu_height"] = 0
         self.dimensions["left_window_width"] = 0
         self.dimensions["right_window_width"] = 0

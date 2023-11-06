@@ -15,6 +15,10 @@ from renderer.renderer_manager import RendererManager
 from renderer.renderer import Renderer
 # controller
 from controller.controller import Controller
+
+from physics.physics_world import PhysicsWorld
+
+from engine.engine import Engine
 # user interface
 from ui.ui import UI
 
@@ -27,6 +31,10 @@ def main():
     
     # get a reference to the renderer manager
     rm = RendererManager()
+
+    pw = PhysicsWorld()
+
+    engine = Engine()
     # renderer object
     renderer = Renderer()
     # controller object
@@ -76,6 +84,9 @@ def main():
             updatetime.reset()
             scene.update(tickrate)
             updatetime.record()
+
+            pw.update()
+            engine.update()
 
             tick_accumulator -= tickrate
         

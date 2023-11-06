@@ -10,7 +10,7 @@ out vec4 frag_color;
 
 void main() {
     int size = int(1);
-    float separation = 0.7;
+    float separation = 1.5;
     float min_threshold = 0.1;
     float max_threshold = 0.5;
 
