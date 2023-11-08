@@ -6,9 +6,10 @@ from utils.messages import *
 # class to represent a shader object
 class Shader:
     # constructor method, takes the path of the vertex and fragment shaders
-    def __init__(self, vert_path, frag_path):
+    def __init__(self, vert_path, frag_path, geom_path = ""):
         self.vertex_path = vert_path
         self.frag_path = frag_path
+        self.geom_path = geom_path
 
         path_components = vert_path.split("/")
 
@@ -25,15 +26,24 @@ class Shader:
         fragment_src = f.read()
         f.close()
 
+        geometry_src = ""
+
+        if len(geom_path) != 0:
+            f = open(geom_path)
+            geometry_src = f.read()
+            f.close() 
+
         # compile the OpenGL program from the vertex and fragment shaders
-        self.program = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
+        if len(geometry_src) != 0:
+            self.program = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER), compileShader(geometry_src, GL_GEOMETRY_SHADER))
+        else:
+            self.program = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
+
         # create a dictionary containing all the uniforms in the shader
         self.uniforms = dict()
         self.user_uniforms = dict()
         # check for uniforms in the shader
         self._check_uniforms()
-
-        
 
         print_info(f"Compiled shader: {shader_name_components[0]}")
 
@@ -178,4 +188,13 @@ class Shader:
 
         if glGetUniformLocation(self.program, "lights_count") != -1:
             self.uniforms["lights_count"] = glGetUniformLocation(self.program, "lights_count")
+
+        if glGetUniformLocation(self.program, "cube_matrices") != -1:
+            self.uniforms["cube_matrices"] = glGetUniformLocation(self.program, "cube_matrices")
+
+            for i in range(6):
+                self.uniforms["cube_matrices[" + str(i) + "]"] = glGetUniformLocation(self.program, "cube_matrices[" + str(i) + "]")
+
+        if glGetUniformLocation(self.program, "far_plane") != -1:
+            self.uniforms["far_plane"] = glGetUniformLocation(self.program, "far_plane")
         

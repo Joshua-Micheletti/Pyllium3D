@@ -17,3 +17,4 @@ class Engine(metaclass=Singleton):
         for physics_body, model in self.links.items():
             position, rotation = pw.get_position_rotation(physics_body)
             rm.place(model, *position)
+            rm.rotate(model, *rotation)

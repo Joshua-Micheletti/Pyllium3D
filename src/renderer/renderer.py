@@ -40,10 +40,15 @@ class Renderer(metaclass=Singleton):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         # glClear(GL_COLOR_BUFFER_BIT)
 
+        self._render_shadow_map()
+
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
+
         # draw the single models 
         self._render_models()
         # and the instances
         self._render_instances()
+
         # render the skybox
         self._render_skybox()
 
@@ -69,7 +74,7 @@ class Renderer(metaclass=Singleton):
     # method to render the models to the render framebuffer
     def _render_models(self):
         # get a reference to the renderer manager
-        rm = RendererManager()        
+        rm = RendererManager()   
 
         # variables to keep track of the last used shader and mesh
         last_shader = ""
@@ -116,6 +121,7 @@ class Renderer(metaclass=Singleton):
 
             # draw the mesh
             # glDrawArrays(GL_TRIANGLES, 0, int(rm.vertices_count[model.mesh]))
+            glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
             glDrawElements(GL_TRIANGLES, int(rm.indices_count[model.mesh]), GL_UNSIGNED_INT, None)
 
     # method to render instanced models
@@ -135,6 +141,39 @@ class Renderer(metaclass=Singleton):
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos[instance.mesh])
             # draw the indexed models in the instance
             glDrawElementsInstanced(GL_TRIANGLES, int(rm.indices_count[instance.mesh]), GL_UNSIGNED_INT, None, len(instance.models))
+
+    def _render_shadow_map(self):
+        rm = RendererManager()
+
+        glViewport(0, 0, rm.shadow_size, rm.shadow_size)
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.cubemap_shadow_framebuffer)
+
+        glClear(GL_DEPTH_BUFFER_BIT)
+
+        rm.shaders["depth_cube"].use()
+
+        self._link_shader_uniforms(rm.shaders["depth_cube"])
+
+        last_mesh = ""
+
+        for model in rm.single_render_models:
+            # link the model specific uniforms
+            self._link_model_uniforms(rm.shaders["depth_cube"], model.name)
+
+            # check if the new model has a different mesh
+            if last_mesh != model.mesh:
+                # if it does, bind the new VAO
+                glBindVertexArray(rm.vaos[model.mesh])
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos[model.mesh])
+                
+                # and keep track of the last used mesh
+                last_mesh = model.mesh
+
+            # draw the mesh
+            # glDrawArrays(GL_TRIANGLES, 0, int(rm.vertices_count[model.mesh]))
+            glDrawElements(GL_TRIANGLES, int(rm.indices_count[model.mesh]), GL_UNSIGNED_INT, None)
+
+        glViewport(0, 0, rm.width, rm.height)
 
     # method to render the skybox
     def _render_skybox(self):
@@ -399,7 +438,6 @@ class Renderer(metaclass=Singleton):
         if "lights_count" in shader.uniforms:
             glUniform1f(shader.uniforms["lights_count"], rm.lights_count)
 
-
         if "screen_texture" in shader.uniforms:
             glUniform1i(shader.uniforms["screen_texture"], 0)
         if "blurred_texture" in shader.uniforms:
@@ -409,6 +447,16 @@ class Renderer(metaclass=Singleton):
 
         if "samples" in shader.uniforms:
             glUniform1i(shader.uniforms["samples"], rm.samples)
+
+        if "cube_matrices" in shader.uniforms:
+            shadow_matrices = rm.get_ogl_shadow_matrices()
+            for i in range(6):
+                glUniformMatrix4fv(shader.uniforms["cube_matrices"] + i, 1, GL_FALSE, shadow_matrices[i])
+
+        if "far_plane" in shader.uniforms:
+            glUniform1f(shader.uniforms["far_plane"], 2000.0)
+        # if "cube_matrices" in shader.uniforms:
+        #     glUniformMatrix4fv(shader.uniforms["cube_matrices[0]"], rm.)
 
     # method to link dynamic uniforms to the shader (dynamic meaning they change between meshes)
     def _link_model_uniforms(self, shader, name):

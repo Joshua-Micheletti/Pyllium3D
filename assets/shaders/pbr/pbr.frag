@@ -14,6 +14,12 @@ uniform float light_strengths[100];
 
 uniform float lights_count;
 
+uniform float far_plane;
+
+uniform samplerCube depth_map;
+
+uniform vec3 light;
+
 out vec4 frag_color;
 
 
@@ -59,6 +65,44 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
     return ggx1 * ggx2;
 }
 
+float shadow_calculation(vec3 frag_pos, vec3 frag_norm) {
+    vec3 frag_to_light = frag_pos - light;
+    float closest_depth = texture(depth_map, frag_to_light).r;
+
+    closest_depth *= far_plane;
+    float current_depth = length(frag_to_light);
+
+    // float shadow  = 0.0;
+    // float bias    = 0.05; 
+    float samples = 8.0;
+    float offset  = 0.1;
+
+    vec3 light_dir = normalize(light - frag_position);
+
+    float bias = max(0.5 * (1.0 - dot(frag_norm, light_dir)), 0.05);
+
+    // float shadow = 0;
+
+    float shadow = current_depth - bias > closest_depth ? 1.0 : 0.0;
+    // for(float x = -offset; x < offset; x += offset / (samples * 0.5))
+    // {
+    //     for(float y = -offset; y < offset; y += offset / (samples * 0.5))
+    //     {
+    //         for(float z = -offset; z < offset; z += offset / (samples * 0.5))
+    //         {
+    //             float closestDepth = texture(depth_map, frag_to_light + vec3(x, y, z)).r; 
+    //             closest_depth *= far_plane;   // undo mapping [0;1]
+    //             if(current_depth - bias > closest_depth)
+    //                 shadow += 1.0;
+    //         }
+    //     }
+    // }
+
+    // shadow /= (samples * samples * samples);
+
+    return(shadow);
+}
+
 void main() {
     float ao = 1.0;
     // float light_strength = frag_light_strength;
@@ -99,11 +143,17 @@ void main() {
         Lo += (kD * frag_albedo / PI + specular) * radiance * NdotL;
     }
 
+    float shadow = shadow_calculation(frag_position, frag_normal);
+
     vec3 ambient = vec3(0.03) * frag_albedo * ao;
     vec3 color = ambient + Lo;
+
+    color *= (1.0 - shadow) * vec3(0.1, 0.1, 0.1);
+    // color *= shadow;
 	
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));  
    
     frag_color = vec4(color, 1.0);
+    // frag_color = vec4(shadow, shadow, shadow, 1.0);
 }

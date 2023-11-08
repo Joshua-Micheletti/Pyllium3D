@@ -54,5 +54,3 @@ class GameWindow:
         RendererManager().update_dimensions(int_width, int_height)
         self.width = int_width
         self.height = int_height
-
-        print(self.width, self.height)

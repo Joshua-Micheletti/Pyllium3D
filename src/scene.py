@@ -13,10 +13,10 @@ def setup():
     timer = Timer()
 
     rm = RendererManager()
-    pb = PhysicsWorld()
+    pw = PhysicsWorld()
     engine = Engine()
 
-    count = 20
+    count = 150
 
     # rm.new_shader("cel", "assets/shaders/cel_shading/cel_shading.vert", "assets/shaders/cel_shading/cel_shading.frag")
     # rm.new_shader("pbr_texture", "assets/shaders/pbr_texture/pbr_texture.vert", "assets/shaders/pbr_texture/pbr_texture.frag")
@@ -57,29 +57,29 @@ def setup():
     rm.new_light("light_1", (0, 0, 0), (1, 0, 0), 8)
     rm.new_light("light_2", (0, 0, 0), (0, 1, 0), 8)
     rm.new_light("light_3", (0, 0, 0), (0, 0, 1), 8)
-    rm.new_light("sun", (0, 100, 0), (1, 1, 1), 100)
+    
 
     rm.new_material("red_wall",   1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 128)
     rm.new_material("green_wall", 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 128)
     rm.new_material("blue_wall",  0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 128)
 
-    rm.new_model("red_wall", mesh="quad", shader="pbr", material="red_wall")
-    rm.new_model("green_wall", mesh="quad", shader="pbr", material="green_wall")
-    rm.new_model("blue_wall", mesh="quad", shader="pbr", material="blue_wall")
+    # rm.new_model("red_wall", mesh="quad", shader="pbr", material="red_wall")
+    # rm.new_model("green_wall", mesh="quad", shader="pbr", material="green_wall")
+    # rm.new_model("blue_wall", mesh="quad", shader="pbr", material="blue_wall")
     rm.new_model("floor", mesh="quad", shader="pbr", material="full_white")
 
-    rm.place("red_wall", 10, 0, 0)
-    rm.scale("red_wall", 10, 10, 10)
-    rm.place("green_wall", 0, 0, 0)
-    rm.rotate("green_wall", 0, 90, 0)
-    rm.scale("green_wall", 10, 10, 10)
-    rm.place("blue_wall", 10, 0, 10)
-    rm.scale("blue_wall", 10, 10, 10)
-    rm.rotate("blue_wall", 0, 180, 0)
+    # rm.place("red_wall", 10, 0, 0)
+    # rm.scale("red_wall", 10, 10, 10)
+    # rm.place("green_wall", 0, 0, 0)
+    # rm.rotate("green_wall", 0, 90, 0)
+    # rm.scale("green_wall", 10, 10, 10)
+    # rm.place("blue_wall", 10, 0, 10)
+    # rm.scale("blue_wall", 10, 10, 10)
+    # rm.rotate("blue_wall", 0, 180, 0)
 
     rm.rotate("floor", 270, 0, 0)
     rm.place("floor", 0, -1, 5)
-    rm.scale("floor", 40, 5, 1)
+    rm.scale("floor", 40, 40, 1)
 
     # rm.new_material("orange", diffuse_r=1, diffuse_g=0.5, diffuse_b=0, metallic=0.1, roughness=0.3)
     # rm.new_model("pumpkin", mesh="pumpkin", shader="pbr", material="orange")
@@ -101,12 +101,35 @@ def setup():
             
             rm.place(name, -8, i * 2, j * 2)
 
+    
+
     # # rm.new_model("second_sphere", mesh="sphere", shader="lighting_instanced")
 
     rm.new_instance("colored_entities", "sphere", "pbr_instanced")
+    rm.new_instance("colored_boxes", "box", "pbr_instanced")
 
     entities = []
-    pb.create_shape("sphere", "sphere")
+    pw.create_sphere_shape("sphere")
+    pw.create_box_shape("box", [0.5, 0.5, 0.5])
+
+    # for i in range(int(count / 10)):
+    #     for j in range(10):
+    #         rm.new_material("color" + str(i * 10 + j),
+    #                         *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
+    #                         *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
+    #                         *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
+    #                         random.uniform(1, 256),
+    #                         random.uniform(0, 1),
+    #                         random.uniform(0, 1))
+    #         rm.new_model("entity" + str(i * 10 + j), mesh="box", shader="lighting", material="color" + str(i * 10 + j))
+    #         pb.create_body("entity" + str(i * 10 + j), "sphere", 1.0, position=[i*3, 1, j*3])
+
+    #         engine.create_link("entity" + str(i * 10 + j), "entity" + str(i * 10 + j))
+
+    #         rm.place("entity" + str(i * 10 + j), i * 3, 1, j * 3)
+    #         # rm.place("entity" + str(i * 10 + j), 1, 0, 1)
+    #         # rm.add_model_to_instance("entity" + str(i * 10 + j), "colored_entities")
+    #         entities.append("entity" + str(i * 10 + j))
 
     for i in range(int(count / 10)):
         for j in range(10):
@@ -117,19 +140,37 @@ def setup():
                             random.uniform(1, 256),
                             random.uniform(0, 1),
                             random.uniform(0, 1))
+            
             rm.new_model("entity" + str(i * 10 + j), mesh="box", shader="lighting", material="color" + str(i * 10 + j))
-            pb.create_body("entity" + str(i * 10 + j), "sphere", 1.0, position=[i*3, 1, j*3])
-
+            pw.new_body("entity" + str(i * 10 + j), "sphere", 1.0, position=[(random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10])
             engine.create_link("entity" + str(i * 10 + j), "entity" + str(i * 10 + j))
-
-            rm.place("entity" + str(i * 10 + j), i * 3, 1, j * 3)
-            # rm.place("entity" + str(i * 10 + j), 1, 0, 1)
-            # rm.add_model_to_instance("entity" + str(i * 10 + j), "colored_entities")
             entities.append("entity" + str(i * 10 + j))
     
     rm.update()
-
     rm.set_models_in_instance(entities, "colored_entities")
+
+    entities = []
+
+    for i in range(int(count / 10)):
+        for j in range(10):
+            rm.new_material("color_box" + str(i * 10 + j),
+                            *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
+                            *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
+                            *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
+                            random.uniform(1, 256),
+                            random.uniform(0, 1),
+                            random.uniform(0, 1))
+            
+            rm.new_model("entity_box" + str(i * 10 + j), mesh="box", shader="lighting", material="color" + str(i * 10 + j))
+            rm.scale("entity_box" + str(i * 10 + j), 0.5, 0.5, 0.5)
+            pw.new_body("entity_box" + str(i * 10 + j), "box", 1.0, position=[(random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10])
+            engine.create_link("entity_box" + str(i * 10 + j), "entity_box" + str(i * 10 + j))
+            entities.append("entity_box" + str(i * 10 + j))
+    
+    rm.update()
+    rm.set_models_in_instance(entities, "colored_boxes")
+
+    
 
     # rm.new_model("lamppost", mesh="lamppost", shader="pbr")
 
@@ -137,7 +178,9 @@ def setup():
     engine = Engine()
 
     engine.create_link("sphere", "light")
-    engine.create_link("plane", "floor")
+
+    pw.new_body("floor", "plane", 0.0, orientation=[0, 0.707, -0.707, 0.0])
+    engine.create_link("floor", "floor")
 
     print_success("Initialized Scene in " + str(round(timer.elapsed() / 1000, 2)) + "s")
 

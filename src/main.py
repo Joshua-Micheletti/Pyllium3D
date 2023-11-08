@@ -49,7 +49,7 @@ def main():
     dt = 0
 
     # 60 tps
-    tickrate = 1000.0 / 60.0
+    tickrate = 1000.0 / 30.0
     
     # setup the timers to keep track of the execution time
     swaptime = Timer()
@@ -85,11 +85,14 @@ def main():
             scene.update(tickrate)
             updatetime.record()
 
-            pw.update()
-            engine.update()
+            
 
             tick_accumulator -= tickrate
+            
+            
         
+        pw.update()
+        engine.update()
         rmupdatetime.reset()
         rm.update()
         rmupdatetime.record()
