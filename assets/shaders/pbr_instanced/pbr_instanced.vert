@@ -10,14 +10,9 @@ layout(location = 12) in float metallic;
 
 uniform mat4 view;
 uniform mat4 projection;
-uniform vec3 eye;
-
-uniform vec3 light_color;
-uniform float light_strength;
 
 out vec3 frag_position;
 out vec3 frag_normal;
-out vec3 frag_eye;
 
 out vec3 frag_albedo;
 out float frag_roughness;
@@ -28,10 +23,7 @@ void main() {
     gl_Position = mvp * vec4(vertex, 1.0);
     
     frag_position = vec3(model * vec4(vertex, 1.0));
-
     frag_normal = mat3(transpose(inverse(model))) * normal;
-
-    frag_eye = eye;
 
     frag_albedo = albedo;
     frag_roughness = roughness;

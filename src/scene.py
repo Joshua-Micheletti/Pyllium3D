@@ -16,7 +16,7 @@ def setup():
     pw = PhysicsWorld()
     engine = Engine()
 
-    count = 150
+    count = 20
 
     # rm.new_shader("cel", "assets/shaders/cel_shading/cel_shading.vert", "assets/shaders/cel_shading/cel_shading.frag")
     # rm.new_shader("pbr_texture", "assets/shaders/pbr_texture/pbr_texture.vert", "assets/shaders/pbr_texture/pbr_texture.frag")
@@ -47,12 +47,12 @@ def setup():
     rm.scale("light_3", 0.2, 0.2, 0.2)
 
     rm.place("light", 4, 4, 4)
-    rm.place("sun", 0, 100, 0)
+    rm.place("sun", 0, 10, 0)
     # # rm.scale("light", 0.25, 0.25, 0.25)
     # # rm.light_source = glm.vec3(5, 5, 5)
 
     rm.new_model("cel", mesh="gally", shader="pbr", material="white")
-    rm.place("cel", 2, 2, 2)
+    rm.place("cel", 5, 3, 5)
 
     rm.new_light("light_1", (0, 0, 0), (1, 0, 0), 8)
     rm.new_light("light_2", (0, 0, 0), (0, 1, 0), 8)
@@ -63,19 +63,19 @@ def setup():
     rm.new_material("green_wall", 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 128)
     rm.new_material("blue_wall",  0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 128)
 
-    # rm.new_model("red_wall", mesh="quad", shader="pbr", material="red_wall")
-    # rm.new_model("green_wall", mesh="quad", shader="pbr", material="green_wall")
-    # rm.new_model("blue_wall", mesh="quad", shader="pbr", material="blue_wall")
+    rm.new_model("red_wall", mesh="quad", shader="pbr", material="red_wall")
+    rm.new_model("green_wall", mesh="quad", shader="pbr", material="green_wall")
+    rm.new_model("blue_wall", mesh="quad", shader="pbr", material="blue_wall")
     rm.new_model("floor", mesh="quad", shader="pbr", material="full_white")
 
-    # rm.place("red_wall", 10, 0, 0)
-    # rm.scale("red_wall", 10, 10, 10)
-    # rm.place("green_wall", 0, 0, 0)
-    # rm.rotate("green_wall", 0, 90, 0)
-    # rm.scale("green_wall", 10, 10, 10)
-    # rm.place("blue_wall", 10, 0, 10)
-    # rm.scale("blue_wall", 10, 10, 10)
-    # rm.rotate("blue_wall", 0, 180, 0)
+    rm.place("red_wall", 10, 0, 0)
+    rm.scale("red_wall", 10, 10, 10)
+    rm.place("green_wall", 0, 0, 0)
+    rm.rotate("green_wall", 0, 90, 0)
+    rm.scale("green_wall", 10, 10, 10)
+    rm.place("blue_wall", 10, 0, 10)
+    rm.scale("blue_wall", 10, 10, 10)
+    rm.rotate("blue_wall", 0, 180, 0)
 
     rm.rotate("floor", 270, 0, 0)
     rm.place("floor", 0, -1, 5)
@@ -99,7 +99,7 @@ def setup():
                          shader = "pbr",
                          material = "pbr_" + str(i) + str(j))
             
-            rm.place(name, -8, i * 2, j * 2)
+            rm.place(name, 5, i * 2, j * 2)
 
     
 

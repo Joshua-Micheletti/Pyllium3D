@@ -31,7 +31,7 @@ class Shader:
         if len(geom_path) != 0:
             f = open(geom_path)
             geometry_src = f.read()
-            f.close() 
+            f.close()
 
         # compile the OpenGL program from the vertex and fragment shaders
         if len(geometry_src) != 0:
@@ -58,7 +58,20 @@ class Shader:
         fragment_src = f.read()
         f.close()
 
-        self.program = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
+        geometry_src = ""
+
+        if len(self.geom_path) != 0:
+            f = open(self.geom_path)
+            geometry_src = f.read()
+            f.close()
+
+        # compile the OpenGL program from the vertex and fragment shaders
+        if len(geometry_src) != 0:
+            self.program = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER), compileShader(geometry_src, GL_GEOMETRY_SHADER))
+        else:
+            self.program = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
+
+        # self.program = compileProgram(compileShader(vertex_src, GL_VERTEX_SHADER), compileShader(fragment_src, GL_FRAGMENT_SHADER))
 
         self.uniforms = dict()
         self.user_uniforms = dict()

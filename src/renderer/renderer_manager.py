@@ -7,6 +7,7 @@ import glm
 from PIL import Image
 import numpy as np
 import json
+import os
 
 # custom modules imports
 from utils.singleton import Singleton
@@ -25,7 +26,7 @@ from renderer.instance import Instance
 class RendererManager(metaclass=Singleton):
     # constructor method
     def __init__(self):
-        glEnable(GL_MULTISAMPLE)
+        
         timer = Timer()
         # dictionary to keep track of model objects
         self.models = dict()
@@ -38,7 +39,10 @@ class RendererManager(metaclass=Singleton):
         self.width = 800
         self.height = 600
 
+        # size of the shadow depth texture
         self.shadow_size = 1024
+        # far plane of the shadow
+        self.shadow_far_plane = 100.0
 
         # dictionaries of OpenGL VBOs for vertex data (vertex, normal, uv)
         self.vertex_vbos = dict()
@@ -95,9 +99,11 @@ class RendererManager(metaclass=Singleton):
         self.light_strengths = []
         self.lights_count = 0
 
-        self.shadow_projection = glm.perspective(glm.radians(90.0), 1.0, 1.0, 2000.0)
+        self.shadow_projection = glm.perspective(glm.radians(90.0), 1.0, 1.0, self.shadow_far_plane)
 
         self.shadow_transforms = []
+
+        self._setup_shaders()
 
         # setup the required data for the engine
         self._setup_entities()
@@ -110,53 +116,48 @@ class RendererManager(metaclass=Singleton):
         print_success("Initialized Renderer Manager in " + str(round(timer.elapsed() / 1000, 2)) + "s")
         
     # method to setup the required entities for the engine
+    def _setup_shaders(self):
+        assets_path = "./assets/"
+        shaders_path = assets_path + "shaders/"
+
+        shader_directories = []
+
+        for subdir, dirs, files in os.walk(shaders_path):
+            if subdir != shaders_path and len(files) != 0:
+                shader_directories.append(subdir)
+
+        for shader_dir in shader_directories:
+            shader_dir = shader_dir.replace("\\\\", "/")
+            shader_dir = shader_dir.replace("\\", "/")
+            name = shader_dir.replace(shaders_path, "")
+
+            sources = []
+            for root, dirs, files in os.walk(shader_dir):
+                for file in files:
+                    sources.append(root + "/" + file)
+
+            vert = ""
+            frag = ""
+            geom = ""
+
+            for source in sources:
+                extension = source.split(".")[-1]
+                if extension == "vert" or extension == "vs":
+                    vert = source
+                elif extension == "frag" or extension == "fs":
+                    frag = source
+                elif extension == "geom" or extension == "gs":
+                    geom = source
+
+            if vert != "" and frag != "" and geom != "":
+                self.shaders[name] = Shader(vert, frag, geom)
+            elif vert != "" and frag != "" and geom == "":
+                self.shaders[name] = Shader(vert, frag)
+
+            if "post_processing" in name:
+                self.available_post_processing_shaders.append(name)
+
     def _setup_entities(self):
-        # compilation of necessary shaders for the engine
-        self.shaders["lighting"] = Shader("./assets/shaders/lighting/lighting.vert", "./assets/shaders/lighting/lighting.frag")
-        self.shaders["white"] = Shader("./assets/shaders/white/white.vert", "./assets/shaders/white/white.frag")
-        self.shaders["screen"] = Shader("./assets/shaders/screen/screen.vert", "./assets/shaders/screen/screen.frag")
-        self.shaders["lighting_instanced"] = Shader("assets/shaders/lighting_instanced/lighting_instanced.vert", "assets/shaders/lighting_instanced/lighting_instanced.frag")
-        self.shaders["depth"] = Shader("assets/shaders/depth/depth.vert", "assets/shaders/depth/depth.frag")
-        self.shaders["depth_of_field"] = Shader("assets/shaders/depth_of_field/depth_of_field.vert",
-                                                "assets/shaders/depth_of_field/depth_of_field.frag")
-        self.shaders["msaa"] = Shader("assets/shaders/msaa/msaa.vert", "assets/shaders/msaa/msaa.frag")
-        self.shaders["pbr"] = Shader("assets/shaders/pbr/pbr.vert", "assets/shaders/pbr/pbr.frag")
-        self.shaders["pbr_instanced"] = Shader("assets/shaders/pbr_instanced/pbr_instanced.vert", "assets/shaders/pbr_instanced/pbr_instanced.frag")
-        self.shaders["depth_cube"] = Shader("assets/shaders/depth_cube/depth_cube.vert", "assets/shaders/depth_cube/depth_cube.frag", "assets/shaders/depth_cube/depth_cube.geom")
-        
-        self.shaders["post_processing/inverted_colors"] = Shader("assets/shaders/post_processing/inverted_colors/inverted_colors.vert",
-                                                                 "assets/shaders/post_processing/inverted_colors/inverted_colors.frag")
-
-        self.shaders["post_processing/black_white"] = Shader("assets/shaders/post_processing/black_white/black_white.vert",
-                                                             "assets/shaders/post_processing/black_white/black_white.frag")
-        
-        self.shaders["post_processing/sharpen"] = Shader("assets/shaders/post_processing/sharpen/sharpen.vert",
-                                                         "assets/shaders/post_processing/sharpen/sharpen.frag")
-
-        self.shaders["post_processing/blur"] = Shader("assets/shaders/post_processing/blur/blur.vert",
-                                                      "assets/shaders/post_processing/blur/blur.frag")
-
-        self.shaders["post_processing/wave"] = Shader("assets/shaders/post_processing/wave/wave.vert",
-                                                      "assets/shaders/post_processing/wave/wave.frag")
-
-        self.shaders["post_processing/gaussian_blur"] = Shader("assets/shaders/post_processing/gaussian_blur/gaussian_blur.vert",
-                                                               "assets/shaders/post_processing/gaussian_blur/gaussian_blur.frag")
-
-        self.shaders["post_processing/dilation"] = Shader("assets/shaders/post_processing/dilation/dilation.vert",
-                                                          "assets/shaders/post_processing/dilation/dilation.frag")
-        
-        self.shaders["post_processing/fixed_depth_of_field"] = Shader("assets/shaders/post_processing/fixed_depth_of_field/fixed_depth_of_field.vert",
-                                                                      "assets/shaders/post_processing/fixed_depth_of_field/fixed_depth_of_field.frag")
-
-        self.available_post_processing_shaders.append("post_processing/black_white")
-        self.available_post_processing_shaders.append("post_processing/inverted_colors")
-        self.available_post_processing_shaders.append("post_processing/sharpen")
-        self.available_post_processing_shaders.append("post_processing/blur")
-        self.available_post_processing_shaders.append("post_processing/wave")
-        self.available_post_processing_shaders.append("post_processing/gaussian_blur")
-        self.available_post_processing_shaders.append("post_processing/dilation")
-        self.available_post_processing_shaders.append("post_processing/fixed_depth_of_field")
-
         self.new_json_mesh("screen_quad", "assets/models/default/quad.json")
         self.new_json_mesh("default", "assets/models/default/box.json")
 
@@ -1037,9 +1038,13 @@ class RendererManager(metaclass=Singleton):
         
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER)
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER)
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER)
+
+        border_color = [1.0, 1.0, 1.0, 1.0]
+        border_color = np.array(border_color, dtype=np.float32)
+        glTexParameterfv(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BORDER_COLOR, border_color)
 
         glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth_cubemap, 0)
         glDrawBuffer(GL_NONE)

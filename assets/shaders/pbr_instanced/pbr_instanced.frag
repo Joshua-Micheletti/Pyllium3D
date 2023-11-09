@@ -2,19 +2,22 @@
 
 in vec3 frag_position;
 in vec3 frag_normal;
-in vec3 frag_eye;
 
 in vec3 frag_albedo;
 in float frag_roughness;
 in float frag_metallic;
 
-in vec3 frag_light_color;
-in float frag_light_strength;
+
+uniform vec3 eye;
 
 uniform vec3 lights[100];
 uniform vec3 light_colors[100];
 uniform float light_strengths[100];
 uniform float lights_count;
+
+uniform float far_plane;
+uniform samplerCube depth_map;
+uniform vec3 light;
 
 out vec4 frag_color;
 
@@ -26,8 +29,7 @@ vec3 fresnel_schlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
-float DistributionGGX(vec3 N, vec3 H, float roughness)
-{
+float DistributionGGX(vec3 N, vec3 H, float roughness) {
     float a      = roughness*roughness;
     float a2     = a*a;
     float NdotH  = max(dot(N, H), 0.0);
@@ -40,8 +42,7 @@ float DistributionGGX(vec3 N, vec3 H, float roughness)
     return num / denom;
 }
 
-float GeometrySchlickGGX(float NdotV, float roughness)
-{
+float GeometrySchlickGGX(float NdotV, float roughness) {
     float r = (roughness + 1.0);
     float k = (r*r) / 8.0;
 
@@ -50,8 +51,8 @@ float GeometrySchlickGGX(float NdotV, float roughness)
 	
     return num / denom;
 }
-float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
-{
+
+float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
     float NdotV = max(dot(N, V), 0.0);
     float NdotL = max(dot(N, L), 0.0);
     float ggx2  = GeometrySchlickGGX(NdotV, roughness);
@@ -60,12 +61,55 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
     return ggx1 * ggx2;
 }
 
+float shadow_calculation(vec3 frag_pos, vec3 frag_norm) {
+    vec3 frag_to_light = frag_pos - light;
+
+    if (dot(frag_norm, frag_to_light) > 0) {
+        return(0.0);
+    }
+
+    float current_depth = length(frag_to_light);
+
+    if (current_depth > far_plane) {
+        return(0.0);
+    }
+
+    vec3 sample_offset[20] = vec3[](
+        vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1), 
+        vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
+        vec3( 1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
+        vec3( 1,  0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1,  0, -1),
+        vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
+    );
+
+    vec3 light_dir = normalize(light - frag_position);
+
+    float shadow  = 0.0;
+    float bias = max(0.5 * (1.0 - dot(frag_norm, light_dir)), 0.05);
+    // float bias = 0.00005;
+
+    int samples = 20;
+    float disk_radius = 0.005;
+
+    for (int i = 0; i < samples; i++) {
+        float closest_depth = texture(depth_map, frag_to_light + sample_offset[i] * disk_radius).r;
+        closest_depth *= far_plane;
+        if (current_depth - bias > closest_depth) {
+            shadow += 1.0;
+        }
+    }
+
+    shadow /= float(samples);
+    shadow *= 1.0 - (current_depth / far_plane);
+
+    return(shadow);
+}
+
 void main() {
     float ambient_occlusion = 1.0;
-    float light_strength = frag_light_strength;
 
     vec3 normal = normalize(frag_normal);
-    vec3 view_dir = normalize(frag_eye - frag_position);
+    vec3 view_dir = normalize(eye - frag_position);
 
     vec3 model_color = vec3(0.04); 
     model_color = mix(model_color, frag_albedo, frag_metallic);
@@ -99,8 +143,12 @@ void main() {
         light_output += (kD * frag_albedo / PI + specular) * radiance * NdotL;
     }
 
+    float shadow = shadow_calculation(frag_position, frag_normal);
+
     vec3 ambient = vec3(0.03) * frag_albedo * ambient_occlusion;
     vec3 color = ambient + light_output;
+
+    color *= (1.0 - shadow);
 	
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));  

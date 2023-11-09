@@ -16,5 +16,4 @@ float linearize_depth(in vec2 uv) {
 void main() {
     float c = linearize_depth(frag_uv);
     frag_color = vec4(c, c, c, 1.0);
-    // frag_color = texture(screen_texture, frag_uv);
 }

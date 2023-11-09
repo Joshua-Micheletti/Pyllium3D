@@ -10,7 +10,7 @@ out vec4 frag_color;
 
 void main() {
     int size = int(1);
-    float separation = 1.5;
+    float separation = 1;
     float min_threshold = 0.1;
     float max_threshold = 0.5;
 
@@ -27,12 +27,16 @@ void main() {
             // if (false);
 
             // For a diamond shape;
-            if (!(abs(i) <= size - abs(j))) { continue; }
+            // if (!(abs(i) <= size - abs(j))) { continue; }
 
             // For a circular shape.
             // if (!(distance(vec2(i, j), vec2(0, 0)) <= size)) {
             //     continue;
             // }
+
+            if (!(distance(vec2(i, j * 0.2), vec2(0, 0)) <= size)) {
+                continue;
+            }
 
             vec4 c = texture(screen_texture, (frag_uv + (vec2(i, j) * separation) / tex_size));
 

@@ -150,6 +150,9 @@ class Renderer(metaclass=Singleton):
 
         glClear(GL_DEPTH_BUFFER_BIT)
 
+        # glCullFace(GL_FRONT)
+        # glDisable(GL_CULL_FACE)
+
         rm.shaders["depth_cube"].use()
 
         self._link_shader_uniforms(rm.shaders["depth_cube"])
@@ -173,7 +176,24 @@ class Renderer(metaclass=Singleton):
             # glDrawArrays(GL_TRIANGLES, 0, int(rm.vertices_count[model.mesh]))
             glDrawElements(GL_TRIANGLES, int(rm.indices_count[model.mesh]), GL_UNSIGNED_INT, None)
 
+        # for every instance in the renderer manager
+        for instance in rm.instances.values():
+            # use the instance specific shader
+            rm.shaders["depth_cube_instanced"].use()
+            # link the shader specific uniforms
+            self._link_shader_uniforms(rm.shaders["depth_cube_instanced"])
+            
+            # bind the VAO and index buffer of the mesh of the instance
+            glBindVertexArray(instance.vao)
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos[instance.mesh])
+            # draw the indexed models in the instance
+            glDrawElementsInstanced(GL_TRIANGLES, int(rm.indices_count[instance.mesh]), GL_UNSIGNED_INT, None, len(instance.models))
+
+        
+
         glViewport(0, 0, rm.width, rm.height)
+        # glCullFace(GL_BACK)
+        # glEnable(GL_CULL_FACE)
 
     # method to render the skybox
     def _render_skybox(self):
@@ -454,7 +474,7 @@ class Renderer(metaclass=Singleton):
                 glUniformMatrix4fv(shader.uniforms["cube_matrices"] + i, 1, GL_FALSE, shadow_matrices[i])
 
         if "far_plane" in shader.uniforms:
-            glUniform1f(shader.uniforms["far_plane"], 2000.0)
+            glUniform1f(shader.uniforms["far_plane"], rm.shadow_far_plane)
         # if "cube_matrices" in shader.uniforms:
         #     glUniformMatrix4fv(shader.uniforms["cube_matrices[0]"], rm.)
 
