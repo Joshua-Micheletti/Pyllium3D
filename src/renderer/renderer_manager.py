@@ -24,26 +24,52 @@ from renderer.instance import Instance
 
 # method to setup and handle all the required data for the renderer
 class RendererManager(metaclass=Singleton):
+    # --------------------------- Setup ---------------------------
     # constructor method
     def __init__(self):
-        
+        # timer to time setup delay
         timer = Timer()
-        # dictionary to keep track of model objects
-        self.models = dict()
-        self.changed_models = dict()
 
-        # list of models to be rendered normally
-        self.single_render_models = []
+        # ============================= FIELDS SETUP =============================
 
+        # ----------------------------- Rendering parameters -----------------------------
         # fields for screen dimensions
         self.width = 800
         self.height = 600
 
-        # size of the shadow depth texture
-        self.shadow_size = 1024
-        # far plane of the shadow
-        self.shadow_far_plane = 100.0
+        # samples available for multisampling
+        self.max_samples = glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES)
+        # selected sample count [0, self.max_samples]
+        self.samples = self.max_samples
 
+        # create the projection matrix for rendering
+        self.fov = 60.0
+        self.projection_matrix = glm.perspective(glm.radians(self.fov), float(self.width)/float(self.height), 0.1, 10000.0)
+
+        # rendering states to modify the rendering pipeline
+        self.render_states = dict()
+        self.render_states["depth_of_field"] = True
+        self.render_states["post_processing"] = True
+
+
+        # ----------------------------- Models -----------------------------
+        # dictionary to keep track of model objects
+        self.models = dict()
+        # dictionary to keep track of models that changed since the last update
+        self.changed_models = dict()
+        # list of models to be rendered normally
+        self.single_render_models = []
+
+        # dictionary of model matrices
+        self.model_matrices = dict()
+
+        # dictionary of trasformation factors of the meshes
+        self.positions = dict()
+        self.rotations = dict()
+        self.scales = dict()
+
+
+        # ----------------------------- Meshes -----------------------------
         # dictionaries of OpenGL VBOs for vertex data (vertex, normal, uv)
         self.vertex_vbos = dict()
         self.normal_vbos = dict()
@@ -52,94 +78,103 @@ class RendererManager(metaclass=Singleton):
         self.ebos = dict()
         # dictionary of OpenGL VAO for vertex data
         self.vaos = dict()
-
-        # dictionary of instance objects
-        self.instances = dict()
-
-        # dictionary of textures
-        self.textures = dict()
-
-        # dictionary of material objects
-        self.materials = dict()
-
-        # dictionary of model matrices
-        self.model_matrices = dict()
         # dictionary of number of vertices per mesh
         self.vertices_count = dict()
         # dictionary of number of indices per mesh
         self.indices_count = dict()
-        # dictionary of trasformation factors of the meshes
-        self.positions = dict()
-        self.rotations = dict()
-        self.scales = dict()
 
+
+        # ----------------------------- Shaders -----------------------------
         # dictionary of shaders compiled for the engine
         self.shaders = dict()
-
-        # create the projection matrix for rendering
-        self.fov = 60.0
-        self.projection_matrix = glm.perspective(glm.radians(self.fov), float(self.width)/float(self.height), 0.1, 10000.0)
-
-        # variable to keep track of weather or not the renderer manager should update
-        self.to_update = True
-
+        # list of post processing shaders active
         self.post_processing_shaders = []
+        # list of available post processing shaders to apply
         self.available_post_processing_shaders = []
 
-        self.render_states = dict()
-        self.render_states["depth_of_field"] = True
-        self.render_states["post_processing"] = True
 
-        self.max_samples = glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES)
-        self.samples = self.max_samples
+        # ----------------------------- Textures -----------------------------
+        # dictionary of textures
+        self.textures = dict()
 
+
+        # ----------------------------- Materials -----------------------------
+        # dictionary of material objects
+        self.materials = dict()
+
+
+        # ----------------------------- Lights -----------------------------
+        # dictionary to keep track of the light sources
         self.lights = dict()
+        # buffers for light colors, positions and strengths
         self.light_colors = []
         self.light_positions = []
         self.light_strengths = []
+        # counter of lights in the scene
         self.lights_count = 0
 
-        self.shadow_projection = glm.perspective(glm.radians(90.0), 1.0, 1.0, self.shadow_far_plane)
 
+        # ----------------------------- Shadows -----------------------------
+        # size of the shadow depth texture
+        self.shadow_size = 1024
+        # far plane of the shadow
+        self.shadow_far_plane = 100.0
+        # projection matrix to render the shadowmap
+        self.cubemap_projection = glm.perspective(glm.radians(90.0), 1.0, 1.0, self.shadow_far_plane)
+        # list of transform matrices for shadow mapping
         self.shadow_transforms = []
 
-        self._setup_shaders()
 
+        # ----------------------------- Instances -----------------------------
+        # dictionary of instance objects
+        self.instances = dict()
+
+        
+        # ============================= METHODS SETUP =============================
+        # method to setup shaders required for the rendering pipeline
+        self._setup_shaders()
         # setup the required data for the engine
         self._setup_entities()
-
         # setup the rendering framebuffer
         self._setup_render_framebuffer()
-
+        # method to setup the skybox data
         self._setup_skybox()
 
         print_success("Initialized Renderer Manager in " + str(round(timer.elapsed() / 1000, 2)) + "s")
         
-    # method to setup the required entities for the engine
+    # method to setup the shaders for the engine
     def _setup_shaders(self):
-        assets_path = "./assets/"
-        shaders_path = assets_path + "shaders/"
+        # path of the shaders folder
+        shaders_path = "./assets/shaders/"
 
+        # list of shader directories
         shader_directories = []
-
+        # scroll through the filesystem and store the directories containing shaders
         for subdir, dirs, files in os.walk(shaders_path):
             if subdir != shaders_path and len(files) != 0:
                 shader_directories.append(subdir)
 
+        # scroll through the shader directories
         for shader_dir in shader_directories:
+            # correct the directory path in case of "\" characters
             shader_dir = shader_dir.replace("\\\\", "/")
             shader_dir = shader_dir.replace("\\", "/")
+
+            # extract the name of the shader from the directory
             name = shader_dir.replace(shaders_path, "")
 
+            # extract the directories of the shader source files in the current shader directory
             sources = []
             for root, dirs, files in os.walk(shader_dir):
                 for file in files:
                     sources.append(root + "/" + file)
 
+            # variables to keep track of the shader components paths
             vert = ""
             frag = ""
             geom = ""
 
+            # for each source file check what type it is
             for source in sources:
                 extension = source.split(".")[-1]
                 if extension == "vert" or extension == "vs":
@@ -149,14 +184,17 @@ class RendererManager(metaclass=Singleton):
                 elif extension == "geom" or extension == "gs":
                     geom = source
 
+            # if there's a geometry shader, create the shader accordingly
             if vert != "" and frag != "" and geom != "":
                 self.shaders[name] = Shader(vert, frag, geom)
             elif vert != "" and frag != "" and geom == "":
                 self.shaders[name] = Shader(vert, frag)
 
+            # if the shader name contains "post_processing", add it to the list of available post processing shaders
             if "post_processing" in name:
                 self.available_post_processing_shaders.append(name)
 
+    # method to setup entities required for the rendering pipeline
     def _setup_entities(self):
         self.new_json_mesh("screen_quad", "assets/models/default/quad.json")
         self.new_json_mesh("default", "assets/models/default/box.json")
@@ -176,12 +214,15 @@ class RendererManager(metaclass=Singleton):
 
     # method for setting up the render framebuffer
     def _setup_render_framebuffer(self):
+        # create the multisample framebuffer to do the main rendering of meshes
         self.render_framebuffer, self.multisample_render_texture, self.depth_texture = self._create_multisample_framebuffer()
-
+        # framebuffer to solve the multisample textures into a single sample texture through anti aliasing
         self.solved_framebuffer, self.solved_texture, self.solved_depth_texture = self._create_framebuffer()
+        # framebuffer to render a blurred version of the normal render for depth of field effects
         self.blurred_framebuffer, self.blurred_texture, self.blurred_depth_texture = self._create_framebuffer()
+        # temporary framebuffer to switch between for post processing
         self.tmp_framebuffer, self.tmp_texture, self.tmp_depth_texture = self._create_framebuffer()
-
+        # depth only cubemap framebuffer for rendering a point light shadow map
         self.cubemap_shadow_framebuffer, self.depth_cubemap = self._create_depth_cubemap_framebuffer()
 
     # method for setting up the skybox
@@ -228,8 +269,8 @@ class RendererManager(metaclass=Singleton):
         # load the skybox rendering shader
         self.shaders["skybox"] = Shader("assets/shaders/skybox/skybox.vert", "assets/shaders/skybox/skybox.frag")
 
-    # --------------------------- Creating Components ----------------------------------
 
+    # --------------------------- Creating Components ----------------------------------
     # method to create a new mesh, a count can be specified to generate more than 1 mesh with the same 3D model
     def new_mesh(self, name, file_path):
         timer = Timer()
@@ -900,8 +941,6 @@ class RendererManager(metaclass=Singleton):
         return(shadow_mats)
         
 
-        
-
     # ------------------------------ Updaters ---------------------------------------
 
     # method to update the dimensions of the screen
@@ -931,14 +970,12 @@ class RendererManager(metaclass=Singleton):
                 self.shadow_transforms = []
                 sun_position = self.positions["sun"]
 
-                self.shadow_transforms.append(self.shadow_projection * glm.lookAt(sun_position, sun_position + glm.vec3( 1, 0, 0), glm.vec3(0,-1, 0)))
-                self.shadow_transforms.append(self.shadow_projection * glm.lookAt(sun_position, sun_position + glm.vec3(-1, 0, 0), glm.vec3(0,-1, 0)))
-                self.shadow_transforms.append(self.shadow_projection * glm.lookAt(sun_position, sun_position + glm.vec3( 0, 1, 0), glm.vec3(0, 0, 1)))
-                self.shadow_transforms.append(self.shadow_projection * glm.lookAt(sun_position, sun_position + glm.vec3( 0,-1, 0), glm.vec3(0, 0,-1)))
-                self.shadow_transforms.append(self.shadow_projection * glm.lookAt(sun_position, sun_position + glm.vec3( 0, 0, 1), glm.vec3(0,-1, 0)))
-                self.shadow_transforms.append(self.shadow_projection * glm.lookAt(sun_position, sun_position + glm.vec3( 0, 0,-1), glm.vec3(0,-1, 0)))
-
-
+                self.shadow_transforms.append(self.cubemap_projection * glm.lookAt(sun_position, sun_position + glm.vec3( 1, 0, 0), glm.vec3(0,-1, 0)))
+                self.shadow_transforms.append(self.cubemap_projection * glm.lookAt(sun_position, sun_position + glm.vec3(-1, 0, 0), glm.vec3(0,-1, 0)))
+                self.shadow_transforms.append(self.cubemap_projection * glm.lookAt(sun_position, sun_position + glm.vec3( 0, 1, 0), glm.vec3(0, 0, 1)))
+                self.shadow_transforms.append(self.cubemap_projection * glm.lookAt(sun_position, sun_position + glm.vec3( 0,-1, 0), glm.vec3(0, 0,-1)))
+                self.shadow_transforms.append(self.cubemap_projection * glm.lookAt(sun_position, sun_position + glm.vec3( 0, 0, 1), glm.vec3(0,-1, 0)))
+                self.shadow_transforms.append(self.cubemap_projection * glm.lookAt(sun_position, sun_position + glm.vec3( 0, 0,-1), glm.vec3(0,-1, 0)))
 
         self.changed_models = dict()
 

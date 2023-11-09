@@ -62,7 +62,14 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
 
 float shadow_calculation(vec3 frag_pos, vec3 frag_norm) {
     vec3 frag_to_light = frag_pos - light;
+
+    
+
     float current_depth = length(frag_to_light);
+
+    if (dot(frag_norm, frag_to_light) > 0) {
+        return(1.0 - (current_depth / far_plane));
+    }
 
     if (current_depth > far_plane) {
         return(0.0);
@@ -147,4 +154,5 @@ void main() {
     color = pow(color, vec3(1.0/2.2));  
 
     frag_color = vec4(color, 1.0);
+    // frag_color = vec4(vec3(shadow), 1.0);
 }
