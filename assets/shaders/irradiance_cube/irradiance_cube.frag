@@ -41,7 +41,7 @@ void main()
     
     frag_color = vec4(irradiance, 1.0);
     // frag_color = vec4(1.0, 0.5, 0.0, 1.0);
-    // frag_color = vec4(texture(skybox, frag_position).rgb, 1.0);
+    frag_color = vec4(texture(skybox, frag_position).rgb, 1.0);
     // frag_color = vec4(frag_position, 1.0);
 }
 
