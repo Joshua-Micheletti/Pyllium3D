@@ -83,8 +83,6 @@ class Instance:
         # link the VBO to the index 2 of the VAO and interpret it as 2 floats
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
 
-    # def add_model(self, )
-
     # method to change the model matrix of a model in the instance
     def change_model_matrix(self, model, model_matrix):
         # get the index of the model selected
@@ -99,38 +97,6 @@ class Instance:
                 self.model_matrices[model_index * 16 + offset] = value
                 # increase the offset
                 offset += 1
-
-
-        # print(f"model matrix:")
-        # print(self.model_matrices[model_index * 16 + 0],
-        #       self.model_matrices[model_index * 16 + 1],
-        #       self.model_matrices[model_index * 16 + 2],
-        #       self.model_matrices[model_index * 16 + 3])
-        # print(self.model_matrices[model_index * 16 + 4],
-        #       self.model_matrices[model_index * 16 + 5],
-        #       self.model_matrices[model_index * 16 + 6],
-        #       self.model_matrices[model_index * 16 + 7])
-        # print(self.model_matrices[model_index * 16 + 8],
-        #       self.model_matrices[model_index * 16 + 9],
-        #       self.model_matrices[model_index * 16 + 10],
-        #       self.model_matrices[model_index * 16 + 11])
-        # print(self.model_matrices[model_index * 16 + 12],
-        #       self.model_matrices[model_index * 16 + 13],
-        #       self.model_matrices[model_index * 16 + 14],
-        #       self.model_matrices[model_index * 16 + 15])
-
-        # array_matrix = np.array(model_matrix)
-        # print(array_matrix)
-        # array_matrix = np.transpose(array_matrix)
-        # print(array_matrix)
-        # array_matrix = array_matrix.flatten()
-        # print(array_matrix)
-
-        # # offset to keep track of the position in the matrix
-        
-        # float_size = array_matrix.itemsize
-        # glBindBuffer(GL_ARRAY_BUFFER, self.model_matrices_vbo)
-        # glBufferSubData(GL_ARRAY_BUFFER, model_index * (float_size * 16), float_size * 16, array_matrix)
 
     # method to change the ambient value in an instance
     def change_ambient(self, material):

@@ -82,23 +82,16 @@ def main():
             controltime.record()
 
             updatetime.reset()
-            scene.update(tickrate)
+            
             updatetime.record()
-
             pw.update()
             engine.update()
-
-            
-
             tick_accumulator -= tickrate
-            
-            
         
-        
+        scene.update(tickrate)
         rmupdatetime.reset()
         rm.update()
         rmupdatetime.record()
-
         renderer.render()
 
         ui.draw(dt,

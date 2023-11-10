@@ -311,7 +311,6 @@ class RendererManager(metaclass=Singleton):
         formatted_uvs = np.array(formatted_uvs, dtype=np.float32)
 
         # convert the lists into indiced lists and obtain an indices list for indexed rendering
-        # indices, indiced_vertices, indiced_normals, indiced_uvs = index_vertices(formatted_vertices, formatted_normals, formatted_uvs)
         indices, indiced_vertices, indiced_normals, indiced_uvs = index_vertices(formatted_vertices, formatted_normals, formatted_uvs)
 
         # keep track of the indices count
@@ -366,13 +365,14 @@ class RendererManager(metaclass=Singleton):
 
         print_info("Created mesh: " + name + " in " + str(round(timer.elapsed() / 1000, 2)) + "s")
 
+    # method to load json indiced meshes 
     def new_json_mesh(self, name, file_path):
+        # time the load time
         timer = Timer()
 
+        # open the json model
         f = open(file_path, "r")
         data = json.load(f)
-
-        
 
         # keep track of the indices count
         self.indices_count[name] = len(data["indices"])
@@ -426,22 +426,29 @@ class RendererManager(metaclass=Singleton):
 
         print_info("Created mesh: " + name + " in " + str(round(timer.elapsed() / 1000, 2)) + "s")
 
+    # method to create a new shader
     def new_shader(self, name, vert_path, frag_path):
         self.shaders[name] = Shader(vert_path, frag_path)
 
+    # method to create a new light
     def new_light(self, name, light_position = (0.0, 0.0, 0.0), light_color = (1.0, 1.0, 1.0), light_strength = 8.0):
+        # increase the light counter
         self.lights_count += 1
 
+        # save the new light in the lights list
         self.lights[name] = self.lights_count - 1
 
+        # add the new light's position
         self.light_positions.append(light_position[0])
         self.light_positions.append(light_position[1])
         self.light_positions.append(light_position[2])
         
+        # add the new light's color
         self.light_colors.append(light_color[0])
         self.light_colors.append(light_color[1])
         self.light_colors.append(light_color[2])
 
+        # add the new light's strength
         self.light_strengths.append(light_strength)
 
     # method to generate a new texture (needs double checking if it's correct)
@@ -451,30 +458,27 @@ class RendererManager(metaclass=Singleton):
         # bind the newly created texture
         glBindTexture(GL_TEXTURE_2D, self.textures[name])
 
-        # open the image using pillow, flip the image to make it compatible with OpenGL
-        # im = Image.open(filepath).transpose(Image.FLIP_TOP_BOTTOM)
-        # # get the image data
-        # # imdata = np.fromstring(im.tobytes(), np.uint8)
-        # imdata = im.convert("RGBA").tobytes()
-
         # setup the texture parameters
-        # glPixelStorei(GL_UNPACK_ALIGNMENT,1)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
 
-        # pass the image data to the texture
-        # glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, im.width, im.height, 0, GL_RGB, GL_UNSIGNED_BYTE, imdata)
-
+        # load the texture image
         image = Image.open(filepath)
+        # convert to RGBA
         convert = image.convert("RGBA")
+        # flip the image and store the image into byte data
         image_data = convert.transpose(Image.FLIP_TOP_BOTTOM).tobytes()
+        # store the size of the texture
         width = image.width
         height = image.height
+        # close the image
         image.close()
 
+        # bind the newly created texture
         glBindTexture(GL_TEXTURE_2D, self.textures[name])
+        # store the data into the texture
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data)
 
     # method to create a new material, composed of ambient, diffuse, specular colors and shininess value
@@ -969,6 +973,12 @@ class RendererManager(metaclass=Singleton):
             if model == "sun":
                 self.shadow_transforms = []
                 sun_position = self.positions["sun"]
+
+                texel_size = 2.0 / self.shadow_size
+
+                sun_position.x = round(sun_position.x / texel_size) * texel_size
+                sun_position.y = round(sun_position.y / texel_size) * texel_size
+                sun_position.z = round(sun_position.z / texel_size) * texel_size
 
                 self.shadow_transforms.append(self.cubemap_projection * glm.lookAt(sun_position, sun_position + glm.vec3( 1, 0, 0), glm.vec3(0,-1, 0)))
                 self.shadow_transforms.append(self.cubemap_projection * glm.lookAt(sun_position, sun_position + glm.vec3(-1, 0, 0), glm.vec3(0,-1, 0)))

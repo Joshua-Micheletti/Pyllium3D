@@ -70,8 +70,6 @@ float shadow_calculation(vec3 frag_pos, vec3 frag_norm) {
         return(1.0 - (current_depth / far_plane));
     }
 
-    
-
     if (current_depth > far_plane) {
         return(0.0);
     }

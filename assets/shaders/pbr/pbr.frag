@@ -63,8 +63,6 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
 float shadow_calculation(vec3 frag_pos, vec3 frag_norm) {
     vec3 frag_to_light = frag_pos - light;
 
-    
-
     float current_depth = length(frag_to_light);
 
     if (dot(frag_norm, frag_to_light) > 0) {
@@ -89,7 +87,7 @@ float shadow_calculation(vec3 frag_pos, vec3 frag_norm) {
     float bias = max(0.5 * (1.0 - dot(frag_norm, light_dir)), 0.05);
 
     int samples = 20;
-    float disk_radius = 0.005;
+    float disk_radius = 0.015;
 
     for (int i = 0; i < samples; i++) {
         float closest_depth = texture(depth_map, frag_to_light + sample_offset[i] * disk_radius).r;

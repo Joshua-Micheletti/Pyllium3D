@@ -34,13 +34,15 @@ class Renderer(metaclass=Singleton):
 
         rm = RendererManager()
 
+        
+        # glClear(GL_COLOR_BUFFER_BIT)
+
+        self._render_shadow_map()
+
         # bind the render framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
         # clear the framebuffer and depth buffers
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        # glClear(GL_COLOR_BUFFER_BIT)
-
-        self._render_shadow_map()
 
         glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
 
