@@ -23,6 +23,10 @@ class Renderer(metaclass=Singleton):
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+        self._render_irradiance_map()
+
         # timer to keep track of the rendering time
         self.timer = Timer()
 
@@ -33,9 +37,6 @@ class Renderer(metaclass=Singleton):
         self.timer.reset()
 
         rm = RendererManager()
-
-        
-        # glClear(GL_COLOR_BUFFER_BIT)
 
         self._render_shadow_map()
 
@@ -61,9 +62,6 @@ class Renderer(metaclass=Singleton):
         self._render_depth_of_field()
         # apply post processing effects
         self._render_post_processing()
-
-        # draw the render quad to it
-        # self._render_screen()
 
         # clear the screen
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
@@ -131,6 +129,12 @@ class Renderer(metaclass=Singleton):
         # reference to the renderer manager
         rm = RendererManager()
 
+        glActiveTexture(GL_TEXTURE0 + 3)
+        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
+
+        glActiveTexture(GL_TEXTURE0 + 4)
+        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.irradiance_cubemap)
+
         # for every instance in the renderer manager
         for instance in rm.instances.values():
             # use the instance specific shader
@@ -143,6 +147,8 @@ class Renderer(metaclass=Singleton):
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos[instance.mesh])
             # draw the indexed models in the instance
             glDrawElementsInstanced(GL_TRIANGLES, int(rm.indices_count[instance.mesh]), GL_UNSIGNED_INT, None, len(instance.models))
+
+        glActiveTexture(GL_TEXTURE0)
 
     def _render_shadow_map(self):
         rm = RendererManager()
@@ -217,7 +223,9 @@ class Renderer(metaclass=Singleton):
 
         # disable cull facing
         glDisable(GL_CULL_FACE)
-        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
+        # glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
+        # glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
+        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.irradiance_cubemap)
         glDrawElements(GL_TRIANGLES, int(rm.indices_count["default"]), GL_UNSIGNED_INT, None)
         glEnable(GL_CULL_FACE)
 
@@ -417,6 +425,32 @@ class Renderer(metaclass=Singleton):
         # re-enable depth testing
         glEnable(GL_DEPTH_TEST)
 
+    def _render_irradiance_map(self):
+        rm = RendererManager()
+
+        glViewport(0, 0, rm.irradiance_map_size, rm.irradiance_map_size)
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.irradiance_framebuffer)
+
+        shader = rm.shaders["irradiance_cube"]
+
+        shader.use()
+
+        glUniformMatrix4fv(shader.uniforms["projection"], 1, GL_FALSE, glm.value_ptr(rm.cubemap_projection))
+
+        glBindVertexArray(rm.vaos["default"])
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["default"])
+
+        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
+        glDisable(GL_CULL_FACE)
+        for i in range(6):
+            glUniformMatrix4fv(shader.uniforms["view"], 1, GL_FALSE, glm.value_ptr(rm.center_cubemap_views[i]))
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, rm.irradiance_cubemap, 0)
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+            glDrawElements(GL_TRIANGLES, int(rm.indices_count["default"]), GL_UNSIGNED_INT, None)
+        glEnable(GL_CULL_FACE)
+        glViewport(0, 0, rm.width, rm.height)
+
     # ---------------------------- Link methods ----------------------------
     # method to link static uniforms to the shader (static meaning they don't change between meshes)
     def _link_shader_uniforms(self, shader):
@@ -466,6 +500,11 @@ class Renderer(metaclass=Singleton):
             glUniform1i(shader.uniforms["blurred_texture"], 1)
         if "depth_texture" in shader.uniforms:
             glUniform1i(shader.uniforms["depth_texture"], 2)
+
+        if "depth_map" in shader.uniforms:
+            glUniform1i(shader.uniforms["depth_map"], 3)
+        if "irradiance_map" in shader.uniforms:
+            glUniform1i(shader.uniforms["irradiance_map"], 4)
 
         if "samples" in shader.uniforms:
             glUniform1i(shader.uniforms["samples"], rm.samples)

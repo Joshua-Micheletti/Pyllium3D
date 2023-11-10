@@ -16,7 +16,7 @@ def setup():
     pw = PhysicsWorld()
     engine = Engine()
 
-    count = 5000
+    count = 10
 
     # rm.new_shader("cel", "assets/shaders/cel_shading/cel_shading.vert", "assets/shaders/cel_shading/cel_shading.frag")
     # rm.new_shader("pbr_texture", "assets/shaders/pbr_texture/pbr_texture.vert", "assets/shaders/pbr_texture/pbr_texture.frag")

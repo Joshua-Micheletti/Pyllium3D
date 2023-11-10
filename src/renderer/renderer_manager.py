@@ -51,6 +51,8 @@ class RendererManager(metaclass=Singleton):
         self.render_states["depth_of_field"] = True
         self.render_states["post_processing"] = True
 
+        self.irradiance_map_size = 16
+
 
         # ----------------------------- Models -----------------------------
         # dictionary to keep track of model objects
@@ -120,7 +122,7 @@ class RendererManager(metaclass=Singleton):
         # far plane of the shadow
         self.shadow_far_plane = 100.0
         # projection matrix to render the shadowmap
-        self.cubemap_projection = glm.perspective(glm.radians(90.0), 1.0, 1.0, self.shadow_far_plane)
+        self.cubemap_projection = glm.perspective(glm.radians(90.0), 1.0, 0.1, self.shadow_far_plane)
         # list of transform matrices for shadow mapping
         self.shadow_transforms = []
 
@@ -136,7 +138,7 @@ class RendererManager(metaclass=Singleton):
         # setup the required data for the engine
         self._setup_entities()
         # setup the rendering framebuffer
-        self._setup_render_framebuffer()
+        self._setup_framebuffers()
         # method to setup the skybox data
         self._setup_skybox()
 
@@ -212,8 +214,17 @@ class RendererManager(metaclass=Singleton):
         self.new_light("sun", (0, 100, 0), (1, 1, 1), 100)
         self.new_light("main")
 
+        self.center_cubemap_views = []
+
+        self.center_cubemap_views.append(glm.lookAt(glm.vec3(0.0), glm.vec3( 1, 0, 0), glm.vec3(0,-1, 0)))
+        self.center_cubemap_views.append(glm.lookAt(glm.vec3(0.0), glm.vec3(-1, 0, 0), glm.vec3(0,-1, 0)))
+        self.center_cubemap_views.append(glm.lookAt(glm.vec3(0.0), glm.vec3( 0, 1, 0), glm.vec3(0, 0,-1)))
+        self.center_cubemap_views.append(glm.lookAt(glm.vec3(0.0), glm.vec3( 0,-1, 0), glm.vec3(0, 0,-1)))
+        self.center_cubemap_views.append(glm.lookAt(glm.vec3(0.0), glm.vec3( 0, 0, 1), glm.vec3(0,-1, 0)))
+        self.center_cubemap_views.append(glm.lookAt(glm.vec3(0.0), glm.vec3( 0, 0,-1), glm.vec3(0,-1, 0)))
+
     # method for setting up the render framebuffer
-    def _setup_render_framebuffer(self):
+    def _setup_framebuffers(self):
         # create the multisample framebuffer to do the main rendering of meshes
         self.render_framebuffer, self.multisample_render_texture, self.depth_texture = self._create_multisample_framebuffer()
         # framebuffer to solve the multisample textures into a single sample texture through anti aliasing
@@ -224,6 +235,8 @@ class RendererManager(metaclass=Singleton):
         self.tmp_framebuffer, self.tmp_texture, self.tmp_depth_texture = self._create_framebuffer()
         # depth only cubemap framebuffer for rendering a point light shadow map
         self.cubemap_shadow_framebuffer, self.depth_cubemap = self._create_depth_cubemap_framebuffer()
+
+        self.irradiance_framebuffer, self.irradiance_cubemap, self.irradiance_renderbuffer = self._create_cubemap_framebuffer(self.irradiance_map_size)
 
     # method for setting up the skybox
     def _setup_skybox(self):
@@ -249,9 +262,9 @@ class RendererManager(metaclass=Singleton):
             im = Image.open(texture_faces[i])#.transpose(Image.FLIP_TOP_BOTTOM)
 
             # flip the top and bottom images
-            if i == 2 or i == 3:
-                im = im.transpose(Image.FLIP_LEFT_RIGHT)
-                im = im.transpose(Image.FLIP_TOP_BOTTOM)
+            # if i == 2 or i == 3:
+            #     im = im.transpose(Image.FLIP_LEFT_RIGHT)
+            #     im = im.transpose(Image.FLIP_TOP_BOTTOM)
 
             # get the data of the loaded face image
             imdata = np.fromstring(im.tobytes(), np.uint8)
@@ -268,6 +281,7 @@ class RendererManager(metaclass=Singleton):
 
         # load the skybox rendering shader
         self.shaders["skybox"] = Shader("assets/shaders/skybox/skybox.vert", "assets/shaders/skybox/skybox.frag")
+       
 
 
     # --------------------------- Creating Components ----------------------------------
@@ -1103,6 +1117,35 @@ class RendererManager(metaclass=Singleton):
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
         return(framebuffer, depth_cubemap)
+
+    def _create_cubemap_framebuffer(self, size = 512):
+        framebuffer = glGenFramebuffers(1)
+        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
+
+        cubemap = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap)
+
+        for i in range(6):
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, size, size, 0, GL_RGB, GL_FLOAT, None)
+
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+        renderbuffer = glGenRenderbuffers(1)
+        glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer)
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, size, size)
+
+        # glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X, cubemap, 0)
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer)
+
+        self._check_framebuffer_status()
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+        return(framebuffer, cubemap, renderbuffer)
 
     def _check_framebuffer_status(self):
          if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:

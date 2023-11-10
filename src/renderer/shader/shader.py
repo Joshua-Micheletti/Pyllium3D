@@ -210,4 +210,9 @@ class Shader:
 
         if glGetUniformLocation(self.program, "far_plane") != -1:
             self.uniforms["far_plane"] = glGetUniformLocation(self.program, "far_plane")
+
+        if glGetUniformLocation(self.program, "depth_map") != -1:
+            self.uniforms["depth_map"] = glGetUniformLocation(self.program, "depth_map")
         
+        if glGetUniformLocation(self.program, "irradiance_map") != -1:
+            self.uniforms["irradiance_map"] = glGetUniformLocation(self.program, "irradiance_map")

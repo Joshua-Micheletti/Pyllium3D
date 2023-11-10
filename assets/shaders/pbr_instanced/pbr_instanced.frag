@@ -19,6 +19,8 @@ uniform float far_plane;
 uniform samplerCube depth_map;
 uniform vec3 light;
 
+uniform samplerCube irradiance_map;
+
 out vec4 frag_color;
 
 
@@ -86,7 +88,6 @@ float shadow_calculation(vec3 frag_pos, vec3 frag_norm) {
 
     float shadow  = 0.0;
     float bias = max(0.5 * (1.0 - dot(frag_norm, light_dir)), 0.05);
-    // float bias = 0.00005;
 
     int samples = 20;
     float disk_radius = 0.005;
@@ -111,8 +112,8 @@ void main() {
     vec3 normal = normalize(frag_normal);
     vec3 view_dir = normalize(eye - frag_position);
 
-    vec3 model_color = vec3(0.04); 
-    model_color = mix(model_color, frag_albedo, frag_metallic);
+    vec3 base_reflectivity = vec3(0.04); 
+    base_reflectivity = mix(base_reflectivity, frag_albedo, frag_metallic);
 	           
     // reflectance equation
     vec3 light_output = vec3(0.0);
@@ -128,7 +129,7 @@ void main() {
         // cook-torrance brdf
         float NDF = DistributionGGX(normal, halfway, frag_roughness);        
         float geometry = GeometrySmith(normal, view_dir, light_direction, frag_roughness);      
-        vec3 fresnel = fresnel_schlick(max(dot(halfway, view_dir), 0.0), model_color);       
+        vec3 fresnel = fresnel_schlick(max(dot(halfway, view_dir), 0.0), base_reflectivity);       
         
         vec3 kS = fresnel;
         vec3 kD = vec3(1.0) - kS;
@@ -143,16 +144,28 @@ void main() {
         light_output += (kD * frag_albedo / PI + specular) * radiance * NdotL;
     }
 
-    float shadow = shadow_calculation(frag_position, frag_normal);
+    
 
-    vec3 ambient = vec3(0.03) * frag_albedo * ambient_occlusion;
+    // vec3 ambient = vec3(0.03) * base_reflectivity * ambient_occlusion;
+    // vec3 color = ambient + light_output;
+    vec3 kS = fresnel_schlick(max(dot(normal, view_dir), 0.0), base_reflectivity);
+    vec3 kD = 1.0 - kS;
+
+    kD *= 1.0 - frag_metallic;
+
+    vec3 irradiance = texture(irradiance_map, normal).rgb;
+    vec3 diffuse = irradiance * frag_albedo;
+    vec3 ambient = (kD * diffuse) * ambient_occlusion;
+
     vec3 color = ambient + light_output;
 
+    float shadow = shadow_calculation(frag_position, frag_normal);
     color *= (1.0 - shadow);
 	
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));  
    
     frag_color = vec4(color, 1.0);
+    // frag_color = vec4(model_color, 1.0);
     // frag_color = vec4(vec3(shadow), 1.0);
 }
