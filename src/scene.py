@@ -93,7 +93,7 @@ def setup():
         for j in range(5):
             name = "pbr_" + str(i) + str(j)
             rm.new_material(name,
-                            diffuse_r = 1.0, diffuse_g = 1.0, diffuse_b = 1.0,
+                            diffuse_r = 1.0, diffuse_g = 0.0, diffuse_b = 0.0,
                             roughness = i / 5,
                             metallic = j / 5)
 

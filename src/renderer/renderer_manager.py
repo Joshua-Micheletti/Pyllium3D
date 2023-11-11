@@ -53,6 +53,7 @@ class RendererManager(metaclass=Singleton):
 
         self.irradiance_map_size = 32
         self.skybox_resolution = 512
+        self.reflection_resolution = 128
 
         # ----------------------------- Models -----------------------------
         # dictionary to keep track of model objects
@@ -141,12 +142,16 @@ class RendererManager(metaclass=Singleton):
         self._setup_entities()
         # setup the rendering framebuffer
         self._setup_framebuffers()
+
+        skybox_path = "assets/textures/skybox/"
         # method to setup the skybox data
         # self._setup_skybox("./assets/textures/skybox/Epic_BlueSunset/")
-        self._setup_skybox("assets/textures/skybox/hdri/alien.png")
+        self._setup_skybox(skybox_path + "/hdri/alien.png")
         # self._setup_skybox("assets/textures/skybox/test/")
         # self._setup_skybox("assets/textures/skybox/hdri/milkyway.png")
-        self._setup_skybox("assets/textures/skybox/hdri/fairytail_garden.jpeg")
+        # self._setup_skybox(skybox_path + "hdri/fairytail_garden.jpeg")
+        # self._setup_skybox(skybox_path + "hdri/autumn_forest.jpg")
+
 
         # self._expand_equirectangular_map_to_cubemap("assets/textures/alien/skybox.png")
 
@@ -248,6 +253,10 @@ class RendererManager(metaclass=Singleton):
 
         self.skybox_framebuffer, self.skybox_texture, self.skybox_renderbuffer = self._create_cubemap_framebuffer(self.skybox_resolution)
 
+        self.brdf_integration_framebuffer, self.brdf_integration_LUT, self.brdf_integration_depth = self._create_framebuffer(width = 512, height = 512)
+
+        self.reflection_framebuffer, self.reflection_map, self.reflection_depth = self._create_cubemap_framebuffer(self.reflection_resolution, mipmap = True)
+
     # method for setting up the skybox
     def _setup_skybox(self, filepath):
         components = filepath.split("/")
@@ -272,6 +281,8 @@ class RendererManager(metaclass=Singleton):
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+
+            glBindTexture(GL_TEXTURE_CUBE_MAP, self.skybox_texture)
 
             # generate a cubemap texture
             # self.skybox_texture = glGenTextures(1)
@@ -306,7 +317,7 @@ class RendererManager(metaclass=Singleton):
 
         # set the texture behaviour
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        # glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
@@ -1050,13 +1061,18 @@ class RendererManager(metaclass=Singleton):
     def add_post_processing_shader(self, name):
         self.post_processing_shaders.append(self.shaders[name])
 
-    def _create_framebuffer(self):
+    def _create_framebuffer(self, width = 0, height = 0):
+        if width == 0:
+            width = self.width
+        if height == 0:
+            height = self.height
+
         framebuffer = glGenFramebuffers(1)
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
         
         color = glGenTextures(1)
         glBindTexture(GL_TEXTURE_2D, color)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, self.width, self.height, 0, GL_RGB, GL_UNSIGNED_BYTE, None)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, None)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
@@ -1064,7 +1080,7 @@ class RendererManager(metaclass=Singleton):
         
         depth = glGenTextures(1)
         glBindTexture(GL_TEXTURE_2D, depth)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, self.width, self.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, None)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, None)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
 
@@ -1148,7 +1164,7 @@ class RendererManager(metaclass=Singleton):
 
         return(framebuffer, depth_cubemap)
 
-    def _create_cubemap_framebuffer(self, size = 512):
+    def _create_cubemap_framebuffer(self, size = 512, mipmap = False):
         framebuffer = glGenFramebuffers(1)
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
 
@@ -1161,8 +1177,15 @@ class RendererManager(metaclass=Singleton):
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+
+        if mipmap:
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+            glGenerateMipmap(GL_TEXTURE_CUBE_MAP)
+        else:
+            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        
 
         renderbuffer = glGenRenderbuffers(1)
         glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer)

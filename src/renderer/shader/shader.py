@@ -216,3 +216,9 @@ class Shader:
         
         if glGetUniformLocation(self.program, "irradiance_map") != -1:
             self.uniforms["irradiance_map"] = glGetUniformLocation(self.program, "irradiance_map")
+
+        if glGetUniformLocation(self.program, "reflection_map") != -1:
+            self.uniforms["reflection_map"] = glGetUniformLocation(self.program, "reflection_map")
+
+        if glGetUniformLocation(self.program, "brdf_integration") != -1:
+            self.uniforms["brdf_integration"] = glGetUniformLocation(self.program, "brdf_integration")

@@ -29,6 +29,10 @@ class Renderer(metaclass=Singleton):
 
         self._render_irradiance_map()
 
+        self._render_brdf_integration_map()
+
+        self._render_reflection_map()
+
         # timer to keep track of the rendering time
         self.timer = Timer()
 
@@ -41,7 +45,9 @@ class Renderer(metaclass=Singleton):
         rm = RendererManager()
 
         # self._render_irradiance_map()
-        self._render_equirectangular_skybox()
+        # self._render_equirectangular_skybox()
+        # self._render_brdf_integration_map()
+        # self._render_reflection_map()
 
         self._render_shadow_map()
 
@@ -86,6 +92,21 @@ class Renderer(metaclass=Singleton):
         last_mesh = ""
         last_material = ""
         last_texture = ""
+
+        glActiveTexture(GL_TEXTURE0 + 3)
+        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
+
+        glActiveTexture(GL_TEXTURE0 + 4)
+        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.irradiance_cubemap)
+
+        glActiveTexture(GL_TEXTURE0 + 5)
+        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.reflection_map)
+
+        glActiveTexture(GL_TEXTURE0 + 6)
+        glBindTexture(GL_TEXTURE_2D, rm.brdf_integration_LUT)
+
+        glActiveTexture(GL_TEXTURE0)
+
         
         # THIS LOOP WILL CHANGE WHEN THE MODELS WILL BE GROUPED BY SHADER, SO THAT THERE ISN'T SO MUCH CONTEXT SWITCHING
         # for every model in the renderer manager
@@ -126,7 +147,7 @@ class Renderer(metaclass=Singleton):
 
             # draw the mesh
             # glDrawArrays(GL_TRIANGLES, 0, int(rm.vertices_count[model.mesh]))
-            glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
+            # glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
             glDrawElements(GL_TRIANGLES, int(rm.indices_count[model.mesh]), GL_UNSIGNED_INT, None)
 
     # method to render instanced models
@@ -139,6 +160,12 @@ class Renderer(metaclass=Singleton):
 
         glActiveTexture(GL_TEXTURE0 + 4)
         glBindTexture(GL_TEXTURE_CUBE_MAP, rm.irradiance_cubemap)
+
+        glActiveTexture(GL_TEXTURE0 + 5)
+        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.reflection_map)
+
+        glActiveTexture(GL_TEXTURE0 + 6)
+        glBindTexture(GL_TEXTURE_2D, rm.brdf_integration_LUT)
 
         # for every instance in the renderer manager
         for instance in rm.instances.values():
@@ -231,6 +258,7 @@ class Renderer(metaclass=Singleton):
         glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
         # glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
         # glBindTexture(GL_TEXTURE_CUBE_MAP, rm.irradiance_cubemap)
+        # glBindTexture(GL_TEXTURE_CUBE_MAP, rm.reflection_map)
         glDrawElements(GL_TRIANGLES, int(rm.indices_count["default"]), GL_UNSIGNED_INT, None)
         glEnable(GL_CULL_FACE)
 
@@ -487,6 +515,72 @@ class Renderer(metaclass=Singleton):
         glEnable(GL_CULL_FACE)
         glViewport(0, 0, rm.width, rm.height)
 
+    def _render_brdf_integration_map(self):
+        rm = RendererManager()
+
+        glViewport(0, 0, 512, 512)
+
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.brdf_integration_framebuffer)
+
+        glBindVertexArray(rm.vaos["screen_quad"])
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["screen_quad"])
+
+        shader = rm.shaders["brdf_integration"]
+
+        shader.use()
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+        glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
+
+        glViewport(0, 0, rm.width, rm.height)
+
+    def _render_reflection_map(self):
+        rm = RendererManager()
+
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.reflection_framebuffer)
+        
+        shader = rm.shaders["reflection_prefilter"]
+        shader.use()
+
+        glUniformMatrix4fv(shader.uniforms["projection"], 1, GL_FALSE, glm.value_ptr(rm.cubemap_projection))
+
+        glBindVertexArray(rm.vaos["default"])
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["default"])
+
+        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
+
+        glDisable(GL_CULL_FACE)
+
+        max_mip_levels = 5
+
+        for mip in range(4, -1, -1):
+            mip_width = rm.reflection_resolution * pow(0.5, mip)
+            mip_height = rm.reflection_resolution * pow(0.5, mip)
+
+            glBindRenderbuffer(GL_RENDERBUFFER, rm.reflection_depth)
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, int(mip_width), int(mip_height))
+
+            glViewport(0, 0, int(mip_width), int(mip_height))
+
+            print(f"mip width: {mip_width}")
+
+            roughness = float(mip) / float(max_mip_levels - 1)
+
+            print(f"roughness: {roughness}")
+
+            glUniform1f(shader.uniforms["roughness"], roughness)
+
+            for i in range(6):
+                glUniformMatrix4fv(shader.uniforms["view"], 1, GL_FALSE, glm.value_ptr(rm.center_cubemap_views[i]))
+                glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, rm.reflection_map, mip)
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+                glDrawElements(GL_TRIANGLES, int(rm.indices_count["default"]), GL_UNSIGNED_INT, None)
+
+        glEnable(GL_CULL_FACE)
+        glViewport(0, 0, rm.width, rm.height)
+
     # ---------------------------- Link methods ----------------------------
     # method to link static uniforms to the shader (static meaning they don't change between meshes)
     def _link_shader_uniforms(self, shader):
@@ -541,6 +635,11 @@ class Renderer(metaclass=Singleton):
             glUniform1i(shader.uniforms["depth_map"], 3)
         if "irradiance_map" in shader.uniforms:
             glUniform1i(shader.uniforms["irradiance_map"], 4)
+        if "reflection_map" in shader.uniforms:
+            glUniform1i(shader.uniforms["reflection_map"], 5)
+        if "brdf_integration" in shader.uniforms:
+            glUniform1i(shader.uniforms["brdf_integration"], 6)
+
 
         if "samples" in shader.uniforms:
             glUniform1i(shader.uniforms["samples"], rm.samples)

@@ -20,6 +20,8 @@ uniform samplerCube depth_map;
 uniform vec3 light;
 
 uniform samplerCube irradiance_map;
+uniform samplerCube reflection_map;
+uniform sampler2D brdf_integration;
 
 out vec4 frag_color;
 
@@ -30,6 +32,10 @@ const float PI = 3.14159265359;
 vec3 fresnel_schlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
+
+vec3 fresnel_schlick_roughness(float cosTheta, vec3 F0, float roughness) {
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}  
 
 float DistributionGGX(vec3 N, vec3 H, float roughness) {
     float a      = roughness*roughness;
@@ -113,6 +119,7 @@ void main() {
 
     vec3 normal = normalize(frag_normal);
     vec3 view_dir = normalize(eye - frag_position);
+    vec3 reflection = reflect(-view_dir, normal);
 
     vec3 base_reflectivity = vec3(0.04); 
     base_reflectivity = mix(base_reflectivity, frag_albedo, frag_metallic);
@@ -146,18 +153,21 @@ void main() {
         light_output += (kD * frag_albedo / PI + specular) * radiance * NdotL;
     }
 
-    
+    vec3 F = fresnel_schlick_roughness(max(dot(normal, view_dir), 0.0), base_reflectivity, frag_roughness);
 
-    // vec3 ambient = vec3(0.03) * base_reflectivity * ambient_occlusion;
-    // vec3 color = ambient + light_output;
-    vec3 kS = fresnel_schlick(max(dot(normal, view_dir), 0.0), base_reflectivity);
+    vec3 kS = F;
     vec3 kD = 1.0 - kS;
-
     kD *= 1.0 - frag_metallic;
 
     vec3 irradiance = texture(irradiance_map, normal).rgb;
     vec3 diffuse = irradiance * frag_albedo;
-    vec3 ambient = (kD * diffuse) * ambient_occlusion;
+
+    const float MAX_REFLECTION_LOD = 4.0;
+    vec3 prefiltered_color = textureLod(reflection_map, reflection, frag_roughness * MAX_REFLECTION_LOD).rgb;
+    vec2 brdf = texture(brdf_integration, vec2(max(dot(normal, view_dir), 0.0), frag_roughness)).rg;
+    vec3 specular = prefiltered_color * (F * brdf.x + brdf.y);
+
+    vec3 ambient = (kD * diffuse + specular) * ambient_occlusion;
 
     vec3 color = ambient + light_output;
 
