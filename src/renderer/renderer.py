@@ -23,7 +23,9 @@ class Renderer(metaclass=Singleton):
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
+
+        self._render_equirectangular_skybox()
 
         self._render_irradiance_map()
 
@@ -37,6 +39,9 @@ class Renderer(metaclass=Singleton):
         self.timer.reset()
 
         rm = RendererManager()
+
+        # self._render_irradiance_map()
+        self._render_equirectangular_skybox()
 
         self._render_shadow_map()
 
@@ -223,7 +228,7 @@ class Renderer(metaclass=Singleton):
 
         # disable cull facing
         glDisable(GL_CULL_FACE)
-        # glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
+        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
         # glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
         glBindTexture(GL_TEXTURE_CUBE_MAP, rm.irradiance_cubemap)
         glDrawElements(GL_TRIANGLES, int(rm.indices_count["default"]), GL_UNSIGNED_INT, None)
@@ -448,6 +453,37 @@ class Renderer(metaclass=Singleton):
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
             glDrawElements(GL_TRIANGLES, int(rm.indices_count["default"]), GL_UNSIGNED_INT, None)
+        glEnable(GL_CULL_FACE)
+        glViewport(0, 0, rm.width, rm.height)
+
+    def _render_equirectangular_skybox(self):
+        rm = RendererManager()
+
+        if rm.equirect_skybox is None:
+            return()
+
+        glViewport(0, 0, rm.skybox_resolution, rm.skybox_resolution)
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.skybox_framebuffer)
+
+        shader = rm.shaders["equirect_skybox"]
+
+        shader.use()
+
+        glUniformMatrix4fv(shader.uniforms["projection"], 1, GL_FALSE, glm.value_ptr(rm.cubemap_projection))
+
+        glBindVertexArray(rm.vaos["default"])
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["default"])
+
+        glBindTexture(GL_TEXTURE_2D, rm.equirect_skybox)
+        glDisable(GL_CULL_FACE)
+
+        for i in range(6):
+            glUniformMatrix4fv(shader.uniforms["view"], 1, GL_FALSE, glm.value_ptr(rm.center_cubemap_views[i]))
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, rm.skybox_texture, 0)
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+            glDrawElements(GL_TRIANGLES, int(rm.indices_count["default"]), GL_UNSIGNED_INT, None)
+
         glEnable(GL_CULL_FACE)
         glViewport(0, 0, rm.width, rm.height)
 

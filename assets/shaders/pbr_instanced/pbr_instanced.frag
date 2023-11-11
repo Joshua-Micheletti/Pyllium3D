@@ -68,13 +68,15 @@ float shadow_calculation(vec3 frag_pos, vec3 frag_norm) {
 
     float current_depth = length(frag_to_light);
 
+    if (current_depth > far_plane) {
+        return(0.0);
+    }
+
     if (dot(frag_norm, frag_to_light) > 0) {
         return(1.0 - (current_depth / far_plane));
     }
 
-    if (current_depth > far_plane) {
-        return(0.0);
-    }
+    
 
     vec3 sample_offset[20] = vec3[](
         vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1), 
@@ -167,5 +169,5 @@ void main() {
    
     frag_color = vec4(color, 1.0);
     // frag_color = vec4(model_color, 1.0);
-    // frag_color = vec4(vec3(shadow), 1.0);
+    // frag_color = vec4(vec3(shadow + 1.0), 1.0);
 }

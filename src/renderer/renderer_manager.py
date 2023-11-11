@@ -51,8 +51,8 @@ class RendererManager(metaclass=Singleton):
         self.render_states["depth_of_field"] = True
         self.render_states["post_processing"] = True
 
-        self.irradiance_map_size = 16
-
+        self.irradiance_map_size = 32
+        self.skybox_resolution = 512
 
         # ----------------------------- Models -----------------------------
         # dictionary to keep track of model objects
@@ -99,6 +99,8 @@ class RendererManager(metaclass=Singleton):
         # dictionary of textures
         self.textures = dict()
 
+        self.equirect_skybox = None
+
 
         # ----------------------------- Materials -----------------------------
         # dictionary of material objects
@@ -140,7 +142,11 @@ class RendererManager(metaclass=Singleton):
         # setup the rendering framebuffer
         self._setup_framebuffers()
         # method to setup the skybox data
-        self._setup_skybox()
+        # self._setup_skybox("./assets/textures/Epic_BlueSunset/", equirect = 0)
+        # self._setup_skybox("assets/textures/alien/skybox.png", equirect = 1)
+        self._setup_skybox("assets/textures/test/", equirect = 0)
+
+        # self._expand_equirectangular_map_to_cubemap("assets/textures/alien/skybox.png")
 
         print_success("Initialized Renderer Manager in " + str(round(timer.elapsed() / 1000, 2)) + "s")
         
@@ -218,7 +224,7 @@ class RendererManager(metaclass=Singleton):
 
         self.center_cubemap_views.append(glm.lookAt(glm.vec3(0.0), glm.vec3( 1, 0, 0), glm.vec3(0,-1, 0)))
         self.center_cubemap_views.append(glm.lookAt(glm.vec3(0.0), glm.vec3(-1, 0, 0), glm.vec3(0,-1, 0)))
-        self.center_cubemap_views.append(glm.lookAt(glm.vec3(0.0), glm.vec3( 0, 1, 0), glm.vec3(0, 0,-1)))
+        self.center_cubemap_views.append(glm.lookAt(glm.vec3(0.0), glm.vec3( 0, 1, 0), glm.vec3(0, 0, 1)))
         self.center_cubemap_views.append(glm.lookAt(glm.vec3(0.0), glm.vec3( 0,-1, 0), glm.vec3(0, 0,-1)))
         self.center_cubemap_views.append(glm.lookAt(glm.vec3(0.0), glm.vec3( 0, 0, 1), glm.vec3(0,-1, 0)))
         self.center_cubemap_views.append(glm.lookAt(glm.vec3(0.0), glm.vec3( 0, 0,-1), glm.vec3(0,-1, 0)))
@@ -238,39 +244,59 @@ class RendererManager(metaclass=Singleton):
 
         self.irradiance_framebuffer, self.irradiance_cubemap, self.irradiance_renderbuffer = self._create_cubemap_framebuffer(self.irradiance_map_size)
 
+        self.skybox_framebuffer, self.skybox_texture, self.skybox_renderbuffer = self._create_cubemap_framebuffer(self.skybox_resolution)
+
     # method for setting up the skybox
-    def _setup_skybox(self):
-        # directory of the skybox files
-        filepath = "./assets/textures/Epic_BlueSunset/"
-        # filepath = "./assets/textures/dark/"
+    def _setup_skybox(self, filepath, equirect = 0):
+        if equirect:
+            self.equirect_skybox = glGenTextures(1)
+            glBindTexture(GL_TEXTURE_2D, self.equirect_skybox)
 
-        # list of faces
-        texture_faces = []
-        texture_faces.append(filepath + "left.png")
-        texture_faces.append(filepath + "right.png")
-        texture_faces.append(filepath + "top.png")
-        texture_faces.append(filepath + "bottom.png")
-        texture_faces.append(filepath + "back.png")
-        texture_faces.append(filepath + "front.png")
-            
-        # generate a cubemap texture
-        self.skybox_texture = glGenTextures(1)
-        glBindTexture(GL_TEXTURE_CUBE_MAP, self.skybox_texture)
-
-        # iterate through the faces, load the image and store it in the right face of the cubemap
-        for i in range(len(texture_faces)):
-            im = Image.open(texture_faces[i])#.transpose(Image.FLIP_TOP_BOTTOM)
-
-            # flip the top and bottom images
-            # if i == 2 or i == 3:
-            #     im = im.transpose(Image.FLIP_LEFT_RIGHT)
-            #     im = im.transpose(Image.FLIP_TOP_BOTTOM)
-
+            im = Image.open(filepath)#.transpose(Image.FLIP_TOP_BOTTOM)
+            im = im.convert('RGB')
+            im = im.transpose(Image.FLIP_TOP_BOTTOM)
             # get the data of the loaded face image
             imdata = np.fromstring(im.tobytes(), np.uint8)
 
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
             # store the data of the image in the cubemap texture
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, im.size[0], im.size[1], 0, GL_RGB, GL_UNSIGNED_BYTE, imdata)
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, im.size[0], im.size[1], 0, GL_RGB, GL_UNSIGNED_BYTE, imdata)
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+
+            # generate a cubemap texture
+            # self.skybox_texture = glGenTextures(1)
+            # glBindTexture(GL_TEXTURE_CUBE_MAP, self.skybox_texture)
+            # for i in range(6):
+            #     glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, self.skybox_resolution, self.skybox_resolution, 0, GL_RGB, GL_UNSIGNED_BYTE, None)
+
+        else:
+            # generate a cubemap texture
+            # self.skybox_texture = glGenTextures(1)
+            glBindTexture(GL_TEXTURE_CUBE_MAP, self.skybox_texture)
+
+            # list of faces
+            texture_faces = []
+            texture_faces.append(filepath + "left.png")
+            texture_faces.append(filepath + "right.png")
+            texture_faces.append(filepath + "top.png")
+            texture_faces.append(filepath + "bottom.png")
+            texture_faces.append(filepath + "back.png")
+            texture_faces.append(filepath + "front.png")
+
+            # iterate through the faces, load the image and store it in the right face of the cubemap
+            for i in range(len(texture_faces)):
+                im = Image.open(texture_faces[i])#.transpose(Image.FLIP_TOP_BOTTOM)
+                im = im.convert("RGB")
+
+                # get the data of the loaded face image
+                imdata = np.fromstring(im.tobytes(), np.uint8)
+
+                # store the data of the image in the cubemap texture
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, im.size[0], im.size[1], 0, GL_RGB, GL_UNSIGNED_BYTE, imdata)
 
         # set the texture behaviour
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
@@ -279,11 +305,9 @@ class RendererManager(metaclass=Singleton):
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
 
-        # load the skybox rendering shader
-        self.shaders["skybox"] = Shader("assets/shaders/skybox/skybox.vert", "assets/shaders/skybox/skybox.frag")
+        # # load the skybox rendering shader
+        # self.shaders["skybox"] = Shader("assets/shaders/skybox/skybox.vert", "assets/shaders/skybox/skybox.frag")
        
-
-
     # --------------------------- Creating Components ----------------------------------
     # method to create a new mesh, a count can be specified to generate more than 1 mesh with the same 3D model
     def new_mesh(self, name, file_path):
@@ -1168,3 +1192,5 @@ class RendererManager(metaclass=Singleton):
                 print_error("GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE")
             if error == GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
                 print_error("GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS")
+        
+        # glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
