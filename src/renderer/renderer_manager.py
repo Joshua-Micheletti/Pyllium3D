@@ -142,9 +142,11 @@ class RendererManager(metaclass=Singleton):
         # setup the rendering framebuffer
         self._setup_framebuffers()
         # method to setup the skybox data
-        # self._setup_skybox("./assets/textures/Epic_BlueSunset/", equirect = 0)
-        # self._setup_skybox("assets/textures/alien/skybox.png", equirect = 1)
-        self._setup_skybox("assets/textures/test/", equirect = 0)
+        # self._setup_skybox("./assets/textures/skybox/Epic_BlueSunset/")
+        self._setup_skybox("assets/textures/skybox/hdri/alien.png")
+        # self._setup_skybox("assets/textures/skybox/test/")
+        # self._setup_skybox("assets/textures/skybox/hdri/milkyway.png")
+        self._setup_skybox("assets/textures/skybox/hdri/fairytail_garden.jpeg")
 
         # self._expand_equirectangular_map_to_cubemap("assets/textures/alien/skybox.png")
 
@@ -247,7 +249,11 @@ class RendererManager(metaclass=Singleton):
         self.skybox_framebuffer, self.skybox_texture, self.skybox_renderbuffer = self._create_cubemap_framebuffer(self.skybox_resolution)
 
     # method for setting up the skybox
-    def _setup_skybox(self, filepath, equirect = 0):
+    def _setup_skybox(self, filepath):
+        components = filepath.split("/")
+
+        equirect = True if "." in components[-1] else False
+
         if equirect:
             self.equirect_skybox = glGenTextures(1)
             glBindTexture(GL_TEXTURE_2D, self.equirect_skybox)

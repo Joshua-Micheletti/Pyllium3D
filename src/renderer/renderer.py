@@ -230,7 +230,7 @@ class Renderer(metaclass=Singleton):
         glDisable(GL_CULL_FACE)
         glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
         # glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
-        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.irradiance_cubemap)
+        # glBindTexture(GL_TEXTURE_CUBE_MAP, rm.irradiance_cubemap)
         glDrawElements(GL_TRIANGLES, int(rm.indices_count["default"]), GL_UNSIGNED_INT, None)
         glEnable(GL_CULL_FACE)
 

@@ -47,7 +47,7 @@ def setup():
     rm.scale("light_3", 0.2, 0.2, 0.2)
 
     rm.place("light", 4, 4, 4)
-    rm.place("sun", 0, 10, 0)
+    rm.place("sun", 0, 200, 0)
     # # rm.scale("light", 0.25, 0.25, 0.25)
     # # rm.light_source = glm.vec3(5, 5, 5)
 
@@ -68,7 +68,7 @@ def setup():
     rm.new_model("blue_wall", mesh="quad", shader="pbr", material="blue_wall")
     rm.new_model("floor", mesh="quad", shader="pbr", material="full_white")
 
-    rm.place("red_wall", 10, 0, 0)
+    rm.place("red_wall", 10, 0, -2)
     rm.scale("red_wall", 10, 10, 10)
     rm.place("green_wall", 0, 0, 0)
     rm.rotate("green_wall", 0, 90, 0)
@@ -93,7 +93,7 @@ def setup():
         for j in range(5):
             name = "pbr_" + str(i) + str(j)
             rm.new_material(name,
-                            diffuse_r = 1.0, diffuse_g = 0.0, diffuse_b = 0.0,
+                            diffuse_r = 1.0, diffuse_g = 1.0, diffuse_b = 1.0,
                             roughness = i / 5,
                             metallic = j / 5)
 
@@ -102,7 +102,7 @@ def setup():
                          shader = "pbr",
                          material = "pbr_" + str(i) + str(j))
             
-            rm.place(name, 5, i * 2, j * 2)
+            rm.place(name, 5, (i + 1) * 2, j * 2)
 
             entities.append(name)
 

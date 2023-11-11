@@ -17,6 +17,8 @@ uniform float far_plane;
 uniform samplerCube depth_map;
 uniform vec3 light;
 
+uniform samplerCube irradiance_map;
+
 
 out vec4 frag_color;
 
@@ -24,7 +26,7 @@ out vec4 frag_color;
 const float PI = 3.14159265359;
 
 
-vec3 fresnelSchlick(float cosTheta, vec3 F0) {
+vec3 fresnel_schlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
@@ -65,13 +67,15 @@ float shadow_calculation(vec3 frag_pos, vec3 frag_norm) {
 
     float current_depth = length(frag_to_light);
 
+    if (current_depth > far_plane) {
+        return(0.0);
+    }
+
     if (dot(frag_norm, frag_to_light) > 0) {
         return(1.0 - (current_depth / far_plane));
     }
 
-    if (current_depth > far_plane) {
-        return(0.0);
-    }
+    
 
     vec3 sample_offset[20] = vec3[](
         vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1), 
@@ -104,48 +108,56 @@ float shadow_calculation(vec3 frag_pos, vec3 frag_norm) {
 }
 
 void main() {
-    float ao = 1.0;
+    float ambient_occlusion = 1.0;
 
-    vec3 N = normalize(frag_normal);
-    vec3 V = normalize(eye - frag_position);
+    vec3 normal = normalize(frag_normal);
+    vec3 view_dir = normalize(eye - frag_position);
 
-    vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, albedo, metallic);
+    vec3 base_reflectivity = vec3(0.04); 
+    base_reflectivity = mix(base_reflectivity, albedo, metallic);
 	           
     // reflectance equation
     vec3 Lo = vec3(0.0);
 
     for (int i = 0; i < lights_count; i++) {
         // calculate per-light radiance
-        vec3 L = normalize(lights[i] - frag_position);
-        vec3 H = normalize(V + L);
+        vec3 light_direction = normalize(lights[i] - frag_position);
+        vec3 halfway = normalize(view_dir + light_direction);
         float distance    = length(lights[i] - frag_position) / light_strengths[i];
         float attenuation = 1.0 / (distance * distance);
         vec3 radiance     = light_colors[i] * attenuation;        
         
         // cook-torrance brdf
-        float NDF = DistributionGGX(N, H, roughness);        
-        float G   = GeometrySmith(N, V, L, roughness);      
-        vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);       
+        float NDF = DistributionGGX(normal, halfway, roughness);        
+        float G   = GeometrySmith(normal, view_dir, light_direction, roughness);      
+        vec3 F    = fresnel_schlick(max(dot(halfway, view_dir), 0.0), base_reflectivity);       
         
         vec3 kS = F;
         vec3 kD = vec3(1.0) - kS;
         kD *= 1.0 - metallic;	  
         
         vec3 numerator    = NDF * G * F;
-        float denominator = 1.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+        float denominator = 1.0 * max(dot(normal, view_dir), 0.0) * max(dot(normal, light_direction), 0.0) + 0.0001;
         vec3 specular     = numerator / denominator;  
             
         // add to outgoing radiance Lo
-        float NdotL = max(dot(N, L), 0.0);                
+        float NdotL = max(dot(normal, light_direction), 0.0);                
         Lo += (kD * albedo / PI + specular) * radiance * NdotL;
     }
 
-    float shadow = shadow_calculation(frag_position, frag_normal);
+    vec3 kS = fresnel_schlick(max(dot(normal, view_dir), 0.0), base_reflectivity);
+    vec3 kD = 1.0 - kS;
 
-    vec3 ambient = vec3(0.03) * albedo * ao;
+    kD *= 1.0 - metallic;
+
+    vec3 irradiance = texture(irradiance_map, normal).rgb;
+    vec3 diffuse = irradiance * albedo;
+    vec3 ambient = (kD * diffuse) * ambient_occlusion;
+
+    // vec3 ambient = vec3<(0.03) * albedo * ambient_occlusion;
     vec3 color = ambient + Lo;
 
+    float shadow = shadow_calculation(frag_position, frag_normal);
     color *= (1.0 - shadow);
 	
     color = color / (color + vec3(1.0));
