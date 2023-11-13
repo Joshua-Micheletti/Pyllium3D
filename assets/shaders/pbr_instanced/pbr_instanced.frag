@@ -27,6 +27,11 @@ out vec4 frag_color;
 
 
 const float PI = 3.14159265359;
+const float e = 2.71828;
+
+float map(float value, float min1, float max1, float min2, float max2) {
+    return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
+}
 
 
 vec3 fresnel_schlick(float cosTheta, vec3 F0) {
@@ -75,14 +80,12 @@ float shadow_calculation(vec3 frag_pos, vec3 frag_norm) {
     float current_depth = length(frag_to_light);
 
     if (current_depth > far_plane) {
-        return(0.0);
+        return(1.0);
     }
 
     if (dot(frag_norm, frag_to_light) > 0) {
-        return(1.0 - (current_depth / far_plane));
+        return(1.0);
     }
-
-    
 
     vec3 sample_offset[20] = vec3[](
         vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1), 
@@ -98,7 +101,7 @@ float shadow_calculation(vec3 frag_pos, vec3 frag_norm) {
     float bias = max(0.5 * (1.0 - dot(frag_norm, light_dir)), 0.05);
 
     int samples = 20;
-    float disk_radius = 0.005;
+    float disk_radius = 0.015;
 
     for (int i = 0; i < samples; i++) {
         float closest_depth = texture(depth_map, frag_to_light + sample_offset[i] * disk_radius).r;
@@ -109,9 +112,12 @@ float shadow_calculation(vec3 frag_pos, vec3 frag_norm) {
     }
 
     shadow /= float(samples);
-    shadow *= 1.0 - (current_depth / far_plane);
 
-    return(shadow);
+    if (current_depth > far_plane / 2) {
+        shadow += mix(0.0, 1.0, map(current_depth, far_plane / 2, far_plane / 1.2, 0.0, 1.0));
+    }
+
+    return(min(shadow, 1.0));
 }
 
 void main() {
@@ -123,17 +129,41 @@ void main() {
 
     vec3 base_reflectivity = vec3(0.04); 
     base_reflectivity = mix(base_reflectivity, frag_albedo, frag_metallic);
-	           
+
     // reflectance equation
     vec3 light_output = vec3(0.0);
 
+    float shadow = (1.0 - shadow_calculation(frag_position, frag_normal));
+
+    vec3 F = fresnel_schlick_roughness(max(dot(normal, view_dir), 0.0), base_reflectivity, frag_roughness);
+
+    vec3 specular_energy = F;
+    vec3 diffuse_energy = 1.0 - specular_energy;
+    diffuse_energy *= 1.0 - frag_metallic;
+
+    vec3 irradiance = texture(irradiance_map, normal).rgb;
+    vec3 diffuse = irradiance * frag_albedo;
+
+    const float MAX_REFLECTION_LOD = 4.0;
+    vec3 prefiltered_color = textureLod(reflection_map, reflection, frag_roughness * MAX_REFLECTION_LOD).rgb;
+    vec2 brdf = texture(brdf_integration, vec2(max(dot(normal, view_dir), 0.0), frag_roughness)).rg;
+    vec3 specular = prefiltered_color * (F * brdf.x + brdf.y);
+
+    // float shadow = shadow_calculation(frag_position, frag_normal, light_strengths[0]);
+
+    vec3 ambient = (diffuse_energy * diffuse + specular) * ambient_occlusion;
+
     for (int i = 0; i < lights_count; i++) {
+        if (light_strengths[i] == 0) {
+            continue;
+        }
+
         // calculate per-light radiance
         vec3 light_direction = normalize(lights[i] - frag_position);
         vec3 halfway = normalize(view_dir + light_direction);
         float distance = length(lights[i] - frag_position) / light_strengths[i];
         float attenuation = 1.0 / (distance * distance);
-        vec3 radiance = light_colors[i] * attenuation;        
+        vec3 radiance = light_colors[i] * attenuation;
         
         // cook-torrance brdf
         float NDF = DistributionGGX(normal, halfway, frag_roughness);        
@@ -151,33 +181,26 @@ void main() {
         // add to outgoing radiance Lo
         float NdotL = max(dot(normal, light_direction), 0.0);                
         light_output += (kD * frag_albedo / PI + specular) * radiance * NdotL;
+
+        if (i == 0) {
+            light_output = mix(vec3(0.0), light_output, shadow);
+        }
     }
 
-    vec3 F = fresnel_schlick_roughness(max(dot(normal, view_dir), 0.0), base_reflectivity, frag_roughness);
-
-    vec3 kS = F;
-    vec3 kD = 1.0 - kS;
-    kD *= 1.0 - frag_metallic;
-
-    vec3 irradiance = texture(irradiance_map, normal).rgb;
-    vec3 diffuse = irradiance * frag_albedo;
-
-    const float MAX_REFLECTION_LOD = 4.0;
-    vec3 prefiltered_color = textureLod(reflection_map, reflection, frag_roughness * MAX_REFLECTION_LOD).rgb;
-    vec2 brdf = texture(brdf_integration, vec2(max(dot(normal, view_dir), 0.0), frag_roughness)).rg;
-    vec3 specular = prefiltered_color * (F * brdf.x + brdf.y);
-
-    vec3 ambient = (kD * diffuse + specular) * ambient_occlusion;
+    
 
     vec3 color = ambient + light_output;
+    // vec3 color = ambient;
+    // vec3 color = light_output;
 
-    float shadow = shadow_calculation(frag_position, frag_normal);
-    color *= (1.0 - shadow);
+    
+    // color *= shadow;
 	
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0/2.2));  
    
     frag_color = vec4(color, 1.0);
     // frag_color = vec4(model_color, 1.0);
-    // frag_color = vec4(vec3(shadow + 1.0), 1.0);
+    // frag_color = vec4(vec3(shadow), 1.0);
+    // frag_color = vec4(ambient, 1.0);
 }

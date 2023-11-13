@@ -121,7 +121,7 @@ class RendererManager(metaclass=Singleton):
 
         # ----------------------------- Shadows -----------------------------
         # size of the shadow depth texture
-        self.shadow_size = 1024
+        self.shadow_size = 2048
         # far plane of the shadow
         self.shadow_far_plane = 100.0
         # projection matrix to render the shadowmap
@@ -225,7 +225,7 @@ class RendererManager(metaclass=Singleton):
         # creation of a light source object (just a position for now)
         # self.lights["main"] = Light()
         self.new_light("sun", (0, 100, 0), (1, 1, 1), 100)
-        self.new_light("main")
+        self.new_light("main", light_strength = 0)
 
         self.center_cubemap_views = []
 

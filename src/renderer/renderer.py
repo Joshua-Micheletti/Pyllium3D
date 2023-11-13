@@ -44,11 +44,6 @@ class Renderer(metaclass=Singleton):
 
         rm = RendererManager()
 
-        # self._render_irradiance_map()
-        # self._render_equirectangular_skybox()
-        # self._render_brdf_integration_map()
-        # self._render_reflection_map()
-
         self._render_shadow_map()
 
         # bind the render framebuffer
@@ -190,6 +185,8 @@ class Renderer(metaclass=Singleton):
 
         glClear(GL_DEPTH_BUFFER_BIT)
 
+        # glDisable(GL_CULL_FACE)
+
         # glCullFace(GL_FRONT)
         # glDisable(GL_CULL_FACE)
 
@@ -228,8 +225,6 @@ class Renderer(metaclass=Singleton):
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos[instance.mesh])
             # draw the indexed models in the instance
             glDrawElementsInstanced(GL_TRIANGLES, int(rm.indices_count[instance.mesh]), GL_UNSIGNED_INT, None, len(instance.models))
-
-        
 
         glViewport(0, 0, rm.width, rm.height)
         # glCullFace(GL_BACK)
@@ -554,7 +549,8 @@ class Renderer(metaclass=Singleton):
 
         max_mip_levels = 5
 
-        for mip in range(4, -1, -1):
+        # for mip in range(4, -1, -1):
+        for mip in range(5):
             mip_width = rm.reflection_resolution * pow(0.5, mip)
             mip_height = rm.reflection_resolution * pow(0.5, mip)
 
