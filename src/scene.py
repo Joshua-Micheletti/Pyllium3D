@@ -16,7 +16,7 @@ def setup():
     pw = PhysicsWorld()
     engine = Engine()
 
-    count = 150
+    count = 50
 
     # rm.new_shader("cel", "assets/shaders/cel_shading/cel_shading.vert", "assets/shaders/cel_shading/cel_shading.frag")
     # rm.new_shader("pbr_texture", "assets/shaders/pbr_texture/pbr_texture.vert", "assets/shaders/pbr_texture/pbr_texture.frag")
@@ -47,7 +47,7 @@ def setup():
     rm.scale("light_3", 0.2, 0.2, 0.2)
 
     rm.place("light", 4, 4, 4)
-    rm.place("sun", 0, 200, 0)
+    rm.place("sun", 0, 5, 0)
     # # rm.scale("light", 0.25, 0.25, 0.25)
     # # rm.light_source = glm.vec3(5, 5, 5)
 

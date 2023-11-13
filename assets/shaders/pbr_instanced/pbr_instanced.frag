@@ -99,6 +99,7 @@ float shadow_calculation(vec3 frag_pos, vec3 frag_norm) {
 
     float shadow  = 0.0;
     float bias = max(0.5 * (1.0 - dot(frag_norm, light_dir)), 0.05);
+    // float bias = 0.05;
 
     int samples = 20;
     float disk_radius = 0.015;
@@ -149,8 +150,6 @@ void main() {
     vec2 brdf = texture(brdf_integration, vec2(max(dot(normal, view_dir), 0.0), frag_roughness)).rg;
     vec3 specular = prefiltered_color * (F * brdf.x + brdf.y);
 
-    // float shadow = shadow_calculation(frag_position, frag_normal, light_strengths[0]);
-
     vec3 ambient = (diffuse_energy * diffuse + specular) * ambient_occlusion;
 
     for (int i = 0; i < lights_count; i++) {
@@ -186,8 +185,6 @@ void main() {
             light_output = mix(vec3(0.0), light_output, shadow);
         }
     }
-
-    
 
     vec3 color = ambient + light_output;
     // vec3 color = ambient;
