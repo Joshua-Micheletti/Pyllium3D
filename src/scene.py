@@ -68,6 +68,8 @@ def setup():
     # rm.new_model("blue_wall", mesh="quad", shader="pbr", material="blue_wall")
     rm.new_model("floor", mesh="quad", shader="pbr", material="full_white")
 
+    rm.new_model("billboard", mesh="quad", shader="billboard")
+
     # rm.place("red_wall", 10, 0, -2)
     # rm.scale("red_wall", 10, 10, 10)
     # rm.place("green_wall", 0, 0, 0)
@@ -136,48 +138,48 @@ def setup():
     #         # rm.add_model_to_instance("entity" + str(i * 10 + j), "colored_entities")
     #         entities.append("entity" + str(i * 10 + j))
 
-    for i in range(int(count / 10)):
-        for j in range(10):
-            name = "entity" + str(i * 10 + j)
-            rm.new_material("color" + str(i * 10 + j),
-                            *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
-                            *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
-                            *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
-                            random.uniform(1, 256),
-                            random.uniform(0, 1),
-                            random.uniform(0, 1))
+    # for i in range(int(count / 10)):
+    #     for j in range(10):
+    #         name = "entity" + str(i * 10 + j)
+    #         rm.new_material("color" + str(i * 10 + j),
+    #                         *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
+    #                         *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
+    #                         *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
+    #                         random.uniform(1, 256),
+    #                         random.uniform(0, 1),
+    #                         random.uniform(0, 1))
             
-            rm.new_model(name, mesh="box", shader="lighting", material="color" + str(i * 10 + j))
-            rm.place(name, (random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10)
-            pw.new_body("entity" + str(i * 10 + j), "sphere", 1.0, position=[(random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10])
-            engine.create_link("entity" + str(i * 10 + j), "entity" + str(i * 10 + j))
-            entities.append("entity" + str(i * 10 + j))
+    #         rm.new_model(name, mesh="box", shader="lighting", material="color" + str(i * 10 + j))
+    #         rm.place(name, (random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10)
+    #         pw.new_body("entity" + str(i * 10 + j), "sphere", 1.0, position=[(random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10])
+    #         engine.create_link("entity" + str(i * 10 + j), "entity" + str(i * 10 + j))
+    #         entities.append("entity" + str(i * 10 + j))
     
-    rm.update()
-    rm.set_models_in_instance(entities, "colored_entities")
+    # rm.update()
+    # rm.set_models_in_instance(entities, "colored_entities")
 
     entities = []
 
-    for i in range(int(count / 10)):
-        for j in range(10):
-            name = "entity_box" + str(i * 10 + j)
-            rm.new_material("color_box" + str(i * 10 + j),
-                            *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
-                            *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
-                            *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
-                            random.uniform(1, 256),
-                            random.uniform(0, 1),
-                            random.uniform(0, 1))
+    # for i in range(int(count / 10)):
+    #     for j in range(10):
+    #         name = "entity_box" + str(i * 10 + j)
+    #         rm.new_material("color_box" + str(i * 10 + j),
+    #                         *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
+    #                         *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
+    #                         *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
+    #                         random.uniform(1, 256),
+    #                         random.uniform(0, 1),
+    #                         random.uniform(0, 1))
             
-            rm.new_model("entity_box" + str(i * 10 + j), mesh="box", shader="lighting", material="color_box" + str(i * 10 + j))
-            rm.scale("entity_box" + str(i * 10 + j), 0.5, 0.5, 0.5)
-            rm.place(name, (random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10)
-            pw.new_body("entity_box" + str(i * 10 + j), "box", 1.0, position=[(random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10])
-            engine.create_link("entity_box" + str(i * 10 + j), "entity_box" + str(i * 10 + j))
-            entities.append("entity_box" + str(i * 10 + j))
+    #         rm.new_model("entity_box" + str(i * 10 + j), mesh="box", shader="lighting", material="color_box" + str(i * 10 + j))
+    #         rm.scale("entity_box" + str(i * 10 + j), 0.5, 0.5, 0.5)
+    #         rm.place(name, (random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10)
+    #         pw.new_body("entity_box" + str(i * 10 + j), "box", 1.0, position=[(random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10])
+    #         engine.create_link("entity_box" + str(i * 10 + j), "entity_box" + str(i * 10 + j))
+    #         entities.append("entity_box" + str(i * 10 + j))
     
-    rm.update()
-    rm.set_models_in_instance(entities, "colored_boxes")
+    # rm.update()
+    # rm.set_models_in_instance(entities, "colored_boxes")
 
     
 
@@ -214,9 +216,9 @@ def update(dt):
     # rm.place("light", math.cos(glfw.get_time() / 2) * time * 2 + rm.positions["light"].x, math.sin(glfw.get_time() / 2) * 6, math.sin(glfw.get_time() / 2) * time * 2 + rm.positions["light"].z)
     # rm.light_source.place(*rm.positions["light"])
     rm.place_light("main", *rm.positions["light"])
-    rm.place_light("light_1", *rm.positions["light_1"])
-    rm.place_light("light_2", *rm.positions["light_2"])
-    rm.place_light("light_3", *rm.positions["light_3"])
+    # rm.place_light("light_1", *rm.positions["light_1"])
+    # rm.place_light("light_2", *rm.positions["light_2"])
+    # rm.place_light("light_3", *rm.positions["light_3"])
     rm.place_light("sun", *rm.positions["sun"])
     # rm.place_light("light", *rm.positions["light"])
     # rm.place_light("moon", *rm.positions["moon"])

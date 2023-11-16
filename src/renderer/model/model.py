@@ -1,4 +1,3 @@
-
 # class that represents the model to be rendered
 class Model:
     # constructor method

@@ -50,6 +50,7 @@ class RendererManager(metaclass=Singleton):
         self.render_states = dict()
         self.render_states["depth_of_field"] = True
         self.render_states["post_processing"] = True
+        self.render_states["shadow_map"] = True
 
         self.irradiance_map_size = 32
         self.skybox_resolution = 512
@@ -146,11 +147,11 @@ class RendererManager(metaclass=Singleton):
         skybox_path = "assets/textures/skybox/"
         # method to setup the skybox data
         # self._setup_skybox("./assets/textures/skybox/Epic_BlueSunset/")
-        self._setup_skybox(skybox_path + "/hdri/alien.png")
+        # self._setup_skybox(skybox_path + "/hdri/alien.png")
         # self._setup_skybox("assets/textures/skybox/test/")
         # self._setup_skybox("assets/textures/skybox/hdri/milkyway.png")
         # self._setup_skybox(skybox_path + "hdri/fairytail_garden.jpeg")
-        # self._setup_skybox(skybox_path + "hdri/autumn_forest.jpg")
+        self._setup_skybox(skybox_path + "hdri/autumn_forest.jpg")
 
 
         # self._expand_equirectangular_map_to_cubemap("assets/textures/alien/skybox.png")
@@ -893,9 +894,11 @@ class RendererManager(metaclass=Singleton):
 
     def place_light(self, name, x, y, z):
         if name in self.lights:
-            self.light_positions[self.lights[name] * 3 + 0] = x
-            self.light_positions[self.lights[name] * 3 + 1] = y
-            self.light_positions[self.lights[name] * 3 + 2] = z
+            if x != self.light_positions[self.lights[name] * 3 + 0] or y != self.light_positions[self.lights[name] * 3 + 1] or z != self.light_positions[self.lights[name] * 3 + 2]:
+                self.light_positions[self.lights[name] * 3 + 0] = x
+                self.light_positions[self.lights[name] * 3 + 1] = y
+                self.light_positions[self.lights[name] * 3 + 2] = z
+                self.render_states["shadow_map"] = True
         else:
             print_error(f"Light '{name}' not found")
 
@@ -1137,7 +1140,6 @@ class RendererManager(metaclass=Singleton):
 
         depth_cubemap = glGenTextures(1)
         
-
         glBindTexture(GL_TEXTURE_CUBE_MAP, depth_cubemap)
 
         for i in range(6):

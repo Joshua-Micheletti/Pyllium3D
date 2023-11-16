@@ -44,7 +44,9 @@ class Renderer(metaclass=Singleton):
 
         rm = RendererManager()
 
-        self._render_shadow_map()
+        if rm.render_states["shadow_map"]:
+            self._render_shadow_map()
+            # rm.render_states["shadow_map"] = False
 
         # bind the render framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
@@ -81,6 +83,8 @@ class Renderer(metaclass=Singleton):
     def _render_models(self):
         # get a reference to the renderer manager
         rm = RendererManager()   
+
+        
 
         # variables to keep track of the last used shader and mesh
         last_shader = ""
@@ -144,6 +148,8 @@ class Renderer(metaclass=Singleton):
             # glDrawArrays(GL_TRIANGLES, 0, int(rm.vertices_count[model.mesh]))
             # glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
             glDrawElements(GL_TRIANGLES, int(rm.indices_count[model.mesh]), GL_UNSIGNED_INT, None)
+
+            glEnable(GL_CULL_FACE)
 
     # method to render instanced models
     def _render_instances(self):
@@ -558,13 +564,7 @@ class Renderer(metaclass=Singleton):
             glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, int(mip_width), int(mip_height))
 
             glViewport(0, 0, int(mip_width), int(mip_height))
-
-            print(f"mip width: {mip_width}")
-
             roughness = float(mip) / float(max_mip_levels - 1)
-
-            print(f"roughness: {roughness}")
-
             glUniform1f(shader.uniforms["roughness"], roughness)
 
             for i in range(6):
