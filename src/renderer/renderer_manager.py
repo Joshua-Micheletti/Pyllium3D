@@ -180,7 +180,7 @@ class RendererManager(metaclass=Singleton):
             # correct the directory path in case of "\" characters
             shader_dir = shader_dir.replace("\\\\", "/")
             shader_dir = shader_dir.replace("\\", "/")
-
+            print(f"compiling: {shader_dir}")
             # extract the name of the shader from the directory
             name = shader_dir.replace(shaders_path, "")
 

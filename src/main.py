@@ -84,8 +84,8 @@ def main():
             updatetime.reset()
             
             updatetime.record()
-            pw.update()
-            engine.update()
+            #pw.update()
+            #engine.update()
             tick_accumulator -= tickrate
         
         scene.update(tickrate)

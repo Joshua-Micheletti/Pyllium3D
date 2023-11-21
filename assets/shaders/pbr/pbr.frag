@@ -1,4 +1,4 @@
-#version 330 core
+#version 420 core
 
 in vec3 frag_position;
 in vec3 frag_normal;
@@ -14,12 +14,12 @@ uniform float light_strengths[100];
 uniform float lights_count;
 
 uniform float far_plane;
-uniform samplerCube depth_map;
+layout (binding = 3) uniform samplerCube depth_map;
 uniform vec3 light;
 
-uniform samplerCube irradiance_map;
-uniform samplerCube reflection_map;
-uniform sampler2D brdf_integration;
+layout (binding = 4) uniform samplerCube irradiance_map;
+layout (binding = 5) uniform samplerCube reflection_map;
+layout (binding = 6) uniform sampler2D brdf_integration;
 
 
 out vec4 frag_color;
