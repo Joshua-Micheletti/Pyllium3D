@@ -47,7 +47,7 @@ def setup():
     rm.scale("light_3", 0.2, 0.2, 0.2)
 
     rm.place("light", 4, 4, 4)
-    rm.place("sun", 0, 5, 0)
+    rm.place("sun", 0, 25, 0)
     # # rm.scale("light", 0.25, 0.25, 0.25)
     # # rm.light_source = glm.vec3(5, 5, 5)
 

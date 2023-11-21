@@ -222,3 +222,9 @@ class Shader:
 
         if glGetUniformLocation(self.program, "brdf_integration") != -1:
             self.uniforms["brdf_integration"] = glGetUniformLocation(self.program, "brdf_integration")
+
+        if glGetUniformLocation(self.program, "src_resolution") != -1:
+            self.uniforms["src_resolution"] = glGetUniformLocation(self.program, "src_resolution")
+
+        if glGetUniformLocation(self.program, "radius") != -1:
+            self.uniforms["radius"] = glGetUniformLocation(self.program, "radius")

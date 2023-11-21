@@ -1,4 +1,6 @@
 # main libraries imports
+import OpenGL
+OpenGL.ERROR_CHECKING = False
 from OpenGL.GL import *
 import numpy as np
 from PIL import Image
@@ -143,6 +145,8 @@ class RendererManager(metaclass=Singleton):
         self._setup_entities()
         # setup the rendering framebuffer
         self._setup_framebuffers()
+
+        self._setup_bloom(5)
 
         skybox_path = "assets/textures/skybox/"
         # method to setup the skybox data
@@ -325,7 +329,39 @@ class RendererManager(metaclass=Singleton):
 
         # # load the skybox rendering shader
         # self.shaders["skybox"] = Shader("assets/shaders/skybox/skybox.vert", "assets/shaders/skybox/skybox.frag")
-       
+
+    def _setup_bloom(self, length):
+        self.bloom_framebuffer = glGenFramebuffers(1)
+        glBindFramebuffer(GL_FRAMEBUFFER, self.bloom_framebuffer)
+
+        mip_size = (int(self.width), int(self.height))
+
+        self.bloom_mips = []
+        self.bloom_mips_sizes = []
+
+        for i in range(length):
+            # mip_size[0] /= 2
+            # mip_size[1] /= 2
+            mip_size = (int(mip_size[0] / 2), int(mip_size[1] / 2))
+
+            self.bloom_mips_sizes.append(mip_size)
+
+            self.bloom_mips.append(glGenTextures(1))
+            glBindTexture(GL_TEXTURE_2D, self.bloom_mips[i])
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_R11F_G11F_B10F, mip_size[0], mip_size[1], 0, GL_RGB, GL_FLOAT, None)
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.bloom_mips[0], 0)
+
+        self._check_framebuffer_status()
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+
     # --------------------------- Creating Components ----------------------------------
     # method to create a new mesh, a count can be specified to generate more than 1 mesh with the same 3D model
     def new_mesh(self, name, file_path):
@@ -1021,6 +1057,8 @@ class RendererManager(metaclass=Singleton):
         self.solved_framebuffer, self.solved_texture, self.solved_depth_texture = self._create_framebuffer()
         self.blurred_framebuffer, self.blurred_texture, self.blurred_depth_texture = self._create_framebuffer()
         self.tmp_framebuffer, self.tmp_texture, self.tmp_depth = self._create_framebuffer()
+
+        self._setup_bloom(5)
                 
     # update method to update components of the rendering manager
     def update(self):
