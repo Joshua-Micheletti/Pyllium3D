@@ -388,12 +388,15 @@ class Renderer(metaclass=Singleton):
 
     def _render_bloom(self):
         rm = RendererManager()
+        glDisable(GL_DEPTH_TEST)
+
+        if not rm.render_states["bloom"]:
+            return()
+        
         glBindFramebuffer(GL_FRAMEBUFFER, rm.bloom_framebuffer)
 
         # DOWNSAMPLE
         glBindTexture(GL_TEXTURE_2D, rm.solved_texture)
-
-        
 
         shader = rm.shaders["bloom_downsample"]
         shader.use()
@@ -415,7 +418,7 @@ class Renderer(metaclass=Singleton):
         shader = rm.shaders["bloom_upsample"]
         shader.use()
 
-        glUniform1f(shader.uniforms["radius"], 2.0)
+        # glUniform1f(shader.uniforms["radius"], 2.0)
 
         glEnable(GL_BLEND)
         glBlendFunc(GL_ONE, GL_ONE)
@@ -434,19 +437,37 @@ class Renderer(metaclass=Singleton):
             glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
         glViewport(0, 0, rm.width, rm.height)
+        glDisable(GL_BLEND)
 
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.solved_framebuffer)
+        # BLENDING
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.tmp_framebuffer)
 
         shader = rm.shaders["bloom"]
         shader.use()
 
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, rm.solved_texture)
+        glActiveTexture(GL_TEXTURE0 + 1)
         glBindTexture(GL_TEXTURE_2D, rm.bloom_mips[0])
 
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
         # glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
         # glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
+        glActiveTexture(GL_TEXTURE0)
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.solved_framebuffer)
+        glBindTexture(GL_TEXTURE_2D, rm.tmp_texture)
+        rm.shaders["screen"].use()
+        glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
+
+        # glBindFramebuffer(GL_FRAMEBUFFER, rm.tmp_framebuffer)
+        # glClear(GL_COLOR_BUFFER_BIT)
+
         glDisable(GL_BLEND)
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        glActiveTexture(GL_TEXTURE0)
+
+        glEnable(GL_DEPTH_TEST)
 
 
     # method to render the screen texture to the main framebuffer

@@ -7,7 +7,7 @@ in vec2 TexCoords;
 
 layout (binding = 0) uniform sampler2D scene;
 layout (binding = 1) uniform sampler2D bloomBlur;
-uniform float bloomStrength = 0.4f;
+uniform float bloomStrength = 0.02f;
 
 vec3 bloom_none()
 {
@@ -34,12 +34,15 @@ void main()
     vec3 result = vec3(0.0);
     result = bloom_new();
 
-    float exposure = 0.01;
+    float exposure = 1;
     // tone mapping
     result = vec3(1.0) - exp(-result * exposure);
     // also gamma correct while we're at it
     const float gamma = 2.2;
     result = pow(result, vec3(1.0 / gamma));
     FragColor = vec4(result, 1.0);
+    // FragColor = vec4(0.5, 0.5, 0.5, 1.0);
+    // FragColor = vec4(texture(scene, TexCoords).rgb, 1.0);
+    // FragColor = vec4(TexCoords.x, TexCoords.y, 0.0, 1.0);
 }
 

@@ -19,8 +19,11 @@ out vec4 frag_color;
 void main() {
 	// The filter kernel is applied with a radius, specified in texture
 	// coordinates, so that the radius will vary across mip resolutions.
-	float x = radius;
-	float y = radius;
+	// float x = radius;
+	// float y = radius;
+	float shader_radius = 0.005;
+	float x = shader_radius;
+	float y = shader_radius;
 
 	// Take 9 samples around current texel:
 	// a - b - c

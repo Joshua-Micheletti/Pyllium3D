@@ -54,6 +54,11 @@ class MainMenu:
                 _, rm.render_states["post_processing"] = imgui.checkbox("###post_processing_checkbox", rm.render_states["post_processing"])
 
                 imgui.align_text_to_frame_padding()
+                imgui.text("Bloom          ")
+                imgui.same_line()
+                _, rm.render_states["bloom"] = imgui.checkbox("###bloom_checkbox", rm.render_states["bloom"])
+
+                imgui.align_text_to_frame_padding()
                 imgui.text("MSAA")
                 imgui.same_line()
 

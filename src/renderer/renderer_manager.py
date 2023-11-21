@@ -53,6 +53,7 @@ class RendererManager(metaclass=Singleton):
         self.render_states["depth_of_field"] = True
         self.render_states["post_processing"] = True
         self.render_states["shadow_map"] = True
+        self.render_states["bloom"] = True
 
         self.irradiance_map_size = 32
         self.skybox_resolution = 512
@@ -1113,7 +1114,7 @@ class RendererManager(metaclass=Singleton):
         
         color = glGenTextures(1)
         glBindTexture(GL_TEXTURE_2D, color)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, None)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, None)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
@@ -1146,7 +1147,7 @@ class RendererManager(metaclass=Singleton):
         # bind it to as the current texture
         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, color)
         # generate the texture with the screen dimensions
-        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, self.max_samples, GL_RGB, self.width, self.height, GL_FALSE)
+        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, self.max_samples, GL_RGB32F, self.width, self.height, GL_FALSE)
         # glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
         # glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
         # glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)

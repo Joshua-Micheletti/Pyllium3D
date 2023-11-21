@@ -25,8 +25,10 @@ class TextureTab:
             # texture_height = max_size
             # texture_width = max_size * texture_ratio
 
-        imgui.image(rm.solved_texture, texture_width, texture_height, (0, 1), (1, 0))
+        # imgui.image(rm.solved_texture, texture_width, texture_height, (0, 1), (1, 0))
+        imgui.image(rm.tmp_texture, texture_width, texture_height, (0, 1), (1, 0))
         imgui.same_line()
-        imgui.image(rm.blurred_texture, texture_width, texture_height, (0, 1), (1, 0))
+        # imgui.image(rm.blurred_texture, texture_width, texture_height, (0, 1), (1, 0))
+        imgui.image(rm.bloom_mips[0], texture_width, texture_height, (0, 1), (1, 0))
         imgui.same_line()
         imgui.image(rm.solved_depth_texture, texture_width, texture_height, (0, 1), (1, 0))

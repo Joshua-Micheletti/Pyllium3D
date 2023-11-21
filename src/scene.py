@@ -16,7 +16,7 @@ def setup():
     pw = PhysicsWorld()
     engine = Engine()
 
-    count = 5000
+    count = 100
 
     # rm.new_shader("cel", "assets/shaders/cel_shading/cel_shading.vert", "assets/shaders/cel_shading/cel_shading.frag")
     # rm.new_shader("pbr_texture", "assets/shaders/pbr_texture/pbr_texture.vert", "assets/shaders/pbr_texture/pbr_texture.frag")
@@ -47,7 +47,7 @@ def setup():
     rm.scale("light_3", 0.2, 0.2, 0.2)
 
     rm.place("light", 4, 4, 4)
-    rm.place("sun", 0, 25, 0)
+    rm.place("sun", 0, 10, 0)
     # # rm.scale("light", 0.25, 0.25, 0.25)
     # # rm.light_source = glm.vec3(5, 5, 5)
 
@@ -174,8 +174,8 @@ def setup():
             rm.new_model("entity_box" + str(i * 10 + j), mesh="box", shader="lighting", material="color_box" + str(i * 10 + j))
             rm.scale("entity_box" + str(i * 10 + j), 0.5, 0.5, 0.5)
             rm.place(name, (random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10)
-            # pw.new_body("entity_box" + str(i * 10 + j), "box", 1.0, position=[(random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10])
-            # engine.create_link("entity_box" + str(i * 10 + j), "entity_box" + str(i * 10 + j))
+            pw.new_body("entity_box" + str(i * 10 + j), "box", 1.0, position=[(random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10])
+            engine.create_link("entity_box" + str(i * 10 + j), "entity_box" + str(i * 10 + j))
             entities.append("entity_box" + str(i * 10 + j))
     
     rm.update()
