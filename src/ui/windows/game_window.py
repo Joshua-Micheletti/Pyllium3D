@@ -34,7 +34,9 @@ class GameWindow:
             self._game_window_resize(wsize.x, wsize.y)
             
         # Because I use the texture from OpenGL, I need to invert the V from the UV.
-        imgui.image(RendererManager().solved_texture, wsize.x, wsize.y, (0, 1), (1, 0))
+        
+        imgui.image(RendererManager().get_front_texture(), wsize.x, wsize.y, (0, 1), (1, 0))
+        
 
         self.crosshair.draw()
 
@@ -43,6 +45,8 @@ class GameWindow:
 
         imgui.pop_style_var()
         imgui.end()
+
+        
 
         return(states)
 

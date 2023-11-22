@@ -67,12 +67,14 @@ class Renderer(metaclass=Singleton):
         self._render_msaa()
 
         self._render_bloom()
+
+        self._render_hdr()
         # render the blur texture
-        self._render_blur()
-        # apply depth of field effect to the main texture
-        self._render_depth_of_field()
-        # apply post processing effects
-        self._render_post_processing()
+        # self._render_blur()
+        # # apply depth of field effect to the main texture
+        # self._render_depth_of_field()
+        # # apply post processing effects
+        # self._render_post_processing()
 
         # clear the screen
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
@@ -278,7 +280,7 @@ class Renderer(metaclass=Singleton):
         glDisable(GL_DEPTH_TEST)
 
         # bind the solved framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.solved_framebuffer)
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
         # bind the multisample texture to resolve
         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, rm.multisample_render_texture)
 
@@ -295,8 +297,10 @@ class Renderer(metaclass=Singleton):
 
         # resolve the depth buffer through nearest filtering
         glBindFramebuffer(GL_READ_FRAMEBUFFER, rm.render_framebuffer)
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, rm.solved_framebuffer)
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, rm.get_front_framebuffer())
         glBlitFramebuffer(0, 0, rm.width, rm.height, 0, 0, rm.width, rm.height, GL_DEPTH_BUFFER_BIT, GL_NEAREST)
+
+        rm.swap_back_framebuffer()
 
         # re-enable depth testing
         glEnable(GL_DEPTH_TEST)
@@ -323,28 +327,32 @@ class Renderer(metaclass=Singleton):
         # use the blur shader
         rm.shaders["post_processing/blur"].use()
         # bind the color texture as source
-        glBindTexture(GL_TEXTURE_2D, rm.solved_texture)
+        glBindTexture(GL_TEXTURE_2D, rm.get_front_texture())
 
         # draw the blurred image
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
+
+        rm.swap_back_framebuffer()
 
         # bind the blurred texture as source
         glBindTexture(GL_TEXTURE_2D, rm.blurred_texture)
 
         # bind the temporary framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.tmp_framebuffer)
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
         # blur the image again
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
         # bind the blurred framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.blurred_framebuffer)
         # bind the temporary texture as source
-        glBindTexture(GL_TEXTURE_2D, rm.tmp_texture)
+        glBindTexture(GL_TEXTURE_2D, rm.get_front_framebuffer())
 
         # use the dilation shader
         rm.shaders["post_processing/dilation"].use()
         # render the dilated texture
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
+
+        rm.swap_back_framebuffer()
 
         # re-enable depth testing
         glEnable(GL_DEPTH_TEST)
@@ -396,7 +404,7 @@ class Renderer(metaclass=Singleton):
         glBindFramebuffer(GL_FRAMEBUFFER, rm.bloom_framebuffer)
 
         # DOWNSAMPLE
-        glBindTexture(GL_TEXTURE_2D, rm.solved_texture)
+        glBindTexture(GL_TEXTURE_2D, rm.get_back_texture())
 
         shader = rm.shaders["bloom_downsample"]
         shader.use()
@@ -418,8 +426,6 @@ class Renderer(metaclass=Singleton):
         shader = rm.shaders["bloom_upsample"]
         shader.use()
 
-        # glUniform1f(shader.uniforms["radius"], 2.0)
-
         glEnable(GL_BLEND)
         glBlendFunc(GL_ONE, GL_ONE)
         glBlendEquation(GL_FUNC_ADD)
@@ -440,25 +446,28 @@ class Renderer(metaclass=Singleton):
         glDisable(GL_BLEND)
 
         # BLENDING
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.tmp_framebuffer)
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
 
         shader = rm.shaders["bloom"]
         shader.use()
 
         glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_2D, rm.solved_texture)
+        glBindTexture(GL_TEXTURE_2D, rm.get_back_texture())
         glActiveTexture(GL_TEXTURE0 + 1)
         glBindTexture(GL_TEXTURE_2D, rm.bloom_mips[0])
 
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
+
+        rm.swap_back_framebuffer()
         # glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
         # glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
-        glActiveTexture(GL_TEXTURE0)
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.solved_framebuffer)
-        glBindTexture(GL_TEXTURE_2D, rm.tmp_texture)
-        rm.shaders["screen"].use()
-        glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
+
+        # glActiveTexture(GL_TEXTURE0)
+        # glBindFramebuffer(GL_FRAMEBUFFER, rm.solved_framebuffer)
+        # glBindTexture(GL_TEXTURE_2D, rm.tmp_texture)
+        # rm.shaders["screen"].use()
+        # glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
         # glBindFramebuffer(GL_FRAMEBUFFER, rm.tmp_framebuffer)
         # glClear(GL_COLOR_BUFFER_BIT)
@@ -469,6 +478,26 @@ class Renderer(metaclass=Singleton):
 
         glEnable(GL_DEPTH_TEST)
 
+    def _render_hdr(self):
+        glDisable(GL_DEPTH_TEST)
+
+        rm = RendererManager()
+
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
+        
+        shader = rm.shaders["hdr"]
+        shader.use()
+
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, rm.get_back_texture())
+
+        glBindVertexArray(rm.vaos["screen_quad"])
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["screen_quad"])
+
+        glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        glEnable(GL_DEPTH_TEST)
 
     # method to render the screen texture to the main framebuffer
     def _render_screen(self):

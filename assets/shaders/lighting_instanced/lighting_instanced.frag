@@ -55,12 +55,5 @@ void main() {
 
     vec3 color = (ambient + diffuse + specular);
 
-    frag_color = vec4(color, 1.0);
-
-    // int col = 0;
-    // float divider = 1;
-    // frag_color = vec4(frag_model[col][0] / divider, frag_model[col][1] / divider, frag_model[col][2] / divider, 1);
-    // frag_color = vec4(frag_instance, frag_instance, frag_instance, 1.0);
-
-    
+    frag_color = vec4(color, 1.0);   
 }

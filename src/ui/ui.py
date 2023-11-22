@@ -72,10 +72,11 @@ class UI(metaclass=Singleton):
 
         imgui.push_font(self.font)
 
+        
         self.states, self.dimensions = self.main_menu.draw(self.states, self.dimensions)
-        self.states                  = self.game_window.draw(self.states, self.dimensions)
-        self.states, self.dimensions = self.left_window.draw(self.states, self.dimensions)
-        self.states, self.dimensions = self.right_window.draw(self.states, self.dimensions)
+        self.states                  = self.game_window.draw(self.states, self.dimensions)        
+        self.states, self.dimensions = self.left_window.draw(self.states, self.dimensions)       
+        self.states, self.dimensions = self.right_window.draw(self.states, self.dimensions)        
         self.states, self.dimensions = self.bottom_window.draw(self.states, self.dimensions)
         self.states, self.dimensions = self.fps_window.draw(self.states, self.dimensions,
                                                             dt=dt, swaptime=swaptime,
@@ -84,14 +85,13 @@ class UI(metaclass=Singleton):
                                                             updatetime=updatetime,
                                                             rmupdatetime=rmupdatetime)
 
-        imgui.show_demo_window()
+        # imgui.show_demo_window()
 
         imgui.pop_font()
 
         self.states["first_draw"] = False
 
         imgui.render()
-
         self.implementation.render(imgui.get_draw_data())
 
         self.timer.record()

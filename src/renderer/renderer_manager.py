@@ -59,6 +59,8 @@ class RendererManager(metaclass=Singleton):
         self.skybox_resolution = 512
         self.reflection_resolution = 128
 
+        self.back_framebuffer = False
+
         # ----------------------------- Models -----------------------------
         # dictionary to keep track of model objects
         self.models = dict()
@@ -180,7 +182,7 @@ class RendererManager(metaclass=Singleton):
             # correct the directory path in case of "\" characters
             shader_dir = shader_dir.replace("\\\\", "/")
             shader_dir = shader_dir.replace("\\", "/")
-            print(f"compiling: {shader_dir}")
+            
             # extract the name of the shader from the directory
             name = shader_dir.replace(shaders_path, "")
 
@@ -231,7 +233,7 @@ class RendererManager(metaclass=Singleton):
         # creation of a light source object (just a position for now)
         # self.lights["main"] = Light()
         self.new_light("sun", (0, 100, 0), (1, 1, 1), 100)
-        self.new_light("main", light_strength = 0)
+        self.new_light("main", light_strength = 8)
 
         self.center_cubemap_views = []
 
@@ -1264,3 +1266,27 @@ class RendererManager(metaclass=Singleton):
                 print_error("GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS")
         
         # glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
+
+    def get_front_framebuffer(self):
+        if self.back_framebuffer:
+            return(self.tmp_framebuffer)
+        else:
+            return(self.solved_framebuffer)
+        
+    def get_back_texture(self):
+        if self.back_framebuffer:
+            return(self.solved_texture)
+        else:
+            return(self.tmp_texture)
+        
+    def get_front_texture(self):
+        if self.back_framebuffer:
+            return(self.tmp_texture)
+        else:
+            return(self.solved_texture)
+        
+    def swap_back_framebuffer(self):
+        if self.back_framebuffer:
+            self.back_framebuffer = False
+        else:
+            self.back_framebuffer = True
