@@ -94,11 +94,11 @@ def main():
         rmupdatetime.record()
         renderer.render()
 
-        ui.draw(dt,
-                swaptime.get_last_record(), 
-                controltime.get_last_record(),
-                updatetime.get_last_record(),
-                rmupdatetime.get_last_record())
+        # ui.draw(dt,
+        #         swaptime.get_last_record(), 
+        #         controltime.get_last_record(),
+        #         updatetime.get_last_record(),
+        #         rmupdatetime.get_last_record())
 
         swaptime.reset()
         glfw.swap_buffers(window.window)

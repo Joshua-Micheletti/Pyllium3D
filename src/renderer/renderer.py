@@ -69,6 +69,8 @@ class Renderer(metaclass=Singleton):
         self._render_bloom()
 
         self._render_hdr()
+
+        self._render_screen()
         # render the blur texture
         # self._render_blur()
         # # apply depth of field effect to the main texture
@@ -79,7 +81,7 @@ class Renderer(metaclass=Singleton):
         # clear the screen
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
         # clear the color buffer
-        glClear(GL_COLOR_BUFFER_BIT)
+        # glClear(GL_COLOR_BUFFER_BIT)
 
         # record the time it took to render in the timer
         self.timer.record()
@@ -508,7 +510,7 @@ class Renderer(metaclass=Singleton):
         rm = RendererManager()
 
         # clear the color buffer
-        glClear(GL_COLOR_BUFFER_BIT)
+        # glClear(GL_COLOR_BUFFER_BIT)
         # disable depth testing and cull face
         glDisable(GL_DEPTH_TEST)
         glDisable(GL_CULL_FACE)
@@ -518,9 +520,10 @@ class Renderer(metaclass=Singleton):
         # bind the screen quad VAO
         glBindVertexArray(rm.vaos["screen_quad"])
         # bind the render framebuffer color texture
-        glBindTexture(GL_TEXTURE_2D, rm.color_render_texture)
-        # draw the quad with the texture
-        glDrawArrays(GL_TRIANGLES, 0, 6)
+        glBindTexture(GL_TEXTURE_2D, rm.get_front_texture())
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["screen_quad"])
+
+        glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
         # re-enable depth testing and cull face
         glEnable(GL_DEPTH_TEST)
