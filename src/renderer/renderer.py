@@ -70,13 +70,13 @@ class Renderer(metaclass=Singleton):
 
         self._render_hdr()
 
-        self._render_screen()
+        # self._render_screen()
         # render the blur texture
-        # self._render_blur()
+        self._render_blur()
         # # apply depth of field effect to the main texture
-        # self._render_depth_of_field()
+        self._render_depth_of_field()
         # # apply post processing effects
-        # self._render_post_processing()
+        self._render_post_processing()
 
         # clear the screen
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
@@ -334,27 +334,27 @@ class Renderer(metaclass=Singleton):
         # draw the blurred image
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
-        rm.swap_back_framebuffer()
+        # rm.swap_back_framebuffer()
 
         # bind the blurred texture as source
         glBindTexture(GL_TEXTURE_2D, rm.blurred_texture)
 
         # bind the temporary framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.get_back_framebuffer())
         # blur the image again
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
         # bind the blurred framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.blurred_framebuffer)
         # bind the temporary texture as source
-        glBindTexture(GL_TEXTURE_2D, rm.get_front_framebuffer())
+        glBindTexture(GL_TEXTURE_2D, rm.get_back_texture())
 
         # use the dilation shader
         rm.shaders["post_processing/dilation"].use()
         # render the dilated texture
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
-        rm.swap_back_framebuffer()
+        # rm.swap_back_framebuffer()
 
         # re-enable depth testing
         glEnable(GL_DEPTH_TEST)
@@ -371,7 +371,7 @@ class Renderer(metaclass=Singleton):
         # disable depth testing
         glDisable(GL_DEPTH_TEST)
         # bind the main render framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.solved_framebuffer)
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
         
         # use the depth of field shader
         rm.shaders["depth_of_field"].use()
@@ -380,7 +380,7 @@ class Renderer(metaclass=Singleton):
 
         # bind the required textures to the correct texture slots
         glActiveTexture(GL_TEXTURE0 + 0)
-        glBindTexture(GL_TEXTURE_2D, rm.solved_texture)
+        glBindTexture(GL_TEXTURE_2D, rm.get_front_texture())
 
         glActiveTexture(GL_TEXTURE0 + 1)
         glBindTexture(GL_TEXTURE_2D, rm.blurred_texture)

@@ -84,8 +84,8 @@ def main():
             updatetime.reset()
             
             updatetime.record()
-            #pw.update()
-            #engine.update()
+            pw.update()
+            engine.update()
             tick_accumulator -= tickrate
         
         scene.update(tickrate)
@@ -94,11 +94,11 @@ def main():
         rmupdatetime.record()
         renderer.render()
 
-        # ui.draw(dt,
-        #         swaptime.get_last_record(), 
-        #         controltime.get_last_record(),
-        #         updatetime.get_last_record(),
-        #         rmupdatetime.get_last_record())
+        ui.draw(dt,
+                swaptime.get_last_record(), 
+                controltime.get_last_record(),
+                updatetime.get_last_record(),
+                rmupdatetime.get_last_record())
 
         swaptime.reset()
         glfw.swap_buffers(window.window)

@@ -156,9 +156,9 @@ class RendererManager(metaclass=Singleton):
         # self._setup_skybox("./assets/textures/skybox/Epic_BlueSunset/")
         # self._setup_skybox(skybox_path + "/hdri/alien.png")
         # self._setup_skybox("assets/textures/skybox/test/")
-        # self._setup_skybox("assets/textures/skybox/hdri/milkyway.png")
+        self._setup_skybox("assets/textures/skybox/hdri/milkyway.png")
         # self._setup_skybox(skybox_path + "hdri/fairytail_garden.jpeg")
-        self._setup_skybox(skybox_path + "hdri/autumn_forest.jpg")
+        # self._setup_skybox(skybox_path + "hdri/autumn_forest.jpg")
 
 
         # self._expand_equirectangular_map_to_cubemap("assets/textures/alien/skybox.png")
@@ -1269,6 +1269,12 @@ class RendererManager(metaclass=Singleton):
 
     def get_front_framebuffer(self):
         if self.back_framebuffer:
+            return(self.tmp_framebuffer)
+        else:
+            return(self.solved_framebuffer)
+        
+    def get_back_framebuffer(self):
+        if not self.back_framebuffer:
             return(self.tmp_framebuffer)
         else:
             return(self.solved_framebuffer)
