@@ -52,12 +52,12 @@ class RendererManager(metaclass=Singleton):
         self.render_states = dict()
         self.render_states["depth_of_field"] = True
         self.render_states["post_processing"] = True
-        self.render_states["shadow_map"] = True
+        self.render_states["shadow_map"] = False
         self.render_states["bloom"] = True
 
         self.irradiance_map_size = 32
         self.skybox_resolution = 512
-        self.reflection_resolution = 128
+        self.reflection_resolution = 64
 
         self.back_framebuffer = False
 
@@ -127,7 +127,7 @@ class RendererManager(metaclass=Singleton):
 
         # ----------------------------- Shadows -----------------------------
         # size of the shadow depth texture
-        self.shadow_size = 2048
+        self.shadow_size = 512
         # far plane of the shadow
         self.shadow_far_plane = 100.0
         # projection matrix to render the shadowmap
@@ -154,9 +154,9 @@ class RendererManager(metaclass=Singleton):
         skybox_path = "assets/textures/skybox/"
         # method to setup the skybox data
         # self._setup_skybox("./assets/textures/skybox/Epic_BlueSunset/")
-        # self._setup_skybox(skybox_path + "/hdri/alien.png")
+        self._setup_skybox(skybox_path + "/hdri/alien.png")
         # self._setup_skybox("assets/textures/skybox/test/")
-        self._setup_skybox("assets/textures/skybox/hdri/milkyway.png")
+        # self._setup_skybox("assets/textures/skybox/hdri/milkyway.png")
         # self._setup_skybox(skybox_path + "hdri/fairytail_garden.jpeg")
         # self._setup_skybox(skybox_path + "hdri/autumn_forest.jpg")
 
@@ -229,6 +229,8 @@ class RendererManager(metaclass=Singleton):
 
         # creation of a camera object
         self.camera = Camera()
+        self.camera.place(9, 16, 0)
+        self.camera.turn(-90, -45)
 
         # creation of a light source object (just a position for now)
         # self.lights["main"] = Light()
@@ -749,6 +751,7 @@ class RendererManager(metaclass=Singleton):
         instance.vao = glGenVertexArrays(1)
         # bind the newly created VAO
         glBindVertexArray(instance.vao)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.ebos[instance.mesh])
 
         # bind the vertex vbo of the mesh of the instance
         glBindBuffer(GL_ARRAY_BUFFER, self.vertex_vbos[instance.mesh])
@@ -937,7 +940,7 @@ class RendererManager(metaclass=Singleton):
                 self.light_positions[self.lights[name] * 3 + 0] = x
                 self.light_positions[self.lights[name] * 3 + 1] = y
                 self.light_positions[self.lights[name] * 3 + 2] = z
-                self.render_states["shadow_map"] = True
+                # self.render_states["shadow_map"] = True
         else:
             print_error(f"Light '{name}' not found")
 

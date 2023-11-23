@@ -11,6 +11,7 @@ from renderer.renderer_manager import RendererManager
 class Renderer(metaclass=Singleton):
     # constructor method
     def __init__(self):
+        rm = RendererManager()
         # set the clear color to a dark grey
         glClearColor(0.1, 0.1, 0.1, 1.0)
         # enable depth testing (hide further away triangles if covered)
@@ -20,8 +21,10 @@ class Renderer(metaclass=Singleton):
         glEnable(GL_CULL_FACE)
         glEnable(GL_MULTISAMPLE)
         # enable alpha blending (transparency)
-        glEnable(GL_BLEND)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        # glEnable(GL_BLEND)
+        glBlendFunc(GL_ONE, GL_ONE)
+        glBlendEquation(GL_FUNC_ADD)
+        # glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
 
@@ -36,6 +39,26 @@ class Renderer(metaclass=Singleton):
 
         # timer to keep track of the rendering time
         self.timer = Timer()
+
+        
+
+        glActiveTexture(GL_TEXTURE0 + 3)
+        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
+
+        glActiveTexture(GL_TEXTURE0 + 4)
+        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.irradiance_cubemap)
+
+        glActiveTexture(GL_TEXTURE0 + 5)
+        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.reflection_map)
+
+        glActiveTexture(GL_TEXTURE0 + 6)
+        glBindTexture(GL_TEXTURE_2D, rm.brdf_integration_LUT)
+
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
+
+        self.current_mesh = ""
+        
 
     # ---------------------------- Render methods ---------------------------
     # method to render the 3D models
@@ -54,16 +77,19 @@ class Renderer(metaclass=Singleton):
         # bind the render framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
         # clear the framebuffer and depth buffers
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        glClear(GL_DEPTH_BUFFER_BIT)
 
         # draw the single models 
         self._render_models()
+
         # and the instances
         self._render_instances()
 
         # render the skybox
         self._render_skybox()
 
+        glDisable(GL_DEPTH_TEST)
+        glBindVertexArray(rm.vaos["screen_quad"])
         self._render_msaa()
 
         self._render_bloom()
@@ -77,11 +103,10 @@ class Renderer(metaclass=Singleton):
         self._render_depth_of_field()
         # # apply post processing effects
         self._render_post_processing()
+        glEnable(GL_DEPTH_TEST)
 
-        # clear the screen
+        # # clear the screen
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
-        # clear the color buffer
-        # glClear(GL_COLOR_BUFFER_BIT)
 
         # record the time it took to render in the timer
         self.timer.record()
@@ -96,21 +121,6 @@ class Renderer(metaclass=Singleton):
         last_mesh = ""
         last_material = ""
         last_texture = ""
-
-        glActiveTexture(GL_TEXTURE0 + 3)
-        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
-
-        glActiveTexture(GL_TEXTURE0 + 4)
-        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.irradiance_cubemap)
-
-        glActiveTexture(GL_TEXTURE0 + 5)
-        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.reflection_map)
-
-        glActiveTexture(GL_TEXTURE0 + 6)
-        glBindTexture(GL_TEXTURE_2D, rm.brdf_integration_LUT)
-
-        glActiveTexture(GL_TEXTURE0)
-
         
         # THIS LOOP WILL CHANGE WHEN THE MODELS WILL BE GROUPED BY SHADER, SO THAT THERE ISN'T SO MUCH CONTEXT SWITCHING
         # for every model in the renderer manager
@@ -142,10 +152,7 @@ class Renderer(metaclass=Singleton):
             # check if the new model has a different mesh
             if last_mesh != model.mesh:
                 # if it does, bind the new VAO
-                
                 glBindVertexArray(rm.vaos[model.mesh])
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos[model.mesh])
-                
                 # and keep track of the last used mesh
                 last_mesh = model.mesh
 
@@ -154,39 +161,28 @@ class Renderer(metaclass=Singleton):
             # glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
             glDrawElements(GL_TRIANGLES, int(rm.indices_count[model.mesh]), GL_UNSIGNED_INT, None)
 
-            glEnable(GL_CULL_FACE)
-
     # method to render instanced models
     def _render_instances(self):
         # reference to the renderer manager
         rm = RendererManager()
 
-        glActiveTexture(GL_TEXTURE0 + 3)
-        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
-
-        glActiveTexture(GL_TEXTURE0 + 4)
-        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.irradiance_cubemap)
-
-        glActiveTexture(GL_TEXTURE0 + 5)
-        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.reflection_map)
-
-        glActiveTexture(GL_TEXTURE0 + 6)
-        glBindTexture(GL_TEXTURE_2D, rm.brdf_integration_LUT)
+        last_shader = ""
 
         # for every instance in the renderer manager
         for instance in rm.instances.values():
-            # use the instance specific shader
-            rm.shaders[instance.shader].use()
-            # link the shader specific uniforms
-            self._link_shader_uniforms(rm.shaders[instance.shader])
+
+            if instance.shader != last_shader:
+                # use the instance specific shader
+                rm.shaders[instance.shader].use()
+                # link the shader specific uniforms
+                self._link_shader_uniforms(rm.shaders[instance.shader])
+
+                last_shader = instance.shader
             
             # bind the VAO and index buffer of the mesh of the instance
             glBindVertexArray(instance.vao)
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos[instance.mesh])
             # draw the indexed models in the instance
-            glDrawElementsInstanced(GL_TRIANGLES, int(rm.indices_count[instance.mesh]), GL_UNSIGNED_INT, None, len(instance.models))
-
-        glActiveTexture(GL_TEXTURE0)
+            glDrawElementsInstanced(GL_TRIANGLES, rm.indices_count[instance.mesh], GL_UNSIGNED_INT, None, len(instance.models))
 
     # method for rendering the shadow cubemap for point light
     def _render_shadow_map(self):
@@ -218,13 +214,12 @@ class Renderer(metaclass=Singleton):
             if last_mesh != model.mesh:
                 # if it does, bind the new VAO
                 glBindVertexArray(rm.vaos[model.mesh])
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos[model.mesh])
                 
                 # and keep track of the last used mesh
                 last_mesh = model.mesh
 
             # draw the mesh
-            glDrawElements(GL_TRIANGLES, int(rm.indices_count[model.mesh]), GL_UNSIGNED_INT, None)
+            glDrawElements(GL_TRIANGLES, rm.indices_count[model.mesh], GL_UNSIGNED_INT, None)
 
 
         # use the instance specific shader
@@ -236,9 +231,8 @@ class Renderer(metaclass=Singleton):
         for instance in rm.instances.values():
             # bind the VAO and index buffer of the mesh of the instance
             glBindVertexArray(instance.vao)
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos[instance.mesh])
             # draw the indexed models in the instance
-            glDrawElementsInstanced(GL_TRIANGLES, int(rm.indices_count[instance.mesh]), GL_UNSIGNED_INT, None, len(instance.models))
+            glDrawElementsInstanced(GL_TRIANGLES, rm.indices_count[instance.mesh], GL_UNSIGNED_INT, None, len(instance.models))
 
         # reset the viewport back to the rendering dimensions
         glViewport(0, 0, rm.width, rm.height)
@@ -259,15 +253,10 @@ class Renderer(metaclass=Singleton):
 
         # bind the default mesh vao (cube)
         glBindVertexArray(rm.vaos["default"])
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["default"])
 
         # disable cull facing
         glDisable(GL_CULL_FACE)
-        # bind the skybox cubemap texture
-        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
-        # glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
-        # glBindTexture(GL_TEXTURE_CUBE_MAP, rm.irradiance_cubemap)
-        # glBindTexture(GL_TEXTURE_CUBE_MAP, rm.reflection_map)
+
         # render the cube
         glDrawElements(GL_TRIANGLES, rm.indices_count["default"], GL_UNSIGNED_INT, None)
         # re-enable face culling
@@ -278,34 +267,23 @@ class Renderer(metaclass=Singleton):
         # reference to the renderer manager
         rm = RendererManager()
 
-        # disable depth testing
-        glDisable(GL_DEPTH_TEST)
-
         # bind the solved framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
         # bind the multisample texture to resolve
         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, rm.multisample_render_texture)
 
-        # bind the screen quad mesh VAO
-        glBindVertexArray(rm.vaos["screen_quad"])
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["screen_quad"])
-
         # use the msaa shader
         rm.shaders["msaa"].use()
         self._link_shader_uniforms(rm.shaders["msaa"])
 
-        # render the multisample texture into the new solved texture applying anti-aliasing
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
         # resolve the depth buffer through nearest filtering
         glBindFramebuffer(GL_READ_FRAMEBUFFER, rm.render_framebuffer)
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, rm.get_front_framebuffer())
+        # glBindFramebuffer(GL_DRAW_FRAMEBUFFER, rm.get_front_framebuffer())
         glBlitFramebuffer(0, 0, rm.width, rm.height, 0, 0, rm.width, rm.height, GL_DEPTH_BUFFER_BIT, GL_NEAREST)
 
         rm.swap_back_framebuffer()
-
-        # re-enable depth testing
-        glEnable(GL_DEPTH_TEST)
 
     # method to render the blur texture
     def _render_blur(self):
@@ -317,32 +295,26 @@ class Renderer(metaclass=Singleton):
             return()
 
         # bind the blurred framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.blurred_framebuffer)
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.get_back_framebuffer())
         # clear the blur texture
         glClear(GL_COLOR_BUFFER_BIT)
 
-        # disable depth testing
-        glDisable(GL_DEPTH_TEST)
-        # bind the screen quad mesh VAO and indices
-        glBindVertexArray(rm.vaos["screen_quad"])
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["screen_quad"])
         # use the blur shader
         rm.shaders["post_processing/blur"].use()
         # bind the color texture as source
         glBindTexture(GL_TEXTURE_2D, rm.get_front_texture())
 
-        # draw the blurred image
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
         # rm.swap_back_framebuffer()
 
-        # bind the blurred texture as source
-        glBindTexture(GL_TEXTURE_2D, rm.blurred_texture)
+        # # bind the blurred texture as source
+        # glBindTexture(GL_TEXTURE_2D, rm.blurred_texture)
 
-        # bind the temporary framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.get_back_framebuffer())
-        # blur the image again
-        glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
+        # # bind the temporary framebuffer
+        # glBindFramebuffer(GL_FRAMEBUFFER, rm.get_back_framebuffer())
+        # # blur the image again
+        # glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
         # bind the blurred framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.blurred_framebuffer)
@@ -354,11 +326,6 @@ class Renderer(metaclass=Singleton):
         # render the dilated texture
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
-        # rm.swap_back_framebuffer()
-
-        # re-enable depth testing
-        glEnable(GL_DEPTH_TEST)
-
     # method to render the depth of field effect
     def _render_depth_of_field(self):
         # reference to renderer manager
@@ -368,8 +335,6 @@ class Renderer(metaclass=Singleton):
         if not rm.render_states["depth_of_field"]:
             return()
 
-        # disable depth testing
-        glDisable(GL_DEPTH_TEST)
         # bind the main render framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
         
@@ -379,26 +344,21 @@ class Renderer(metaclass=Singleton):
         self._link_shader_uniforms(rm.shaders["depth_of_field"])
 
         # bind the required textures to the correct texture slots
-        glActiveTexture(GL_TEXTURE0 + 0)
         glBindTexture(GL_TEXTURE_2D, rm.get_front_texture())
 
         glActiveTexture(GL_TEXTURE0 + 1)
         glBindTexture(GL_TEXTURE_2D, rm.blurred_texture)
-
         glActiveTexture(GL_TEXTURE0 + 2)
-        glBindTexture(GL_TEXTURE_2D, rm.solved_depth_texture)
+        glBindTexture(GL_TEXTURE_2D, rm.solved_depth_texture)     
 
         # draw the scene with depth of field
-        glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
+        glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
         # set back the active texture slot to index 0
         glActiveTexture(GL_TEXTURE0)
-        # re-enable depth testing
-        glEnable(GL_DEPTH_TEST)
 
     def _render_bloom(self):
         rm = RendererManager()
-        glDisable(GL_DEPTH_TEST)
 
         if not rm.render_states["bloom"]:
             return()
@@ -411,9 +371,6 @@ class Renderer(metaclass=Singleton):
         shader = rm.shaders["bloom_downsample"]
         shader.use()
         glUniform2f(shader.uniforms["src_resolution"], rm.width, rm.height)
-
-        glBindVertexArray(rm.vaos["screen_quad"])
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["screen_quad"])
 
         for i in range(len(rm.bloom_mips)):
             glViewport(0, 0, rm.bloom_mips_sizes[i][0], rm.bloom_mips_sizes[i][1])
@@ -429,8 +386,7 @@ class Renderer(metaclass=Singleton):
         shader.use()
 
         glEnable(GL_BLEND)
-        glBlendFunc(GL_ONE, GL_ONE)
-        glBlendEquation(GL_FUNC_ADD)
+        
 
         for i in range(len(rm.bloom_mips) - 1, 0, -1):
             current_mip = rm.bloom_mips[i]
@@ -453,7 +409,6 @@ class Renderer(metaclass=Singleton):
         shader = rm.shaders["bloom"]
         shader.use()
 
-        glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, rm.get_back_texture())
         glActiveTexture(GL_TEXTURE0 + 1)
         glBindTexture(GL_TEXTURE_2D, rm.bloom_mips[0])
@@ -461,28 +416,10 @@ class Renderer(metaclass=Singleton):
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
         rm.swap_back_framebuffer()
-        # glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-        # glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-
-
-        # glActiveTexture(GL_TEXTURE0)
-        # glBindFramebuffer(GL_FRAMEBUFFER, rm.solved_framebuffer)
-        # glBindTexture(GL_TEXTURE_2D, rm.tmp_texture)
-        # rm.shaders["screen"].use()
-        # glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
-
-        # glBindFramebuffer(GL_FRAMEBUFFER, rm.tmp_framebuffer)
-        # glClear(GL_COLOR_BUFFER_BIT)
-
-        glDisable(GL_BLEND)
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
+        # glBindFramebuffer(GL_FRAMEBUFFER, 0)
         glActiveTexture(GL_TEXTURE0)
 
-        glEnable(GL_DEPTH_TEST)
-
     def _render_hdr(self):
-        glDisable(GL_DEPTH_TEST)
-
         rm = RendererManager()
 
         glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
@@ -490,16 +427,11 @@ class Renderer(metaclass=Singleton):
         shader = rm.shaders["hdr"]
         shader.use()
 
-        glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, rm.get_back_texture())
-
-        glBindVertexArray(rm.vaos["screen_quad"])
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["screen_quad"])
 
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
-        glEnable(GL_DEPTH_TEST)
 
     # method to render the screen texture to the main framebuffer
     def _render_screen(self):
@@ -517,12 +449,9 @@ class Renderer(metaclass=Singleton):
         
         # use the screen shader
         rm.shaders["screen"].use()
-        # bind the screen quad VAO
-        glBindVertexArray(rm.vaos["screen_quad"])
         # bind the render framebuffer color texture
         glBindTexture(GL_TEXTURE_2D, rm.get_front_texture())
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["screen_quad"])
-
+        
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
         # re-enable depth testing and cull face
@@ -542,13 +471,7 @@ class Renderer(metaclass=Singleton):
         if len(rm.post_processing_shaders) == 0:
             return()
     
-        # disable depth testing
-        glDisable(GL_DEPTH_TEST)
-    
         # bind the screen quad mesh VAO and indices buffer
-        glBindVertexArray(rm.vaos["screen_quad"])
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["screen_quad"])
-
         i = 0
 
         # for every effect in the post processing list
@@ -583,16 +506,13 @@ class Renderer(metaclass=Singleton):
             glActiveTexture(GL_TEXTURE0)
 
             # render the effect
-            glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
+            glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
         if i % 2 == 0:
             glBindFramebuffer(GL_FRAMEBUFFER, rm.solved_framebuffer)
             glBindTexture(GL_TEXTURE_2D, rm.tmp_texture)
             rm.shaders["screen"].use()
             glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
-
-        # re-enable depth testing
-        glEnable(GL_DEPTH_TEST)
 
     # method to render the irradiance cubemap of the skybox
     def _render_irradiance_map(self):
@@ -613,7 +533,6 @@ class Renderer(metaclass=Singleton):
 
         # bind the cube mesh VAO
         glBindVertexArray(rm.vaos["default"])
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["default"])
 
         # bind the skybox texture cubemap as source
         glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
@@ -661,7 +580,6 @@ class Renderer(metaclass=Singleton):
 
         # bind the cube mesh VAO
         glBindVertexArray(rm.vaos["default"])
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["default"])
 
         # bind the source equirect skybox texture
         glBindTexture(GL_TEXTURE_2D, rm.equirect_skybox)
@@ -697,10 +615,6 @@ class Renderer(metaclass=Singleton):
         # bind the bdrf integration framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.brdf_integration_framebuffer)
 
-        # bind the screen quad mesh VAO
-        glBindVertexArray(rm.vaos["screen_quad"])
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["screen_quad"])
-
         # use the brdf integration shader
         shader = rm.shaders["brdf_integration"]
         shader.use()
@@ -709,6 +623,7 @@ class Renderer(metaclass=Singleton):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         # draw the quad
+        glBindVertexArray(rm.vaos["screen_quad"])
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
         # set the viewport back to its original dimensions
@@ -731,7 +646,6 @@ class Renderer(metaclass=Singleton):
 
         # bind the cube mesh VAO
         glBindVertexArray(rm.vaos["default"])
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rm.ebos["default"])
 
         # bind the skybox texture as source
         glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
@@ -776,6 +690,10 @@ class Renderer(metaclass=Singleton):
         glEnable(GL_CULL_FACE)
         # set the viewport back to the renderer dimensions
         glViewport(0, 0, rm.width, rm.height)
+
+
+
+        
 
     # ---------------------------- Link methods ----------------------------
     # method to link static uniforms to the shader (static meaning they don't change between meshes)

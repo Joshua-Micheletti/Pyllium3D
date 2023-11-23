@@ -59,6 +59,11 @@ class MainMenu:
                 _, rm.render_states["bloom"] = imgui.checkbox("###bloom_checkbox", rm.render_states["bloom"])
 
                 imgui.align_text_to_frame_padding()
+                imgui.text("Shadows        ")
+                imgui.same_line()
+                _, rm.render_states["shadow_map"] = imgui.checkbox("###shadows_checkbox", rm.render_states["shadow_map"])
+
+                imgui.align_text_to_frame_padding()
                 imgui.text("MSAA")
                 imgui.same_line()
 
