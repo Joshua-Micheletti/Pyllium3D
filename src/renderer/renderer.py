@@ -88,7 +88,11 @@ class Renderer(metaclass=Singleton):
         self._render_shadow_map()
 
         # bind the render framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
+        if rm.samples != 1:
+            glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
+        else:
+            glBindFramebuffer(GL_FRAMEBUFFER, rm.get_back_framebuffer())
+
         # clear the framebuffer and depth buffers
         glClear(GL_DEPTH_BUFFER_BIT)
 
@@ -310,6 +314,10 @@ class Renderer(metaclass=Singleton):
     def _render_msaa(self):
         # reference to the renderer manager
         rm = RendererManager()
+
+        if rm.samples == 1:
+            self.queries["msaa"][1] = False
+            return()
 
         if rm.render_states["profile"]:
             glBeginQuery(GL_TIME_ELAPSED, self.queries["msaa"][0])

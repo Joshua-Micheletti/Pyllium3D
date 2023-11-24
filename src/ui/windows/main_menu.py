@@ -67,7 +67,6 @@ class MainMenu:
                 imgui.text("MSAA")
                 imgui.same_line()
 
-
                 sample_values = []
                 sample_values.append(str(rm.max_samples))
 
@@ -82,7 +81,8 @@ class MainMenu:
                 changed, sample_index = imgui.combo("###sample_combo", sample_values.index(str(rm.samples)), sample_values)
 
                 if changed:
-                    rm.samples = int(sample_values[sample_index])
+                    rm.set_samples(int(sample_values[sample_index]))
+
                 # _, rm.render_states["msaa"] = imgui.checkbox("###msaa_checkbox", rm.render_states["msaa"])
 
                 

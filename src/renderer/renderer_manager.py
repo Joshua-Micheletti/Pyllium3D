@@ -161,9 +161,6 @@ class RendererManager(metaclass=Singleton):
         # self._setup_skybox(skybox_path + "hdri/fairytail_garden.jpeg")
         # self._setup_skybox(skybox_path + "hdri/autumn_forest.jpg")
 
-        self._calculate_gaussian_blur_weights(1.695, 10)
-
-
         # self._expand_equirectangular_map_to_cubemap("assets/textures/alien/skybox.png")
 
         print_success("Initialized Renderer Manager in " + str(round(timer.elapsed() / 1000, 2)) + "s")
@@ -1303,14 +1300,8 @@ class RendererManager(metaclass=Singleton):
         else:
             self.back_framebuffer = True
 
-    def _calculate_gaussian_blur_weights(self, sigma, kernel_size):
-        self.gaussian_kernel_weights = []
-        e = 2.71828
-        for i in range(kernel_size):
-            x = float(i) - (float(kernel_size) * 0.5)
-            weight = pow(e, -(x * x) / (2.0 * sigma * sigma))
-            self.gaussian_kernel_weights.append(weight)
+    def set_samples(self, samples):
+        if self.samples == samples:
+            return()
 
-        self.gaussian_kernel_weights = np.array(self.gaussian_kernel_weights, dtype = np.float32)
-
-        print(self.gaussian_kernel_weights)
+        self.samples = samples
