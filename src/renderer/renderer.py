@@ -59,8 +59,6 @@ class Renderer(metaclass=Singleton):
 
         self.current_mesh = ""
 
-        self.queries = glGenQueries(10) # 0 = render_model, 1 = render_instances, 2 = render_skybox, 3 = render_msaa, 4 = render_bloom, 5 = render_hdr, 6 = render_blur, 7 = render_dof, 8 = render_pp, 9 = render_shadow
-
         self.queries = dict()
 
         opengl_queries = glGenQueries(10)
@@ -357,22 +355,42 @@ class Renderer(metaclass=Singleton):
         # clear the blur texture
         glClear(GL_COLOR_BUFFER_BIT)
 
-        # use the blur shader
-        rm.shaders["post_processing/blur"].use()
-        # bind the color texture as source
+        # # use the blur shader
+        # shader = rm.shaders["post_processing/blur"]
+        # shader.use()
+        
+        # # bind the color texture as source
+        # glBindTexture(GL_TEXTURE_2D, rm.get_front_texture())
+
+        # glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
+
+        # # bind the blurred framebuffer
+        # glBindFramebuffer(GL_FRAMEBUFFER, rm.blurred_framebuffer)
+        # # bind the temporary texture as source
+        # glBindTexture(GL_TEXTURE_2D, rm.get_back_texture())
+
+        # # use the dilation shader
+        # rm.shaders["post_processing/dilation"].use()
+        
+        # # render the dilated texture
+        # glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
+
+        # 3200x987 4.8ms
+        # 1654x889 2.2ms
+        
+        shader = rm.shaders["post_processing/horizontal_blur"]
+        shader.use()
+        # glUniform1fv(shader.uniforms["gaussian_kernel"], 10, rm.gaussian_kernel_weights)
         glBindTexture(GL_TEXTURE_2D, rm.get_front_texture())
-
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
-        # bind the blurred framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.blurred_framebuffer)
-        # bind the temporary texture as source
         glBindTexture(GL_TEXTURE_2D, rm.get_back_texture())
-
-        # use the dilation shader
-        rm.shaders["post_processing/dilation"].use()
-        # render the dilated texture
+        shader = rm.shaders["post_processing/vertical_blur"]
+        shader.use()
+        # glUniform1fv(shader.uniforms["gaussian_kernel"], 10, rm.gaussian_kernel_weights)
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
+        
 
         if rm.render_states["profile"]:
             glEndQuery(GL_TIME_ELAPSED)

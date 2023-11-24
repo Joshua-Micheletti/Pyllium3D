@@ -4,6 +4,8 @@ import glfw
 # import the scene
 import scene
 
+import cProfile
+
 # local modules:
 # utils
 from utils.timer import Timer
@@ -93,6 +95,8 @@ def main():
         scene.update(tickrate)
         rm.update()
         rmupdatetime.record()
+
+        # cProfile.run("Renderer().render()")
         renderer.render()
 
         ui.draw(dt,

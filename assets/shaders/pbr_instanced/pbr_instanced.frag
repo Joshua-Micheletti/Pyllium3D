@@ -101,8 +101,8 @@ float shadow_calculation(vec3 frag_pos, vec3 frag_norm) {
     float bias = max(0.5 * (1.0 - dot(frag_norm, light_dir)), 0.05);
     // float bias = 0.05;
 
-    int samples = 20;
-    float disk_radius = 0.015;
+    int samples = 5;
+    float disk_radius = 0.01;
 
     for (int i = 0; i < samples; i++) {
         float closest_depth = texture(depth_map, frag_to_light + sample_offset[i] * disk_radius).r;

@@ -111,6 +111,7 @@ void main()
 	  downsample += (a+c+g+i)*0.03125;     // ok
 	  downsample += (b+d+f+h)*0.0625;      // ok
 	  downsample += (j+k+l+m)*0.125;       // ok
+	  downsample = max(downsample, 0.0001f);
 	  break;
 	}
 

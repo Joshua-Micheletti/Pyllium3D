@@ -52,6 +52,7 @@ void main() {
     tex_color.rgb = mix(tex_color.rgb, cmx.rgb, smoothstep(min_threshold, max_threshold, mx));
 
     frag_color = vec4(tex_color.rgb, 1.0);
+    // frag_color = vec4(texture(screen_texture, frag_uv).rgb, 1.0);
     // frag_color = cmx;
     // frag_color = vec4(gl_FragCoord);
 }

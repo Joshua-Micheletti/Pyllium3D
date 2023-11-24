@@ -16,7 +16,7 @@ def setup():
     pw = PhysicsWorld()
     engine = Engine()
 
-    count = 500
+    count = 600
 
     # rm.new_shader("cel", "assets/shaders/cel_shading/cel_shading.vert", "assets/shaders/cel_shading/cel_shading.frag")
     # rm.new_shader("pbr_texture", "assets/shaders/pbr_texture/pbr_texture.vert", "assets/shaders/pbr_texture/pbr_texture.frag")
@@ -24,6 +24,7 @@ def setup():
     rm.new_json_mesh("gally", "assets/models/default/gally.json")
     rm.new_json_mesh("box", "assets/models/default/box.json")
     rm.new_json_mesh("quad", "assets/models/default/quad.json")
+    # rm.new_json_mesh("mcree", "assets/models/gorilla.json")
     # rm.new_json_mesh("911", "assets/models/911.json")
     # rm.new_json_mesh("bull", "assets/models/bull_knight.json")
     # # rm.new_mesh("charmander", "assets/models/charmander/charmander.obj")
@@ -36,9 +37,9 @@ def setup():
     rm.new_texture("test", "assets/textures/uv-maptemplate.png")
     # # rm.new_mesh("quad", "assets/models/default/quad.obj")
     rm.new_model("light", mesh="sphere_low", shader="white")
-    rm.new_model("light_1", mesh="sphere_low", shader="white")
-    rm.new_model("light_2", mesh="sphere_low", shader="white")
-    rm.new_model("light_3", mesh="sphere_low", shader="white")
+    # rm.new_model("light_1", mesh="sphere_low", shader="white")
+    # rm.new_model("light_2", mesh="sphere_low", shader="white")
+    # rm.new_model("light_3", mesh="sphere_low", shader="white")
     rm.new_model("sun", mesh="sphere_low", shader="white")
     
     rm.new_material("white", *(0.2, 0.2, 0.2), *(0.4, 0.4, 0.4), *(0.8, 0.8, 0.8), 4.0)
@@ -48,17 +49,17 @@ def setup():
     # rm.new_model("911", mesh="911", shader="pbr", material="911")
 
     rm.scale("light", 0.5, 0.5, 0.5)
-    rm.scale("light_1", 0.2, 0.2, 0.2)
-    rm.scale("light_2", 0.2, 0.2, 0.2)
-    rm.scale("light_3", 0.2, 0.2, 0.2)
+    # rm.scale("light_1", 0.2, 0.2, 0.2)
+    # rm.scale("light_2", 0.2, 0.2, 0.2)
+    # rm.scale("light_3", 0.2, 0.2, 0.2)
 
     rm.place("light", 4, 4, 4)
     rm.place("sun", 0, 10, 0)
     # # rm.scale("light", 0.25, 0.25, 0.25)
     # # rm.light_source = glm.vec3(5, 5, 5)
 
-    rm.new_model("cel", mesh="gally", shader="pbr", material="white")
-    rm.place("cel", 5, 3, 5)
+    # rm.new_model("cel", mesh="gally", shader="pbr", material="white")
+    # rm.place("cel", 5, 3, 5)
 
     rm.new_light("light_1", (0, 0, 0), (1, 0, 0), 8)
     rm.new_light("light_2", (0, 0, 0), (0, 1, 0), 8)
@@ -78,7 +79,7 @@ def setup():
     # rm.new_model("blue_wall", mesh="quad", shader="pbr", material="blue_wall")
     rm.new_model("floor", mesh="quad", shader="pbr", material="full_white")
 
-    rm.new_model("billboard", mesh="sphere", shader="billboard")
+    # rm.new_model("billboard", mesh="sphere", shader="billboard")
 
     # rm.place("red_wall", 10, 0, -2)
     # rm.scale("red_wall", 10, 10, 10)
@@ -226,9 +227,9 @@ def update(dt):
     # rm.place("light", math.cos(glfw.get_time() / 2) * time * 2 + rm.positions["light"].x, math.sin(glfw.get_time() / 2) * 6, math.sin(glfw.get_time() / 2) * time * 2 + rm.positions["light"].z)
     # rm.light_source.place(*rm.positions["light"])
     rm.place_light("main", *rm.positions["light"])
-    rm.place_light("light_1", *rm.positions["light_1"])
-    rm.place_light("light_2", *rm.positions["light_2"])
-    rm.place_light("light_3", *rm.positions["light_3"])
+    # rm.place_light("light_1", *rm.positions["light_1"])
+    # rm.place_light("light_2", *rm.positions["light_2"])
+    # rm.place_light("light_3", *rm.positions["light_3"])
     rm.place_light("sun", *rm.positions["sun"])
     # rm.place_light("light", *rm.positions["light"])
     # rm.place_light("moon", *rm.positions["moon"])

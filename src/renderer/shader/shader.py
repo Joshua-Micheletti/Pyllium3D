@@ -228,3 +228,6 @@ class Shader:
 
         if glGetUniformLocation(self.program, "radius") != -1:
             self.uniforms["radius"] = glGetUniformLocation(self.program, "radius")
+
+        if glGetUniformLocation(self.program, "gaussian_kernel") != -1:
+            self.uniforms["gaussian_kernel"] = glGetUniformLocation(self.program, "gaussian_kernel")
