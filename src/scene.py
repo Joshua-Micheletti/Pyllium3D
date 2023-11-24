@@ -78,7 +78,7 @@ def setup():
     # rm.new_model("blue_wall", mesh="quad", shader="pbr", material="blue_wall")
     rm.new_model("floor", mesh="quad", shader="pbr", material="full_white")
 
-    rm.new_model("billboard", mesh="quad", shader="billboard")
+    rm.new_model("billboard", mesh="sphere", shader="billboard")
 
     # rm.place("red_wall", 10, 0, -2)
     # rm.scale("red_wall", 10, 10, 10)
@@ -181,7 +181,7 @@ def setup():
                             random.uniform(0, 1),
                             random.uniform(0, 1))
             
-            rm.new_model("entity_box" + str(i * 10 + j), mesh="box", shader="lighting", material="color_box" + str(i * 10 + j))
+            rm.new_model("entity_box" + str(i * 10 + j), mesh="box", shader="pbr", material="color_box" + str(i * 10 + j))
             rm.scale("entity_box" + str(i * 10 + j), 0.5, 0.5, 0.5)
             rm.place(name, (random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10)
             # pw.new_body("entity_box" + str(i * 10 + j), "box", 1.0, position=[(random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10])

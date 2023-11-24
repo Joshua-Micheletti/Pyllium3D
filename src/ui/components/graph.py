@@ -2,7 +2,7 @@ import imgui
 from array import array
 
 class Graph:
-    def __init__(self, name, samples = 90, scale_min = 0, scale_max = 300):
+    def __init__(self, name, samples = 90, scale_min = 0, scale_max = 60):
         self.name = name
         self.samples = samples
         self.graph_values = []

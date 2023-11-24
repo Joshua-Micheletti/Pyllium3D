@@ -58,6 +58,23 @@ class Renderer(metaclass=Singleton):
         glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
 
         self.current_mesh = ""
+
+        self.queries = glGenQueries(10) # 0 = render_model, 1 = render_instances, 2 = render_skybox, 3 = render_msaa, 4 = render_bloom, 5 = render_hdr, 6 = render_blur, 7 = render_dof, 8 = render_pp, 9 = render_shadow
+
+        self.queries = dict()
+
+        opengl_queries = glGenQueries(10)
+
+        self.queries["models"]          = [opengl_queries[0], True, 0]
+        self.queries["instances"]       = [opengl_queries[1], True, 0]
+        self.queries["skybox"]          = [opengl_queries[2], True, 0]
+        self.queries["msaa"]            = [opengl_queries[3], True, 0]
+        self.queries["bloom"]           = [opengl_queries[4], True, 0]
+        self.queries["hdr"]             = [opengl_queries[5], True, 0]
+        self.queries["blur"]            = [opengl_queries[6], True, 0]
+        self.queries["depth_of_field"]  = [opengl_queries[7], True, 0]
+        self.queries["post_processing"] = [opengl_queries[8], True, 0]
+        self.queries["shadow_map"]      = [opengl_queries[9], True, 0]
         
 
     # ---------------------------- Render methods ---------------------------
@@ -68,11 +85,9 @@ class Renderer(metaclass=Singleton):
 
         # reference to the renderer manager
         rm = RendererManager()
-
-        # check if the shadow map should be draw
-        if rm.render_states["shadow_map"]:
-            # render the shadow cubemap
-            self._render_shadow_map()
+        
+        # render the shadow cubemap
+        self._render_shadow_map()
 
         # bind the render framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
@@ -81,32 +96,32 @@ class Renderer(metaclass=Singleton):
 
         # draw the single models 
         self._render_models()
-
         # and the instances
         self._render_instances()
-
         # render the skybox
         self._render_skybox()
 
         glDisable(GL_DEPTH_TEST)
         glBindVertexArray(rm.vaos["screen_quad"])
+
         self._render_msaa()
-
         self._render_bloom()
-
         self._render_hdr()
-
-        # self._render_screen()
         # render the blur texture
         self._render_blur()
         # # apply depth of field effect to the main texture
         self._render_depth_of_field()
         # # apply post processing effects
         self._render_post_processing()
+
+
         glEnable(GL_DEPTH_TEST)
 
         # # clear the screen
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+        if rm.render_states["profile"]:
+            self._calculate_render_times()
 
         # record the time it took to render in the timer
         self.timer.record()
@@ -114,7 +129,10 @@ class Renderer(metaclass=Singleton):
     # method to render the models to the render framebuffer
     def _render_models(self):
         # get a reference to the renderer manager
-        rm = RendererManager()   
+        rm = RendererManager()
+
+        if rm.render_states["profile"]:
+            glBeginQuery(GL_TIME_ELAPSED, self.queries["models"][0])
         
         # variables to keep track of the last used shader and mesh
         last_shader = ""
@@ -161,10 +179,16 @@ class Renderer(metaclass=Singleton):
             # glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
             glDrawElements(GL_TRIANGLES, int(rm.indices_count[model.mesh]), GL_UNSIGNED_INT, None)
 
+        if rm.render_states["profile"]:
+            glEndQuery(GL_TIME_ELAPSED)
+
     # method to render instanced models
     def _render_instances(self):
         # reference to the renderer manager
         rm = RendererManager()
+
+        if rm.render_states["profile"]:
+            glBeginQuery(GL_TIME_ELAPSED, self.queries["instances"][0])
 
         last_shader = ""
 
@@ -184,10 +208,22 @@ class Renderer(metaclass=Singleton):
             # draw the indexed models in the instance
             glDrawElementsInstanced(GL_TRIANGLES, rm.indices_count[instance.mesh], GL_UNSIGNED_INT, None, len(instance.models))
 
+        if rm.render_states["profile"]:
+            glEndQuery(GL_TIME_ELAPSED)
+
     # method for rendering the shadow cubemap for point light
     def _render_shadow_map(self):
         # reference to the renderer manager
         rm = RendererManager()
+
+        if not rm.render_states["shadow_map"]:
+            self.queries["shadow_map"][1] = False
+            return()
+        
+        self.queries["shadow_map"][1] = True
+
+        if rm.render_states["profile"]:
+            glBeginQuery(GL_TIME_ELAPSED, self.queries["shadow_map"][0])
 
         # set the viewport to match the dimensions of the shadow texture
         glViewport(0, 0, rm.shadow_size, rm.shadow_size)
@@ -237,10 +273,17 @@ class Renderer(metaclass=Singleton):
         # reset the viewport back to the rendering dimensions
         glViewport(0, 0, rm.width, rm.height)
 
+        if rm.render_states["profile"]:
+            glEndQuery(GL_TIME_ELAPSED)
+
     # method to render the skybox
     def _render_skybox(self):
         # get a reference to the renderer manager
+
         rm = RendererManager()
+
+        if rm.render_states["profile"]:
+            glBeginQuery(GL_TIME_ELAPSED, self.queries["skybox"][0])
 
         # use the skybox shader
         rm.shaders["skybox"].use()
@@ -262,10 +305,16 @@ class Renderer(metaclass=Singleton):
         # re-enable face culling
         glEnable(GL_CULL_FACE)
 
+        if rm.render_states["profile"]:
+            glEndQuery(GL_TIME_ELAPSED)
+
     # method to resolve the msaa render texture into a single sample texture
     def _render_msaa(self):
         # reference to the renderer manager
         rm = RendererManager()
+
+        if rm.render_states["profile"]:
+            glBeginQuery(GL_TIME_ELAPSED, self.queries["msaa"][0])
 
         # bind the solved framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
@@ -285,6 +334,9 @@ class Renderer(metaclass=Singleton):
 
         rm.swap_back_framebuffer()
 
+        if rm.render_states["profile"]:
+            glEndQuery(GL_TIME_ELAPSED)
+
     # method to render the blur texture
     def _render_blur(self):
         # reference to the renderer manager
@@ -292,7 +344,13 @@ class Renderer(metaclass=Singleton):
 
         # only render the blur texture if the depth of field or post processing effects are enabled
         if not rm.render_states["depth_of_field"] and not rm.render_states["post_processing"]:
+            self.queries["blur"][1] = False
             return()
+        
+        self.queries["blur"][1] = True
+        
+        if rm.render_states["profile"]:
+            glBeginQuery(GL_TIME_ELAPSED, self.queries["blur"][0])
 
         # bind the blurred framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.get_back_framebuffer())
@@ -306,16 +364,6 @@ class Renderer(metaclass=Singleton):
 
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
-        # rm.swap_back_framebuffer()
-
-        # # bind the blurred texture as source
-        # glBindTexture(GL_TEXTURE_2D, rm.blurred_texture)
-
-        # # bind the temporary framebuffer
-        # glBindFramebuffer(GL_FRAMEBUFFER, rm.get_back_framebuffer())
-        # # blur the image again
-        # glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
-
         # bind the blurred framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.blurred_framebuffer)
         # bind the temporary texture as source
@@ -326,6 +374,10 @@ class Renderer(metaclass=Singleton):
         # render the dilated texture
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
+        if rm.render_states["profile"]:
+            glEndQuery(GL_TIME_ELAPSED)
+
+
     # method to render the depth of field effect
     def _render_depth_of_field(self):
         # reference to renderer manager
@@ -333,7 +385,13 @@ class Renderer(metaclass=Singleton):
 
         # execute only if it's enabled
         if not rm.render_states["depth_of_field"]:
+            self.queries["depth_of_field"][1] = False
             return()
+        
+        self.queries["depth_of_field"][1] = True
+        
+        if rm.render_states["profile"]:
+            glBeginQuery(GL_TIME_ELAPSED, self.queries["depth_of_field"][0])
 
         # bind the main render framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
@@ -357,11 +415,20 @@ class Renderer(metaclass=Singleton):
         # set back the active texture slot to index 0
         glActiveTexture(GL_TEXTURE0)
 
+        if rm.render_states["profile"]:
+            glEndQuery(GL_TIME_ELAPSED)
+
     def _render_bloom(self):
         rm = RendererManager()
 
         if not rm.render_states["bloom"]:
+            self.queries["bloom"][1] = False
             return()
+        
+        self.queries["bloom"][1] = True
+        
+        if rm.render_states["profile"]:
+            glBeginQuery(GL_TIME_ELAPSED, self.queries["bloom"][0])
         
         glBindFramebuffer(GL_FRAMEBUFFER, rm.bloom_framebuffer)
 
@@ -419,8 +486,14 @@ class Renderer(metaclass=Singleton):
         # glBindFramebuffer(GL_FRAMEBUFFER, 0)
         glActiveTexture(GL_TEXTURE0)
 
+        if rm.render_states["profile"]:
+            glEndQuery(GL_TIME_ELAPSED)
+
     def _render_hdr(self):
         rm = RendererManager()
+
+        if rm.render_states["profile"]:
+            glBeginQuery(GL_TIME_ELAPSED, self.queries["hdr"][0])
 
         glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
         
@@ -432,6 +505,9 @@ class Renderer(metaclass=Singleton):
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+        if rm.render_states["profile"]:
+            glEndQuery(GL_TIME_ELAPSED)
 
     # method to render the screen texture to the main framebuffer
     def _render_screen(self):
@@ -465,11 +541,18 @@ class Renderer(metaclass=Singleton):
 
         # only execute if the post processing is enabled
         if not rm.render_states["post_processing"]:
+            self.queries["post_processing"][1] = False
             return()
-        
+                
         # only execute if there are effects in the post processing list
         if len(rm.post_processing_shaders) == 0:
+            self.queries["post_processing"][1] = False
             return()
+        
+        self.queries["post_processing"][1] = True
+        
+        if rm.render_states["profile"]:
+            glBeginQuery(GL_TIME_ELAPSED, self.queries["post_processing"][0])
     
         # bind the screen quad mesh VAO and indices buffer
         i = 0
@@ -513,6 +596,9 @@ class Renderer(metaclass=Singleton):
             glBindTexture(GL_TEXTURE_2D, rm.tmp_texture)
             rm.shaders["screen"].use()
             glDrawElements(GL_TRIANGLES, int(rm.indices_count["screen_quad"]), GL_UNSIGNED_INT, None)
+
+        if rm.render_states["profile"]:
+            glEndQuery(GL_TIME_ELAPSED)
 
     # method to render the irradiance cubemap of the skybox
     def _render_irradiance_map(self):
@@ -812,3 +898,21 @@ class Renderer(metaclass=Singleton):
             glUniform1f(shader.uniforms["user_parameter_2"], shader.user_uniforms["user_parameter_2"])
         if "user_parameter_3" in shader.uniforms:
             glUniform1f(shader.uniforms["user_parameter_3"], shader.user_uniforms["user_parameter_3"])
+
+
+    def _calculate_render_times(self):
+        for name, query in self.queries.items():
+
+            if not query[1]:
+                query[2] = 0
+                continue
+
+            available = GLint(0)
+
+            while not available:
+                glGetQueryObjectiv(query[0], GL_QUERY_RESULT_AVAILABLE, ctypes.byref(available))
+
+            elapsed_time = GLuint64(0)
+            glGetQueryObjectui64v(query[0], GL_QUERY_RESULT, ctypes.byref(elapsed_time))
+
+            query[2] = elapsed_time.value / 1000000

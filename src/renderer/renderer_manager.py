@@ -54,6 +54,7 @@ class RendererManager(metaclass=Singleton):
         self.render_states["post_processing"] = True
         self.render_states["shadow_map"] = False
         self.render_states["bloom"] = True
+        self.render_states["profile"] = False
 
         self.irradiance_map_size = 32
         self.skybox_resolution = 512

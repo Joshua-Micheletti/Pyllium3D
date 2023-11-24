@@ -3,6 +3,7 @@ from array import array
 
 from window.window import Window
 from renderer.renderer import Renderer
+from renderer.renderer_manager import RendererManager
 
 from ui.components.graph import Graph
 
@@ -16,20 +17,34 @@ class FpsWindow:
         self.rendertime_values = []
         self.ui_time_values = []
 
-        self.fps_graph = Graph("FPS:")
-        self.frametime_graph =  Graph("Frametime: ", scale_max = 60)
-        self.rendertime_graph = Graph("Rendertime:", scale_max = 60)
-        self.ui_time_graph =    Graph("UI:        ", scale_max = 60)
-        self.swaptime_graph =   Graph("Swaptime:  ", scale_max = 60)
-        self.control_graph =    Graph("Control:   ", scale_max = 60)
-        self.update_graph =     Graph("Update:    ", scale_max = 60)
-        self.rm_update_graph =  Graph("RM Update: ", scale_max = 60)
+        self.fps_graph = Graph("FPS:", scale_max = 300)
+        self.frametime_graph =    Graph("Frametime: ")
+
+        self.rendertime_graph =   Graph("Rendertime:")
+        self.modeltimegraph =     Graph("Models:    ")
+        self.instancetimegraph =  Graph("Instances: ")
+        self.skyboxtimegraph =    Graph("Skybox:    ")
+        self.msaatimegraph =      Graph("MSAA:      ")
+        self.bloomtimegraph =     Graph("Bloom:     ")
+        self.hdrtimegraph =       Graph("Tonemap:   ")
+        self.blurtimegraph =      Graph("Blur:      ")
+        self.doftimegraph =       Graph("DOF:       ")
+        self.postproctimegraph =  Graph("PostProc:  ")
+        self.shadowmaptimegraph = Graph("Shadow Map:")
+        self.othertimegraph =     Graph("Other:     ")
+
+        self.ui_time_graph =      Graph("UI:        ")
+        self.swaptime_graph =     Graph("Swaptime:  ")
+        self.control_graph =      Graph("Control:   ")
+        self.update_graph =       Graph("Update:    ")
+        self.rm_update_graph =    Graph("RM Update: ")
 
     def draw(self, states, dimensions, dt, ui_time, swaptime, controltime, updatetime, rmupdatetime):
         if states["fps_window"] == False:
             return(states, dimensions)
         
         window = Window()
+        renderer = Renderer()
 
         imgui.set_next_window_position(window.width - dimensions["right_window_width"], dimensions["main_menu_height"], pivot_x = 1.0)
         imgui.set_next_window_size_constraints((200, 60), (window.width / 2, window.height / 2 - dimensions["main_menu_height"]))
@@ -42,7 +57,30 @@ class FpsWindow:
 
         if states["fps_window/details_header"]:
             self.frametime_graph.draw(dt)
-            self.rendertime_graph.draw(Renderer().timer.get_last_record())
+
+            total_render_time = renderer.timer.get_last_record()
+            self.rendertime_graph.draw(total_render_time)
+
+            if RendererManager().render_states["profile"]:
+                self.modeltimegraph.draw(renderer.queries["models"][2])
+                self.instancetimegraph.draw(renderer.queries["instances"][2])
+                self.skyboxtimegraph.draw(renderer.queries["skybox"][2])
+                self.msaatimegraph.draw(renderer.queries["msaa"][2])
+                self.bloomtimegraph.draw(renderer.queries["bloom"][2])
+                self.hdrtimegraph.draw(renderer.queries["hdr"][2])
+                self.blurtimegraph.draw(renderer.queries["blur"][2])
+                self.doftimegraph.draw(renderer.queries["depth_of_field"][2])
+                self.postproctimegraph.draw(renderer.queries["post_processing"][2])
+                self.shadowmaptimegraph.draw(renderer.queries["shadow_map"][2])
+                
+                remaining_time = total_render_time
+
+                for query in renderer.queries.values():
+                    remaining_time -= query[2]
+
+                self.othertimegraph.draw(remaining_time)
+
+
             self.ui_time_graph.draw(ui_time)
             self.swaptime_graph.draw(swaptime)
             self.control_graph.draw(controltime)
