@@ -202,6 +202,8 @@ class Renderer(metaclass=Singleton):
 
         # for every instance in the renderer manager
         for instance in rm.instances.values():
+            if len(instance.models_to_render) == 0:
+                continue
 
             if instance.shader != last_shader:
                 # use the instance specific shader

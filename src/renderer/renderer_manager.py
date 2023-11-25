@@ -1074,6 +1074,7 @@ class RendererManager(metaclass=Singleton):
         self.height = int(height)
 
         self.projection_matrix = glm.perspective(glm.radians(self.fov), float(self.width)/float(self.height), 0.1, 10000.0)
+        self.camera.set_frustum_params(float(self.width) / float(self.height), self.fov, 0.1, 10000.0)
 
         # delete the renderbuffer and the texture of the framebuffer
         glDeleteTextures(6, [self.multisample_render_texture, self.solved_texture, self.blurred_texture, self.depth_texture, self.solved_depth_texture, self.blurred_depth_texture])   
@@ -1113,8 +1114,18 @@ class RendererManager(metaclass=Singleton):
 
     def update_instances(self):
         # update the instances
-        for instance in self.instances.values():
+        for name, instance in self.instances.items():
+            instance.models_to_render = []
+            for model in instance.models:
+                if self.check_visibility(model.name):
+                    self.set_model_to_render_in_instance(model.name, name)
+
+            # print(models_to_render)
+            
+            # self.set_model_to_render_in_instance(models_to_render, name)
+
             instance.update()
+        
 
         
           

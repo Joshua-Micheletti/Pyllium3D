@@ -285,6 +285,9 @@ class Instance:
         # print("updated metallicnesses")
 
     def setup_buffers(self):
+        if len(self.models_to_render) == 0:
+            return()
+
         render_model_matrices = []
         render_ambients = []
         render_diffuses = []
