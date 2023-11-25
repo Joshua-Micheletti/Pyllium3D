@@ -12,7 +12,7 @@ uniform sampler2D screen_texture;
 uniform vec2 src_resolution;
 
 // which mip we are writing to, used for Karis average
-uniform int mipLevel = 1;
+uniform float mip_level;
 
 in vec2 frag_uv;
 out vec4 frag_color;
@@ -23,24 +23,24 @@ vec3 PowVec3(vec3 v, float p)
 }
 
 const float invGamma = 1.0 / 2.2;
-vec3 ToSRGB(vec3 v)   { return PowVec3(v, invGamma); }
-
-float sRGBToLuma(vec3 col)
-{
-    //return dot(col, vec3(0.2126f, 0.7152f, 0.0722f));
-	return dot(col, vec3(0.299f, 0.587f, 0.114f));
+vec3 ToSRGB(vec3 v) {
+	return PowVec3(v, invGamma);
 }
 
-float KarisAverage(vec3 col)
-{
+float sRGBToLuma(vec3 col) {
+    return dot(col, vec3(0.2126f, 0.7152f, 0.0722f));
+	// return dot(col, vec3(0.299f, 0.587f, 0.114f));
+}
+
+float KarisAverage(vec3 col) {
 	// Formula is 1 / (1 + luma)
 	float luma = sRGBToLuma(ToSRGB(col)) * 0.25f;
 	return 1.0f / (1.0f + luma);
 }
 
 // NOTE: This is the readable version of this shader. It will be optimized!
-void main()
-{
+void main() {
+	// vec2 texture_size = textureSize(screen_texture, 0);
 	vec2 srcTexelSize = 1.0 / src_resolution;
 	float x = srcTexelSize.x;
 	float y = srcTexelSize.y;
@@ -85,34 +85,35 @@ void main()
 
     vec3 downsample = vec3(0.0);
 
+	int int_mip_level = int(mip_level);
+
 	// Check if we need to perform Karis average on each block of 4 samples
 	vec3 groups[5];
-	switch (mipLevel)
-	{
-	case 0:
-	  // We are writing to mip 0, so we need to apply Karis average to each block
-	  // of 4 samples to prevent fireflies (very bright subpixels, leads to pulsating
-	  // artifacts).
-	  groups[0] = (a+b+d+e) * (0.125f/4.0f);
-	  groups[1] = (b+c+e+f) * (0.125f/4.0f);
-	  groups[2] = (d+e+g+h) * (0.125f/4.0f);
-	  groups[3] = (e+f+h+i) * (0.125f/4.0f);
-	  groups[4] = (j+k+l+m) * (0.5f/4.0f);
-	  groups[0] *= KarisAverage(groups[0]);
-	  groups[1] *= KarisAverage(groups[1]);
-	  groups[2] *= KarisAverage(groups[2]);
-	  groups[3] *= KarisAverage(groups[3]);
-	  groups[4] *= KarisAverage(groups[4]);
-	  downsample = groups[0]+groups[1]+groups[2]+groups[3]+groups[4];
-	  downsample = max(downsample, 0.0001f);
-	  break;
-	default:
-	  downsample = e*0.125;                // ok
-	  downsample += (a+c+g+i)*0.03125;     // ok
-	  downsample += (b+d+f+h)*0.0625;      // ok
-	  downsample += (j+k+l+m)*0.125;       // ok
-	  downsample = max(downsample, 0.0001f);
-	  break;
+	switch (int_mip_level) {
+		case 0:
+			// We are writing to mip 0, so we need to apply Karis average to each block
+			// of 4 samples to prevent fireflies (very bright subpixels, leads to pulsating
+			// artifacts).
+			groups[0] = (a+b+d+e) * (0.125f/4.0f);
+			groups[1] = (b+c+e+f) * (0.125f/4.0f);
+			groups[2] = (d+e+g+h) * (0.125f/4.0f);
+			groups[3] = (e+f+h+i) * (0.125f/4.0f);
+			groups[4] = (j+k+l+m) * (0.5f/4.0f);
+			groups[0] *= KarisAverage(groups[0]);
+			groups[1] *= KarisAverage(groups[1]);
+			groups[2] *= KarisAverage(groups[2]);
+			groups[3] *= KarisAverage(groups[3]);
+			groups[4] *= KarisAverage(groups[4]);
+			downsample = groups[0]+groups[1]+groups[2]+groups[3]+groups[4];
+			downsample = max(downsample, 0.0001f);
+			break;
+		default:
+			downsample = e*0.125;                // ok
+			downsample += (a+c+g+i)*0.03125;     // ok
+			downsample += (b+d+f+h)*0.0625;      // ok
+			downsample += (j+k+l+m)*0.125;       // ok
+			downsample = max(downsample, 0.0001f);
+			break;
 	}
 
     frag_color = vec4(downsample, 1.0);

@@ -31,7 +31,6 @@ void main() {
     bloomColor.y = clamp(bloomColor.y, 0.0, 4000.0);
     bloomColor.z = clamp(bloomColor.z, 0.0, 4000.0);
 
-
     vec3 color = mix(hdrColor, bloomColor, bloomStrength); // linear interpolation
 
     const float gamma = 2.2;

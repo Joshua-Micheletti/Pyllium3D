@@ -94,6 +94,7 @@ def main():
         rmupdatetime.reset()
         scene.update(tickrate)
         rm.update()
+        rm.update_instances()
         rmupdatetime.record()
 
         # cProfile.run("Renderer().render()")

@@ -78,6 +78,11 @@ class RendererManager(metaclass=Singleton):
         self.rotations = dict()
         self.scales = dict()
 
+        self.aabb_mins = dict()
+        self.aabb_maxs = dict()
+        self.bounding_sphere_radius = dict()
+        self.bounding_sphere_center = dict()
+
 
         # ----------------------------- Meshes -----------------------------
         # dictionaries of OpenGL VBOs for vertex data (vertex, normal, uv)
@@ -229,8 +234,11 @@ class RendererManager(metaclass=Singleton):
 
         # creation of a camera object
         self.camera = Camera()
+        self.camera.set_frustum_params(float(self.width)/float(self.height), self.fov, 0.1, 10000.0)
+
         self.camera.place(9, 16, 0)
         self.camera.turn(-90, -45)
+        
 
         # creation of a light source object (just a position for now)
         # self.lights["main"] = Light()
@@ -520,6 +528,15 @@ class RendererManager(metaclass=Singleton):
         # pass the data for the element array buffer of indices
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.ebos[name])
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
+
+        center = data["center"]
+        max_distance = data["max_distance"]
+
+        self.aabb_mins[name] = center - glm.vec3(max_distance)
+        self.aabb_maxs[name] = center + glm.vec3(max_distance)
+
+        self.bounding_sphere_radius[name] = max_distance
+        self.bounding_sphere_center[name] = center
 
         print_info("Created mesh: " + name + " in " + str(round(timer.elapsed() / 1000, 2)) + "s")
 
@@ -904,6 +921,9 @@ class RendererManager(metaclass=Singleton):
         self.instances[instance].shader = shader
         # self.instances[instance].to_update = True
 
+    def set_model_to_render_in_instance(self, model, instance):
+        self.instances[instance].models_to_render.append(self.models[model])
+
     # ---------------------------- Modify Models -------------------------------------
 
     # method to place the mesh in a specific spot
@@ -1091,7 +1111,8 @@ class RendererManager(metaclass=Singleton):
 
         self.changed_models = dict()
 
-         # update the instances
+    def update_instances(self):
+        # update the instances
         for instance in self.instances.values():
             instance.update()
 
@@ -1305,3 +1326,21 @@ class RendererManager(metaclass=Singleton):
             return()
 
         self.samples = samples
+
+    def check_visibility(self, model):
+        scale = self.scales[model]
+
+        max_scale = max(max(scale.x, scale.y), scale.z)
+
+        center = self.bounding_sphere_center[self.models[model].mesh] + self.positions[model]
+        radius = self.bounding_sphere_radius[self.models[model].mesh] * (max_scale * 0.5)
+
+        return(self.is_on_forward_plane(self.camera.frustum.left, center, radius) and \
+               self.is_on_forward_plane(self.camera.frustum.right, center, radius) and \
+               self.is_on_forward_plane(self.camera.frustum.far, center, radius) and \
+               self.is_on_forward_plane(self.camera.frustum.near, center, radius) and \
+               self.is_on_forward_plane(self.camera.frustum.top, center, radius) and \
+               self.is_on_forward_plane(self.camera.frustum.bottom, center, radius))
+
+    def is_on_forward_plane(self, plane, center, radius):
+        return(glm.dot(plane.normal, center) - plane.distance > -radius)

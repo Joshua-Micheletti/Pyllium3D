@@ -52,6 +52,8 @@ class Instance:
         self.to_update["roughnesses"] = False
         self.to_update["metallicnesses"] = False
 
+        self.models_to_render = []
+
     # method to set the mesh in the instance
     def set_mesh(self, mesh, vertex_vbo, normal_vbo, uv_vbo):
         # keep track of the new mesh in the instance
@@ -82,6 +84,8 @@ class Instance:
         glEnableVertexAttribArray(2)
         # link the VBO to the index 2 of the VAO and interpret it as 2 floats
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
+
+
 
     # method to change the model matrix of a model in the instance
     def change_model_matrix(self, model, model_matrix):
@@ -177,27 +181,28 @@ class Instance:
     # method to update the properties of the instance
     def update(self):
         # check for each property and update it accordingly
-        if self.to_update["model_matrices"]:
-            self.update_model_matrices()
-            self.to_update["model_matrices"] = False
-        if self.to_update["ambients"]:
-            self.update_ambients()
-            self.to_update["ambients"] = False
-        if self.to_update["diffuses"]:
-            self.update_diffuses()
-            self.to_update["diffuses"] = False
-        if self.to_update["speculars"]:
-            self.update_speculars()
-            self.to_update["speculars"] = False
-        if self.to_update["shininesses"]:
-            self.update_shininesses()
-            self.to_update["shininesses"] = False
-        if self.to_update["roughnesses"]:
-            self.update_roughnesses()
-            self.to_update["roughnesses"] = False
-        if self.to_update["metallicnesses"]:
-            self.update_metallicnesses()
-            self.to_update["metallicnesses"] = False 
+        # if self.to_update["model_matrices"]:
+        #     self.update_model_matrices()
+        #     self.to_update["model_matrices"] = False
+        # if self.to_update["ambients"]:
+        #     self.update_ambients()
+        #     self.to_update["ambients"] = False
+        # if self.to_update["diffuses"]:
+        #     self.update_diffuses()
+        #     self.to_update["diffuses"] = False
+        # if self.to_update["speculars"]:
+        #     self.update_speculars()
+        #     self.to_update["speculars"] = False
+        # if self.to_update["shininesses"]:
+        #     self.update_shininesses()
+        #     self.to_update["shininesses"] = False
+        # if self.to_update["roughnesses"]:
+        #     self.update_roughnesses()
+        #     self.to_update["roughnesses"] = False
+        # if self.to_update["metallicnesses"]:
+        #     self.update_metallicnesses()
+        #     self.to_update["metallicnesses"] = False
+        self.setup_buffers()
         
     # method to update the model matrices vbo
     def update_model_matrices(self):
@@ -278,3 +283,89 @@ class Instance:
         # bind back to the default vbo
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         # print("updated metallicnesses")
+
+    def setup_buffers(self):
+        render_model_matrices = []
+        render_ambients = []
+        render_diffuses = []
+        render_speculars = []
+        render_shininesses = []
+        render_roughnesses = []
+        render_metallicnesses = []
+
+        for model in self.models_to_render:
+            model_index = self.models.index(model)
+            # scroll through the columns in the matrix
+            for i in range(16):
+                # update stored model matrix with the new value
+                render_model_matrices.append(self.model_matrices[model_index * 16 + i])
+
+            for i in range(3):
+                render_ambients.append(self.ambients[model_index * 3 + i])
+            
+            for i in range(3):
+                render_diffuses.append(self.diffuses[model_index * 3 + i])
+
+            for i in range(3):
+                render_speculars.append(self.speculars[model_index * 3 + i])
+
+            render_shininesses.append(self.shininesses[model_index])
+            render_roughnesses.append(self.roughnesses[model_index])
+            render_metallicnesses.append(self.metallicnesses[model_index])
+
+        render_model_matrices = np.array(render_model_matrices, dtype=np.float32)
+        render_ambients = np.array(render_ambients, dtype=np.float32)
+        render_diffuses = np.array(render_diffuses, dtype=np.float32)
+        render_speculars = np.array(render_speculars, dtype=np.float32)
+        render_shininesses = np.array(render_shininesses, dtype=np.float32)
+        render_roughnesses = np.array(render_roughnesses, dtype=np.float32)
+        render_metallicnesses = np.array(render_metallicnesses, dtype=np.float32)
+
+        # bind the ambient vbo
+        glBindBuffer(GL_ARRAY_BUFFER, self.model_matrices_vbo)
+        # pass the new data for the vbo
+        glBufferData(GL_ARRAY_BUFFER, render_model_matrices.nbytes, render_model_matrices, GL_STATIC_DRAW)
+        # bind back to the default vbo
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+        # bind the ambient vbo
+        glBindBuffer(GL_ARRAY_BUFFER, self.ambient_vbo)
+        # pass the new data for the vbo
+        glBufferData(GL_ARRAY_BUFFER, render_ambients.nbytes, render_ambients, GL_STATIC_DRAW)
+        # bind back to the default vbo
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+        # bind the ambient vbo
+        glBindBuffer(GL_ARRAY_BUFFER, self.diffuse_vbo)
+        # pass the new data for the vbo
+        glBufferData(GL_ARRAY_BUFFER, render_diffuses.nbytes, render_diffuses, GL_STATIC_DRAW)
+        # bind back to the default vbo
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+        # bind the ambient vbo
+        glBindBuffer(GL_ARRAY_BUFFER, self.specular_vbo)
+        # pass the new data for the vbo
+        glBufferData(GL_ARRAY_BUFFER, render_speculars.nbytes, render_speculars, GL_STATIC_DRAW)
+        # bind back to the default vbo
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+        # bind the ambient vbo
+        glBindBuffer(GL_ARRAY_BUFFER, self.shininess_vbo)
+        # pass the new data for the vbo
+        glBufferData(GL_ARRAY_BUFFER, render_shininesses.nbytes, render_shininesses, GL_STATIC_DRAW)
+        # bind back to the default vbo
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+        # bind the ambient vbo
+        glBindBuffer(GL_ARRAY_BUFFER, self.roughness_vbo)
+        # pass the new data for the vbo
+        glBufferData(GL_ARRAY_BUFFER, render_roughnesses.nbytes, render_roughnesses, GL_STATIC_DRAW)
+        # bind back to the default vbo
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
+
+        # bind the ambient vbo
+        glBindBuffer(GL_ARRAY_BUFFER, self.metallic_vbo)
+        # pass the new data for the vbo
+        glBufferData(GL_ARRAY_BUFFER, render_metallicnesses.nbytes, render_metallicnesses, GL_STATIC_DRAW)
+        # bind back to the default vbo
+        glBindBuffer(GL_ARRAY_BUFFER, 0)

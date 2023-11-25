@@ -16,7 +16,7 @@ def setup():
     pw = PhysicsWorld()
     engine = Engine()
 
-    count = 1200
+    count = 50
 
     # rm.new_shader("cel", "assets/shaders/cel_shading/cel_shading.vert", "assets/shaders/cel_shading/cel_shading.frag")
     # rm.new_shader("pbr_texture", "assets/shaders/pbr_texture/pbr_texture.vert", "assets/shaders/pbr_texture/pbr_texture.frag")
@@ -171,28 +171,60 @@ def setup():
 
     entities = []
 
-    for i in range(int(count / 10)):
-        for j in range(10):
-            name = "entity_box" + str(i * 10 + j)
-            rm.new_material("color_box" + str(i * 10 + j),
-                            *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
-                            *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
-                            *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
-                            random.uniform(1, 256),
-                            random.uniform(0, 1),
-                            random.uniform(0, 1))
+    # for i in range(int(count / 10)):
+    #     for j in range(10):
+    #         name = "entity_box" + str(i * 10 + j)
+    #         rm.new_material("color_box" + str(i * 10 + j),
+    #                         *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
+    #                         *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
+    #                         *(random.uniform(0, 1), random.uniform(0, 1), random.uniform(0, 1)),
+    #                         random.uniform(1, 256),
+    #                         random.uniform(0, 1),
+    #                         random.uniform(0, 1))
             
-            rm.new_model("entity_box" + str(i * 10 + j), mesh="box", shader="pbr", material="color_box" + str(i * 10 + j))
-            rm.scale("entity_box" + str(i * 10 + j), 0.5, 0.5, 0.5)
-            rm.place(name, (random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10)
-            # pw.new_body("entity_box" + str(i * 10 + j), "box", 1.0, position=[(random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10])
-            # engine.create_link("entity_box" + str(i * 10 + j), "entity_box" + str(i * 10 + j))
-            entities.append("entity_box" + str(i * 10 + j))
+    #         rm.new_model("entity_box" + str(i * 10 + j), mesh="box", shader="pbr", material="color_box" + str(i * 10 + j))
+    #         # rm.scale("entity_box" + str(i * 10 + j), 0.5, 0.5, 0.5)
+    #         rm.place(name, (random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10)
+    #         pw.new_body("entity_box" + str(i * 10 + j), "sphere", 1.0, position=[(random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10])
+    #         engine.create_link("entity_box" + str(i * 10 + j), "entity_box" + str(i * 10 + j))
+    #         entities.append("entity_box" + str(i * 10 + j))
+
+    #         if i * 10 + j % 2 == 0:
+    #             # rm.instances["colored_boxes"].models_to_render.append(name)
+    #             rm.set_model_to_render_in_instance(name, "colored_boxes")
     
-    rm.update()
-    rm.set_models_in_instance(entities, "colored_boxes")
+    # rm.update()
+    # rm.set_models_in_instance(entities, "colored_boxes")
 
     
+    rm.new_material("first",  diffuse_r = 1.0, diffuse_g = 0.0, diffuse_b = 0.0)
+    rm.new_material("second", diffuse_r = 0.0, diffuse_g = 1.0, diffuse_b = 0.0)
+    rm.new_material("third",  diffuse_r = 0.0, diffuse_g = 0.0, diffuse_b = 1.0)
+    rm.new_material("fourth", diffuse_r = 1.0, diffuse_g = 1.0, diffuse_b = 0.0)
+    rm.new_material("fifth",  diffuse_r = 0.0, diffuse_g = 1.0, diffuse_b = 1.0)
+    rm.new_material("sixth",  diffuse_r = 1.0, diffuse_g = 0.0, diffuse_b = 1.0)
+
+    rm.new_model("first", mesh = "sphere", shader = "pbr", material = "first")
+    rm.new_model("second", mesh = "sphere", shader = "pbr", material = "second")
+    rm.new_model("third", mesh = "sphere", shader = "pbr", material = "third")
+    rm.new_model("fourth", mesh = "sphere", shader = "pbr", material = "fourth")
+    rm.new_model("fifth", mesh = "sphere", shader = "pbr", material = "fifth")
+    rm.new_model("sixth", mesh = "sphere", shader = "pbr", material = "sixth")
+
+    rm.place("first", -3.0, 2.0, 0.0)
+    rm.place("second", -2.0, 2.0, 0.0)
+    rm.place("third", -1.0, 2.0, 0.0)
+    rm.place("fourth", 0.0, 2.0, 0.0)
+    rm.place("fifth",  1.0, 2.0, 0.0)
+    rm.place("sixth",  2.0, 2.0, 0.0)
+
+    rm.update()
+    rm.set_models_in_instance(["first", "second", "third", "fourth", "fifth", "sixth"], "colored_boxes")
+    rm.set_model_to_render_in_instance("second", "colored_boxes")
+    rm.set_model_to_render_in_instance("fourth", "colored_boxes")
+    rm.set_model_to_render_in_instance("sixth", "colored_boxes")
+    # rm.set_model_to_render_in_instance("first", "colored_boxes")
+
 
     # rm.new_model("lamppost", mesh="lamppost", shader="pbr")
 

@@ -21,14 +21,37 @@ class Camera:
         self.yaw = -90.0
         self.pitch = 0.0
 
+        self.frustum = Frustum()
+
         # calculate the view matrix
         self.view_matrix = glm.lookAt(self.position, self.position + self.front, self.world_up)
+
+    def set_frustum_params(self, aspect, fov_y, z_near, z_far):
+        self.aspect = aspect
+        self.fov_y = fov_y
+        self.z_near = z_near
+        self.z_far = z_far
 
     # method to recalculate the vertices and view matrix
     def _calculate_vectors(self):
         self.right = glm.normalize(glm.cross(self.world_up, self.front))
         self.up = glm.cross(self.front, self.right)
         self.view_matrix = glm.lookAt(self.position, self.position + self.front, self.world_up)
+
+        self._calculate_frustum()
+
+    def _calculate_frustum(self):
+        half_v_side = self.z_far * math.tan(self.fov_y * 0.5)
+        half_h_side = half_v_side * self.aspect
+
+        front_mult_far = self.z_far * self.front
+
+        self.frustum.near = Plane(self.position + self.z_near * self.front, self.front)
+        self.frustum.far  = Plane(self.position + front_mult_far, -self.front)
+        self.frustum.right = Plane(self.position, glm.cross(front_mult_far - self.right * half_h_side, self.up))
+        self.frustum.left = Plane(self.position, glm.cross(self.up, front_mult_far + self.right * half_h_side))
+        self.frustum.top = Plane(self.position, glm.cross(self.right, front_mult_far - self.up * half_v_side))
+        self.frustum.bottom = Plane(self.position, glm.cross(front_mult_far + self.up * half_v_side, self.right))
 
     # method to move the camera forwards and backwards
     def move(self, amount):
@@ -79,3 +102,21 @@ class Camera:
 
     # def get_skybox_ogl_matrix(self):
     #     return(glm.value_ptr(glm.lookAt(glm.vec3(0), self.front, self.world_up)))
+
+class Plane:
+    # def __init__(self, distance = 0.0, normal_x = 0.0, normal_y = 1.0, normal_z = 0.0):
+    #     self.normal = glm.vec3(normal_x, normal_y, normal_z)
+    #     self.distance = distance
+
+    def __init__(self, p1, normal):
+        self.normal = normal
+        self.distance = glm.dot(normal, p1)
+
+class Frustum:
+    def __init__(self):
+        self.top = None
+        self.bottom = None
+        self.right = None
+        self.left = None
+        self.far = None
+        self.near = None

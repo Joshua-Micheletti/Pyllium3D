@@ -142,10 +142,14 @@ class Renderer(metaclass=Singleton):
         last_mesh = ""
         last_material = ""
         last_texture = ""
-        
+        rendered_models = 0
         # THIS LOOP WILL CHANGE WHEN THE MODELS WILL BE GROUPED BY SHADER, SO THAT THERE ISN'T SO MUCH CONTEXT SWITCHING
         # for every model in the renderer manager
         for model in rm.single_render_models:
+            
+            if not rm.check_visibility(model.name):
+                continue
+
             # check if the new model has a different shader
             if last_shader != model.shader:
                 # if it has a different shader, change to the current shader
@@ -181,6 +185,7 @@ class Renderer(metaclass=Singleton):
             # glDrawArrays(GL_TRIANGLES, 0, int(rm.vertices_count[model.mesh]))
             # glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
             glDrawElements(GL_TRIANGLES, int(rm.indices_count[model.mesh]), GL_UNSIGNED_INT, None)
+            rendered_models += 1
 
         if rm.render_states["profile"]:
             glEndQuery(GL_TIME_ELAPSED)
@@ -466,10 +471,13 @@ class Renderer(metaclass=Singleton):
         shader = rm.shaders["bloom_downsample"]
         shader.use()
         glUniform2f(shader.uniforms["src_resolution"], rm.width, rm.height)
+        
 
         for i in range(len(rm.bloom_mips)):
             glViewport(0, 0, rm.bloom_mips_sizes[i][0], rm.bloom_mips_sizes[i][1])
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rm.bloom_mips[i], 0)
+
+            glUniform1f(shader.uniforms["mip_level"], i)
 
             glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
