@@ -68,7 +68,7 @@ class Renderer(metaclass=Singleton):
         self.queries["skybox"]          = [opengl_queries[2], True, 0]
         self.queries["msaa"]            = [opengl_queries[3], True, 0]
         self.queries["bloom"]           = [opengl_queries[4], True, 0]
-        self.queries["hdr"]             = [opengl_queries[5], True, 0]
+        self.queries["hdr"]             = [opengl_queries[5], False, 0]
         self.queries["blur"]            = [opengl_queries[6], True, 0]
         self.queries["depth_of_field"]  = [opengl_queries[7], True, 0]
         self.queries["post_processing"] = [opengl_queries[8], True, 0]
@@ -107,8 +107,9 @@ class Renderer(metaclass=Singleton):
         glBindVertexArray(rm.vaos["screen_quad"])
 
         self._render_msaa()
+
         self._render_bloom()
-        self._render_hdr()
+        # self._render_hdr()
         # render the blur texture
         self._render_blur()
         # # apply depth of field effect to the main texture
@@ -449,6 +450,7 @@ class Renderer(metaclass=Singleton):
 
         if not rm.render_states["bloom"]:
             self.queries["bloom"][1] = False
+            self._render_hdr()
             return()
         
         self.queries["bloom"][1] = True
@@ -508,7 +510,7 @@ class Renderer(metaclass=Singleton):
 
         glDrawElements(GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None)
 
-        rm.swap_back_framebuffer()
+        # rm.swap_back_framebuffer()
         # glBindFramebuffer(GL_FRAMEBUFFER, 0)
         glActiveTexture(GL_TEXTURE0)
 
