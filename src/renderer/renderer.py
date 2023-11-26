@@ -40,8 +40,6 @@ class Renderer(metaclass=Singleton):
         # timer to keep track of the rendering time
         self.timer = Timer()
 
-        
-
         glActiveTexture(GL_TEXTURE0 + 3)
         glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
 
@@ -216,7 +214,7 @@ class Renderer(metaclass=Singleton):
             # bind the VAO and index buffer of the mesh of the instance
             glBindVertexArray(instance.vao)
             # draw the indexed models in the instance
-            glDrawElementsInstanced(GL_TRIANGLES, rm.indices_count[instance.mesh], GL_UNSIGNED_INT, None, len(instance.models))
+            glDrawElementsInstanced(GL_TRIANGLES, rm.indices_count[instance.mesh], GL_UNSIGNED_INT, None, len(instance.models_to_render))
 
         if rm.render_states["profile"]:
             glEndQuery(GL_TIME_ELAPSED)

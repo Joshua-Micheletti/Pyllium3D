@@ -16,7 +16,7 @@ def setup():
     pw = PhysicsWorld()
     engine = Engine()
 
-    count = 600
+    count = 1200
 
     # rm.new_shader("cel", "assets/shaders/cel_shading/cel_shading.vert", "assets/shaders/cel_shading/cel_shading.frag")
     # rm.new_shader("pbr_texture", "assets/shaders/pbr_texture/pbr_texture.vert", "assets/shaders/pbr_texture/pbr_texture.frag")
@@ -171,6 +171,8 @@ def setup():
 
     entities = []
 
+    distance = 20
+
     for i in range(int(count / 10)):
         for j in range(10):
             name = "entity_box" + str(i * 10 + j)
@@ -183,9 +185,9 @@ def setup():
                             random.uniform(0, 1))
             
             rm.new_model("entity_box" + str(i * 10 + j), mesh="box", shader="pbr", material="color_box" + str(i * 10 + j))
-            # rm.scale("entity_box" + str(i * 10 + j), 0.5, 0.5, 0.5)
-            rm.place(name, (random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10)
-            pw.new_body("entity_box" + str(i * 10 + j), "sphere", 1.0, position=[(random.random() - 0.5) * 10, (random.random() + 0.1) * 10, (random.random() - 0.5) * 10])
+            rm.scale("entity_box" + str(i * 10 + j), 0.5, 0.5, 0.5)
+            rm.place(name, (random.random() - 0.5) * distance, (random.random() + 0.1) * distance, (random.random() - 0.5) * distance)
+            pw.new_body("entity_box" + str(i * 10 + j), "sphere", 1.0, position=[(random.random() - 0.5) * distance, (random.random() + 0.1) * distance, (random.random() - 0.5) * distance])
             engine.create_link("entity_box" + str(i * 10 + j), "entity_box" + str(i * 10 + j))
             entities.append("entity_box" + str(i * 10 + j))
 

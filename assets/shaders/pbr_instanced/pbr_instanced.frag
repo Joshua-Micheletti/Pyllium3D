@@ -16,9 +16,9 @@ uniform float light_strengths[100];
 uniform float lights_count;
 
 uniform float far_plane;
-layout (binding = 3) uniform samplerCube depth_map;
 uniform vec3 light;
 
+layout (binding = 3) uniform samplerCube depth_map;
 layout (binding = 4) uniform samplerCube irradiance_map;
 layout (binding = 5) uniform samplerCube reflection_map;
 layout (binding = 6) uniform sampler2D brdf_integration;

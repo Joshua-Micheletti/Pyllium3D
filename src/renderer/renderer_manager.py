@@ -82,6 +82,8 @@ class RendererManager(metaclass=Singleton):
         self.aabb_maxs = dict()
         self.bounding_sphere_radius = dict()
         self.bounding_sphere_center = dict()
+        self.model_bounding_sphere_center = dict()
+        self.model_bounding_sphere_radius = dict()
 
 
         # ----------------------------- Meshes -----------------------------
@@ -635,6 +637,9 @@ class RendererManager(metaclass=Singleton):
             self.rotations[name] = glm.vec3(0.0)
             self.scales[name] = glm.vec3(1.0)
             self.model_matrices[name] = glm.mat4(1.0)
+            
+            self.model_bounding_sphere_center[name] = self.bounding_sphere_center[self.models[name].mesh] + self.positions[name]
+            self.model_bounding_sphere_radius[name] = self.bounding_sphere_radius[self.models[name].mesh]
 
     # method to create a new instance
     def new_instance(self, name, mesh = "", shader = ""):
@@ -664,101 +669,121 @@ class RendererManager(metaclass=Singleton):
         instance = self.instances[name]
 
         # temporary list of model matrices
-        formatted_model_matrices = []
+        # formatted_model_matrices = []
+           
 
-        # extract the values of the model matrices
-        for model in instance.models:
-            for col in self.model_matrices[model.name]:
+        # formatted_ambients = []
+        # formatted_diffuses = []
+        # formatted_speculars = []
+        # formatted_shininesses = []
+        # formatted_roughnesses = []
+        # formatted_metallicnesses = []
+
+
+        for name, model in instance.models.items():
+            matrix = []
+            for col in self.model_matrices[name]:
                 for value in col:
-                    formatted_model_matrices.append(value)
+                    matrix.append(value)
+            instance.model_matrices[name] = matrix
 
-        formatted_ambients = []
-        formatted_diffuses = []
-        formatted_speculars = []
-        formatted_shininesses = []
-        formatted_roughnesses = []
-        formatted_metallicnesses = []
-
-        for model in instance.models:
             material = self.materials[model.material]
-            formatted_ambients.append(material.ambient[0])
-            formatted_ambients.append(material.ambient[1])
-            formatted_ambients.append(material.ambient[2])
             
-            formatted_diffuses.append(material.diffuse[0])
-            formatted_diffuses.append(material.diffuse[1])
-            formatted_diffuses.append(material.diffuse[2])
+            ambient = []
+            ambient.append(material.ambient[0])
+            ambient.append(material.ambient[1])
+            ambient.append(material.ambient[2])
+            instance.ambients[name] = ambient
+
+            diffuse = []
+            diffuse.append(material.diffuse[0])
+            diffuse.append(material.diffuse[1])
+            diffuse.append(material.diffuse[2])
+            instance.diffuses[name] = diffuse
             
-            formatted_speculars.append(material.specular[0])
-            formatted_speculars.append(material.specular[1])
-            formatted_speculars.append(material.specular[2])
+            specular = []
+            specular.append(material.specular[0])
+            specular.append(material.specular[1])
+            specular.append(material.specular[2])
+            instance.speculars[name] = specular
 
-            formatted_shininesses.append(material.shininess)
+            shininess = []
+            shininess.append(material.shininess)
+            instance.shininesses[name] = shininess
 
-            formatted_roughnesses.append(material.roughness)
-            formatted_metallicnesses.append(material.metallic)
+            roughness = []
+            roughness.append(material.roughness)
+            instance.roughnesses[name] = roughness
 
-        formatted_ambients = np.array(formatted_ambients, dtype=np.float32)
-        formatted_diffuses = np.array(formatted_diffuses, dtype=np.float32)
-        formatted_speculars = np.array(formatted_speculars, dtype=np.float32)
-        formatted_shininesses = np.array(formatted_shininesses, dtype=np.float32)
-        formatted_roughnesses = np.array(formatted_roughnesses, dtype=np.float32)
-        formatted_metallicnesses = np.array(formatted_metallicnesses, dtype=np.float32)
+            metallicness = []
+            metallicness.append(material.metallic)
+            instance.metallicnesses[name] = metallicness
+
+        # formatted_ambients = np.array(formatted_ambients, dtype=np.float32)
+        # formatted_diffuses = np.array(formatted_diffuses, dtype=np.float32)
+        # formatted_speculars = np.array(formatted_speculars, dtype=np.float32)
+        # formatted_shininesses = np.array(formatted_shininesses, dtype=np.float32)
+        # formatted_roughnesses = np.array(formatted_roughnesses, dtype=np.float32)
+        # formatted_metallicnesses = np.array(formatted_metallicnesses, dtype=np.float32)
             
         # convert the list into an array of 32bit floats
-        formatted_model_matrices = np.array(formatted_model_matrices, dtype=np.float32)
+        # formatted_model_matrices = np.array(formatted_model_matrices, dtype=np.float32)
         # get the size in bits of an item in the matrices list
-        float_size = formatted_model_matrices.itemsize
+        
 
-        instance.model_matrices = formatted_model_matrices
-        instance.ambients = formatted_ambients
-        instance.diffuses = formatted_diffuses
-        instance.speculars = formatted_speculars
-        instance.shininesses = formatted_shininesses
-        instance.roughnesses = formatted_roughnesses
-        instance.metallicnesses = formatted_metallicnesses
+        # instance.model_matrices = formatted_model_matrices
+        # instance.ambients = formatted_ambients
+        # instance.diffuses = formatted_diffuses
+        # instance.speculars = formatted_speculars
+        # instance.shininesses = formatted_shininesses
+        # instance.roughnesses = formatted_roughnesses
+        # instance.metallicnesses = formatted_metallicnesses
 
         # if the model matrices vbo already exists, delete it
         # if instance.model_matrices_vbo != None:
         #     glDeleteBuffers(1, instance.model_matrices_vbo)
 
+        model_matrices_array = np.array(list(instance.model_matrices.values()), dtype=np.float32).flatten()
         # generate a new buffer for the model matrices
         instance.model_matrices_vbo = glGenBuffers(1)
         # bind the new buffer
         glBindBuffer(GL_ARRAY_BUFFER, instance.model_matrices_vbo)
         # pass the data to the buffer
-        glBufferData(GL_ARRAY_BUFFER, float_size * len(formatted_model_matrices), formatted_model_matrices, GL_STREAM_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, model_matrices_array.nbytes, model_matrices_array, GL_STREAM_DRAW)
         # glBindBuffer(GL_ARRAY_BUFFER, 0)
+        float_size = model_matrices_array.itemsize
 
-        if instance.ambient_vbo != None:
-            instance.ambient_vbo = glGenBuffers(1)
-
+        # if instance.ambient_vbo != None:
+        #     instance.ambient_vbo = glGenBuffers(1)
+        ambients_array = np.array(list(instance.ambients.values()), dtype=np.float32).flatten()
         instance.ambient_vbo = glGenBuffers(1)
         glBindBuffer(GL_ARRAY_BUFFER, instance.ambient_vbo)
-        glBufferData(GL_ARRAY_BUFFER, float_size * len(formatted_ambients), formatted_ambients, GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, ambients_array.nbytes, ambients_array, GL_DYNAMIC_DRAW)
 
-        
+        diffuse_array = np.array(list(instance.diffuses.values()), dtype=np.float32).flatten()
         instance.diffuse_vbo = glGenBuffers(1)
         glBindBuffer(GL_ARRAY_BUFFER, instance.diffuse_vbo)
-        glBufferData(GL_ARRAY_BUFFER, float_size * len(formatted_diffuses), formatted_diffuses, GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, diffuse_array.nbytes, diffuse_array, GL_DYNAMIC_DRAW)
 
-        
+        specular_array = np.array(list(instance.speculars.values()), dtype=np.float32).flatten()
         instance.specular_vbo = glGenBuffers(1)
         glBindBuffer(GL_ARRAY_BUFFER, instance.specular_vbo)
-        glBufferData(GL_ARRAY_BUFFER, float_size * len(formatted_speculars), formatted_speculars, GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, specular_array.nbytes, specular_array, GL_DYNAMIC_DRAW)
 
-        
+        shininess_array = np.array(list(instance.shininesses.values()), dtype=np.float32)
         instance.shininess_vbo = glGenBuffers(1)
         glBindBuffer(GL_ARRAY_BUFFER, instance.shininess_vbo)
-        glBufferData(GL_ARRAY_BUFFER, float_size * len(formatted_shininesses), formatted_shininesses, GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, shininess_array.nbytes, shininess_array, GL_DYNAMIC_DRAW)
 
+        roughness_array = np.array(list(instance.roughnesses.values()), dtype=np.float32).flatten()
         instance.roughness_vbo = glGenBuffers(1)
         glBindBuffer(GL_ARRAY_BUFFER, instance.roughness_vbo)
-        glBufferData(GL_ARRAY_BUFFER, float_size * len(formatted_roughnesses), formatted_roughnesses, GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, roughness_array.nbytes, roughness_array, GL_DYNAMIC_DRAW)
 
+        metallicness_array = np.array(list(instance.metallicnesses.values()), dtype=np.float32).flatten()
         instance.metallic_vbo = glGenBuffers(1)
         glBindBuffer(GL_ARRAY_BUFFER, instance.metallic_vbo)
-        glBufferData(GL_ARRAY_BUFFER, float_size * len(formatted_metallicnesses), formatted_metallicnesses, GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, metallicness_array.nbytes, metallicness_array, GL_DYNAMIC_DRAW)
 
         # if the vao already exists, delete it
         # if instance.vao != None:
@@ -889,10 +914,10 @@ class RendererManager(metaclass=Singleton):
 
     def set_models_in_instance(self, models, instance_name):
         instance = self.instances[instance_name]
-        instance.models = []
+        instance.models = dict()
 
         for model in models:
-            instance.models.append(self.models[model])
+            instance.models[model] = self.models[model]
             self.single_render_models.remove(self.models[model])
             self.models[model].in_instance = instance_name
 
@@ -922,7 +947,7 @@ class RendererManager(metaclass=Singleton):
         # self.instances[instance].to_update = True
 
     def set_model_to_render_in_instance(self, model, instance):
-        self.instances[instance].models_to_render.append(self.models[model])
+        self.instances[instance].models_to_render[model] = self.models[model]
 
     # ---------------------------- Modify Models -------------------------------------
 
@@ -974,8 +999,16 @@ class RendererManager(metaclass=Singleton):
         self.model_matrices[name] = glm.rotate(self.model_matrices[name], glm.radians(self.rotations[name].x), glm.vec3(1.0, 0.0, 0.0))
         self.model_matrices[name] = glm.rotate(self.model_matrices[name], glm.radians(self.rotations[name].y), glm.vec3(0.0, 1.0, 0.0))
         self.model_matrices[name] = glm.rotate(self.model_matrices[name], glm.radians(self.rotations[name].z), glm.vec3(0.0, 0.0, 1.0))
+        
+        
         # calculate the scale
-        self.model_matrices[name] = glm.scale(self.model_matrices[name], self.scales[name])
+        scale = self.scales[name]
+        self.model_matrices[name] = glm.scale(self.model_matrices[name], scale)
+
+        max_scale = max(max(scale.x, scale.y), scale.z)
+
+        self.model_bounding_sphere_center[name] = self.bounding_sphere_center[self.models[name].mesh] + self.positions[name]
+        self.model_bounding_sphere_radius[name] = self.bounding_sphere_radius[self.models[name].mesh] * (max_scale * 0.25)
 
     # method to check if an instance should be updated after a transformation
     def _check_instance_update(self, name):
@@ -1115,19 +1148,15 @@ class RendererManager(metaclass=Singleton):
     def update_instances(self):
         # update the instances
         for name, instance in self.instances.items():
-            instance.models_to_render = []
-            for model in instance.models:
+            instance.previous_models_to_render = instance.models_to_render
+            instance.models_to_render = dict()
+
+            for model in instance.models.values():
                 if self.check_visibility(model.name):
                     self.set_model_to_render_in_instance(model.name, name)
-
-            # print(models_to_render)
             
-            # self.set_model_to_render_in_instance(models_to_render, name)
-
             instance.update()
-        
 
-        
           
     def recompile_shaders(self):
         for name, shader in self.shaders.items():
@@ -1339,19 +1368,39 @@ class RendererManager(metaclass=Singleton):
         self.samples = samples
 
     def check_visibility(self, model):
-        scale = self.scales[model]
+        # scale = self.scales[model]
 
-        max_scale = max(max(scale.x, scale.y), scale.z)
+        # max_scale = max(max(scale.x, scale.y), scale.z)
 
-        center = self.bounding_sphere_center[self.models[model].mesh] + self.positions[model]
-        radius = self.bounding_sphere_radius[self.models[model].mesh] * (max_scale * 0.5)
+        # center = self.bounding_sphere_center[self.models[model].mesh] + self.positions[model]
+        # radius = self.bounding_sphere_radius[self.models[model].mesh] * (max_scale * 0.5)
 
-        return(self.is_on_forward_plane(self.camera.frustum.left, center, radius) and \
-               self.is_on_forward_plane(self.camera.frustum.right, center, radius) and \
-               self.is_on_forward_plane(self.camera.frustum.far, center, radius) and \
-               self.is_on_forward_plane(self.camera.frustum.near, center, radius) and \
-               self.is_on_forward_plane(self.camera.frustum.top, center, radius) and \
-               self.is_on_forward_plane(self.camera.frustum.bottom, center, radius))
+        center = self.model_bounding_sphere_center[model]
+        radius = self.model_bounding_sphere_radius[model]
+
+        if not self.is_on_forward_plane(self.camera.frustum.near, center, radius):
+            return(False)
+        if not self.is_on_forward_plane(self.camera.frustum.bottom, center, radius):
+            return(False)
+        if not self.is_on_forward_plane(self.camera.frustum.far, center, radius):
+            return(False)
+        if not self.is_on_forward_plane(self.camera.frustum.left, center, radius):
+            return(False)
+        if not self.is_on_forward_plane(self.camera.frustum.right, center, radius):
+            return(False)
+        if not self.is_on_forward_plane(self.camera.frustum.top, center, radius):
+            return(False)
+        
+
+        return(True)    
+
+
+        # return(self.is_on_forward_plane(self.camera.frustum.left, center, radius) and \
+        #        self.is_on_forward_plane(self.camera.frustum.right, center, radius) and \
+        #        self.is_on_forward_plane(self.camera.frustum.far, center, radius) and \
+        #        self.is_on_forward_plane(self.camera.frustum.near, center, radius) and \
+        #        self.is_on_forward_plane(self.camera.frustum.top, center, radius) and \
+        #        self.is_on_forward_plane(self.camera.frustum.bottom, center, radius))
 
     def is_on_forward_plane(self, plane, center, radius):
         return(glm.dot(plane.normal, center) - plane.distance > -radius)

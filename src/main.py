@@ -96,6 +96,7 @@ def main():
         rm.update()
         rm.update_instances()
         rmupdatetime.record()
+        
 
         # cProfile.run("Renderer().render()")
         renderer.render()
