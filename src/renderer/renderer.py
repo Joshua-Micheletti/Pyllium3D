@@ -24,8 +24,8 @@ class Renderer(metaclass=Singleton):
         # glEnable(GL_BLEND)
         glBlendFunc(GL_ONE, GL_ONE)
         glBlendEquation(GL_FUNC_ADD)
-        # glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
+        # enable blending on the edges of cubemap faces
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
 
         # method to render the skybox from an equirect to a cubemap
@@ -40,27 +40,30 @@ class Renderer(metaclass=Singleton):
         # timer to keep track of the rendering time
         self.timer = Timer()
 
+        # assign texture slot 3 for the depth cubemap
         glActiveTexture(GL_TEXTURE0 + 3)
         glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
-
+        # assign texture slot 4 for the irradiance cubemap
         glActiveTexture(GL_TEXTURE0 + 4)
         glBindTexture(GL_TEXTURE_CUBE_MAP, rm.irradiance_cubemap)
-
+        # assign texture slot 5 for the reflection cubemap
         glActiveTexture(GL_TEXTURE0 + 5)
         glBindTexture(GL_TEXTURE_CUBE_MAP, rm.reflection_map)
-
+        # assign texture slot 6 for the brdf integration texture
         glActiveTexture(GL_TEXTURE0 + 6)
         glBindTexture(GL_TEXTURE_2D, rm.brdf_integration_LUT)
-
+        # assign the cubemap in slot 0 for the skybox texture
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
 
-        self.current_mesh = ""
-
-        self.queries = dict()
-
+        # setup the query objects to keep track of the rendering times
         opengl_queries = glGenQueries(10)
 
+        # the objects consist of a list composed of:
+        # - opengl query object
+        # - flag to keep track of weather to do the query or not
+        # - actual value returned from the query
+        self.queries = dict()
         self.queries["models"]          = [opengl_queries[0], True, 0]
         self.queries["instances"]       = [opengl_queries[1], True, 0]
         self.queries["skybox"]          = [opengl_queries[2], True, 0]
@@ -82,16 +85,22 @@ class Renderer(metaclass=Singleton):
         # reference to the renderer manager
         rm = RendererManager()
         
+        # -------------------- Pre-rendering --------------------------
         # render the shadow cubemap
         self._render_shadow_map()
 
+        # -------------------- Mesh rendering -------------------------
         # bind the render framebuffer
+        # if we're doing multisampling
         if rm.samples != 1:
+            # bind the multisample framebuffer
             glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
+        # otherwise
         else:
+            # bind the back framebuffer (?)
             glBindFramebuffer(GL_FRAMEBUFFER, rm.get_back_framebuffer())
 
-        # clear the framebuffer and depth buffers
+        # clear the depth buffer
         glClear(GL_DEPTH_BUFFER_BIT)
 
         # draw the single models 
@@ -101,26 +110,31 @@ class Renderer(metaclass=Singleton):
         # render the skybox
         self._render_skybox()
 
+        # --------------------- Post processing ----------------------
+        # disable depth testing
         glDisable(GL_DEPTH_TEST)
+        # bind the screen quad VAO
         glBindVertexArray(rm.vaos["screen_quad"])
+        # these settings are common to all post processing passes
 
+        # solve the multisample texture
         self._render_msaa()
-
+        # render the bloom effect (includes HDR tonemapping)
         self._render_bloom()
-        # self._render_hdr()
         # render the blur texture
         self._render_blur()
-        # # apply depth of field effect to the main texture
+        # apply depth of field effect to the main texture
         self._render_depth_of_field()
-        # # apply post processing effects
+        # apply the custom post processing effects
         self._render_post_processing()
 
-
+        # re-enable depth testing
         glEnable(GL_DEPTH_TEST)
 
-        # # clear the screen
+        # bind back to the main framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
+        # if we're profiling the performance, get the opengl time queries
         if rm.render_states["profile"]:
             self._calculate_render_times()
 

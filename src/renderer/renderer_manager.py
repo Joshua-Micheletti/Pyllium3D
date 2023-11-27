@@ -46,7 +46,7 @@ class RendererManager(metaclass=Singleton):
 
         # create the projection matrix for rendering
         self.fov = 60.0
-        self.projection_matrix = glm.perspective(glm.radians(self.fov), float(self.width)/float(self.height), 0.1, 10000.0)
+        self.projection_matrix = glm.perspective(self.fov, float(self.width)/float(self.height), 0.1, 10000.0)
 
         # rendering states to modify the rendering pipeline
         self.render_states = dict()
@@ -156,8 +156,8 @@ class RendererManager(metaclass=Singleton):
         self._setup_entities()
         # setup the rendering framebuffer
         self._setup_framebuffers()
-
-        self._setup_bloom(5)
+        self.bloom_size = 5
+        self._setup_bloom(self.bloom_size)
 
         skybox_path = "assets/textures/skybox/"
         # method to setup the skybox data
@@ -236,14 +236,13 @@ class RendererManager(metaclass=Singleton):
 
         # creation of a camera object
         self.camera = Camera()
-        self.camera.set_frustum_params(float(self.width)/float(self.height), self.fov, 0.1, 10000.0)
+        self.camera.set_frustum_params(float(self.width)/float(self.height), glm.radians(self.fov), 0.1, 10000.0)
 
         self.camera.place(9, 16, 0)
-        self.camera.turn(-90, -45)
+        # self.camera.turn(-90, -45)
         
 
         # creation of a light source object (just a position for now)
-        # self.lights["main"] = Light()
         self.new_light("sun", (0, 100, 0), (1, 1, 1), 30)
         self.new_light("main", light_strength = 8)
 
@@ -355,8 +354,6 @@ class RendererManager(metaclass=Singleton):
         self.bloom_mips_sizes = []
 
         for i in range(length):
-            # mip_size[0] /= 2
-            # mip_size[1] /= 2
             mip_size = (int(mip_size[0] / 2), int(mip_size[1] / 2))
 
             self.bloom_mips_sizes.append(mip_size)
@@ -664,6 +661,76 @@ class RendererManager(metaclass=Singleton):
         # intialize the instance
         self._initialize_instance(name)
 
+    # ---------------------------- Modify Instances -----------------------------------
+
+    # method to add a model to an instance
+    def add_model_to_instance(self, model, instance):
+        model_name = model
+        instance_name = instance
+        model = self.models[model]
+        instance = self.instances[instance]
+
+        instance.models.append(model)
+
+        model_mat_values = []
+
+        for col in self.model_matrices[model_name]:
+            for value in col:
+                model_mat_values.append(value)
+
+        instance.model_matrices = np.append(instance.model_matrices, model_mat_values)
+
+        instance.ambients = np.append(instance.ambients, self.materials[model.material].ambient)
+        instance.diffuses = np.append(instance.diffuses, self.materials[model.material].diffuse)
+        instance.speculars = np.append(instance.speculars, self.materials[model.material].specular)
+        instance.shininesses = np.append(instance.shininesses, self.materials[model.material].shininess)
+
+        self.single_render_models.remove(model)
+
+        model.in_instance = instance_name
+        instance.to_update["model_matrices"] = True
+        instance.to_update["ambients"] = True
+        instance.to_update["diffuses"] = True
+        instance.to_update["speculars"] = True
+        instance.to_update["shininesses"] = True
+
+    def set_models_in_instance(self, models, instance_name):
+        instance = self.instances[instance_name]
+        instance.models = dict()
+
+        for model in models:
+            instance.models[model] = self.models[model]
+            self.single_render_models.remove(self.models[model])
+            self.models[model].in_instance = instance_name
+
+        self._initialize_instance(instance_name)
+
+    def remove_model_from_instance(self, model, instance):
+        name = model
+        model = self.models[model]
+        instance = self.instances[instance]
+
+        instance.models.remove(model)
+        # instance.model_matrices.pop(name)
+
+        self.single_render_models.append(model)
+
+        model.in_instance = ""
+        instance.to_update["model_matrices"] = True
+
+    def set_instance_mesh(self, instance, mesh):
+        if mesh != self.instances[instance].mesh:
+            self.instances[instance].set_mesh(mesh, self.vertex_vbos[mesh], self.normal_vbos[mesh], self.uv_vbo[mesh])
+        # self.instances[instance].mesh = mesh
+        # self.instances[instance].to_update = True
+
+    def set_instance_shader(self, instance, shader):
+        self.instances[instance].shader = shader
+        # self.instances[instance].to_update = True
+
+    def set_model_to_render_in_instance(self, model, instance):
+        self.instances[instance].models_to_render[model] = self.models[model]
+
     # method to initialize an instance, might move this inside the instance object
     def _initialize_instance(self, name):
         instance = self.instances[name]
@@ -879,76 +946,6 @@ class RendererManager(metaclass=Singleton):
         # bind to the default VAO
         glBindVertexArray(0)
 
-    # ---------------------------- Modify Instances -----------------------------------
-
-    # method to add a model to an instance
-    def add_model_to_instance(self, model, instance):
-        model_name = model
-        instance_name = instance
-        model = self.models[model]
-        instance = self.instances[instance]
-
-        instance.models.append(model)
-
-        model_mat_values = []
-
-        for col in self.model_matrices[model_name]:
-            for value in col:
-                model_mat_values.append(value)
-
-        instance.model_matrices = np.append(instance.model_matrices, model_mat_values)
-
-        instance.ambients = np.append(instance.ambients, self.materials[model.material].ambient)
-        instance.diffuses = np.append(instance.diffuses, self.materials[model.material].diffuse)
-        instance.speculars = np.append(instance.speculars, self.materials[model.material].specular)
-        instance.shininesses = np.append(instance.shininesses, self.materials[model.material].shininess)
-
-        self.single_render_models.remove(model)
-
-        model.in_instance = instance_name
-        instance.to_update["model_matrices"] = True
-        instance.to_update["ambients"] = True
-        instance.to_update["diffuses"] = True
-        instance.to_update["speculars"] = True
-        instance.to_update["shininesses"] = True
-
-    def set_models_in_instance(self, models, instance_name):
-        instance = self.instances[instance_name]
-        instance.models = dict()
-
-        for model in models:
-            instance.models[model] = self.models[model]
-            self.single_render_models.remove(self.models[model])
-            self.models[model].in_instance = instance_name
-
-        self._initialize_instance(instance_name)
-
-    def remove_model_from_instance(self, model, instance):
-        name = model
-        model = self.models[model]
-        instance = self.instances[instance]
-
-        instance.models.remove(model)
-        # instance.model_matrices.pop(name)
-
-        self.single_render_models.append(model)
-
-        model.in_instance = ""
-        instance.to_update["model_matrices"] = True
-
-    def set_instance_mesh(self, instance, mesh):
-        if mesh != self.instances[instance].mesh:
-            self.instances[instance].set_mesh(mesh, self.vertex_vbos[mesh], self.normal_vbos[mesh], self.uv_vbo[mesh])
-        # self.instances[instance].mesh = mesh
-        # self.instances[instance].to_update = True
-
-    def set_instance_shader(self, instance, shader):
-        self.instances[instance].shader = shader
-        # self.instances[instance].to_update = True
-
-    def set_model_to_render_in_instance(self, model, instance):
-        self.instances[instance].models_to_render[model] = self.models[model]
-
     # ---------------------------- Modify Models -------------------------------------
 
     # method to place the mesh in a specific spot
@@ -1008,7 +1005,7 @@ class RendererManager(metaclass=Singleton):
         max_scale = max(max(scale.x, scale.y), scale.z)
 
         self.model_bounding_sphere_center[name] = self.bounding_sphere_center[self.models[name].mesh] + self.positions[name]
-        self.model_bounding_sphere_radius[name] = self.bounding_sphere_radius[self.models[name].mesh] * (max_scale * 0.25)
+        self.model_bounding_sphere_radius[name] = self.bounding_sphere_radius[self.models[name].mesh] * (max_scale * 0.5)
 
     # method to check if an instance should be updated after a transformation
     def _check_instance_update(self, name):
@@ -1107,7 +1104,7 @@ class RendererManager(metaclass=Singleton):
         self.height = int(height)
 
         self.projection_matrix = glm.perspective(glm.radians(self.fov), float(self.width)/float(self.height), 0.1, 10000.0)
-        self.camera.set_frustum_params(float(self.width) / float(self.height), self.fov, 0.1, 10000.0)
+        self.camera.set_frustum_params(float(self.width) / float(self.height), glm.radians(self.fov), 0.1, 10000.0)
 
         # delete the renderbuffer and the texture of the framebuffer
         glDeleteTextures(6, [self.multisample_render_texture, self.solved_texture, self.blurred_texture, self.depth_texture, self.solved_depth_texture, self.blurred_depth_texture])   
@@ -1118,7 +1115,7 @@ class RendererManager(metaclass=Singleton):
         self.blurred_framebuffer, self.blurred_texture, self.blurred_depth_texture = self._create_framebuffer()
         self.tmp_framebuffer, self.tmp_texture, self.tmp_depth = self._create_framebuffer()
 
-        self._setup_bloom(5)
+        self._setup_bloom(self.bloom_size)
                 
     # update method to update components of the rendering manager
     def update(self):
@@ -1367,14 +1364,9 @@ class RendererManager(metaclass=Singleton):
 
         self.samples = samples
 
+    # method for doing frustum culling
     def check_visibility(self, model):
-        # scale = self.scales[model]
-
-        # max_scale = max(max(scale.x, scale.y), scale.z)
-
-        # center = self.bounding_sphere_center[self.models[model].mesh] + self.positions[model]
-        # radius = self.bounding_sphere_radius[self.models[model].mesh] * (max_scale * 0.5)
-
+        # get the model's bounding sphere's center and radius
         center = self.model_bounding_sphere_center[model]
         radius = self.model_bounding_sphere_radius[model]
 
@@ -1391,10 +1383,7 @@ class RendererManager(metaclass=Singleton):
         if not self.is_on_forward_plane(self.camera.frustum.top, center, radius):
             return(False)
         
-
-        return(True)    
-
-
+        return(True)
         # return(self.is_on_forward_plane(self.camera.frustum.left, center, radius) and \
         #        self.is_on_forward_plane(self.camera.frustum.right, center, radius) and \
         #        self.is_on_forward_plane(self.camera.frustum.far, center, radius) and \

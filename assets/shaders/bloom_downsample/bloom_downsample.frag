@@ -1,13 +1,6 @@
+// bloom_downsample.frag
 #version 420
 
-// This shader performs downsampling on a texture,
-// as taken from Call Of Duty method, presented at ACM Siggraph 2014.
-// This particular method was customly designed to eliminate
-// "pulsating artifacts and temporal stability issues".
-
-// Remember to add bilinear minification filter for this texture!
-// Remember to use a floating-point texture format (for HDR)!
-// Remember to use edge clamping for this texture!
 uniform sampler2D screen_texture;
 uniform vec2 src_resolution;
 

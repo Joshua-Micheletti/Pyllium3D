@@ -1,3 +1,4 @@
+// bloom.frag
 #version 420
 out vec4 FragColor;
 

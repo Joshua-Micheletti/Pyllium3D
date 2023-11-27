@@ -217,7 +217,7 @@ class Instance:
     # method to update the model matrices vbo
     def update_model_matrices(self):
         # convert the array into a numpy array of float 32bit
-        self.model_matrices = np.array(self.model_matrices, dtype=np.float32)
+        self.model_matrices = np.array(list(self.model_matrices.values()), dtype=np.float32).flatten()
         # bind the model matrices vbo
         glBindBuffer(GL_ARRAY_BUFFER, self.model_matrices_vbo)
         # pass the new data for the vbo
@@ -229,7 +229,7 @@ class Instance:
     # method to update the ambients vbo
     def update_ambients(self):
         # convert the array into a numpy array of float 32bit
-        self.ambients = np.array(self.ambients, dtype=np.float32)
+        new_ambients = np.array(list(self.ambients.values()), dtype=np.float32).flatten()
         # bind the ambient vbo
         glBindBuffer(GL_ARRAY_BUFFER, self.ambient_vbo)
         # pass the new data for the vbo
@@ -240,7 +240,7 @@ class Instance:
     # method to update the ambients vbo
     def update_diffuses(self):
         # convert the array into a numpy array of float 32bit
-        self.diffuses = np.array(self.diffuses, dtype=np.float32)
+        self.diffuses = np.array(list(self.diffuses.values()), dtype=np.float32).flatten()
         # bind the diffuse vbo
         glBindBuffer(GL_ARRAY_BUFFER, self.diffuse_vbo)
         # pass the new data for the vbo
@@ -251,7 +251,7 @@ class Instance:
     # method to update the ambients vbo
     def update_speculars(self):
         # convert the array into a numpy array of float 32bit
-        self.speculars = np.array(self.speculars, dtype=np.float32)
+        self.speculars = np.array(list(self.speculars.values()), dtype=np.float32).flatten()
         # bind the specular vbo
         glBindBuffer(GL_ARRAY_BUFFER, self.specular_vbo)
         # pass the new data for the vbo
@@ -262,7 +262,7 @@ class Instance:
     # method to update the ambients vbo
     def update_shininesses(self):
         # convert the array into a numpy array of float 32bit
-        self.shininesses = np.array(self.shininesses, dtype=np.float32)
+        self.shininesses = np.array(list(self.shininesses.values()), dtype=np.float32)
         # bind the shininess vbo
         glBindBuffer(GL_ARRAY_BUFFER, self.shininess_vbo)
         # pass the new data for the vbo
@@ -273,7 +273,7 @@ class Instance:
     # method to update the ambients vbo
     def update_roughnesses(self):
         # convert the array into a numpy array of float 32bit
-        self.roughnesses = np.array(self.roughnesses, dtype=np.float32)
+        self.roughnesses = np.array(list(self.roughnesses.values()), dtype=np.float32)
         # bind the shininess vbo
         glBindBuffer(GL_ARRAY_BUFFER, self.roughness_vbo)
         # pass the new data for the vbo
@@ -285,7 +285,7 @@ class Instance:
     # method to update the ambients vbo
     def update_metallicnesses(self):
         # convert the array into a numpy array of float 32bit
-        self.metallicnesses = np.array(self.metallicnesses, dtype=np.float32)
+        self.metallicnesses = np.array(list(self.metallicnesses.values()), dtype=np.float32)
         # bind the shininess vbo
         glBindBuffer(GL_ARRAY_BUFFER, self.metallic_vbo)
         # pass the new data for the vbo

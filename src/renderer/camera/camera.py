@@ -42,17 +42,39 @@ class Camera:
 
     def _calculate_frustum(self):
         half_v_side = self.z_far * math.tan(self.fov_y * 0.5)
+        # print(half_v_side)
+        # half_v_side = self.z_far * float(math.tan(self.fov_y * 0.5))
+        # half_v_side = self.z_far * self.fov_y
+
         half_h_side = half_v_side * self.aspect
 
         front_mult_far = self.z_far * self.front
 
+        print(self.position, self.z_near, self.front)
         self.frustum.near = Plane(self.position + self.z_near * self.front, self.front)
+        print("near")
+        print(self.frustum.near.normal)
+        print(self.frustum.near.point)
         self.frustum.far  = Plane(self.position + front_mult_far, -self.front)
+        print("far")
+        print(self.frustum.far.normal)
+        print(self.frustum.far.point)
         self.frustum.right = Plane(self.position, glm.cross(front_mult_far - self.right * half_h_side, self.up))
+        print("right")
+        print(self.frustum.right.normal)
+        print(self.frustum.right.point)
         self.frustum.left = Plane(self.position, glm.cross(self.up, front_mult_far + self.right * half_h_side))
+        print("left")
+        print(self.frustum.left.normal)
+        print(self.frustum.left.point)
         self.frustum.top = Plane(self.position, glm.cross(self.right, front_mult_far - self.up * half_v_side))
+        print("top")
+        print(self.frustum.top.normal)
+        print(self.frustum.top.point)
         self.frustum.bottom = Plane(self.position, glm.cross(front_mult_far + self.up * half_v_side, self.right))
-
+        print("bottom")
+        print(self.frustum.bottom.normal)
+        print(self.frustum.bottom.point)
     # method to move the camera forwards and backwards
     def move(self, amount):
         self.position += amount * self.front
@@ -104,13 +126,15 @@ class Camera:
     #     return(glm.value_ptr(glm.lookAt(glm.vec3(0), self.front, self.world_up)))
 
 class Plane:
-    # def __init__(self, distance = 0.0, normal_x = 0.0, normal_y = 1.0, normal_z = 0.0):
-    #     self.normal = glm.vec3(normal_x, normal_y, normal_z)
-    #     self.distance = distance
-
     def __init__(self, p1, normal):
-        self.normal = normal
+        # self.normal = glm.normalize(normal)
+        self.point = p1
+        self.normal = glm.normalize(normal)
+        # self.distance = abs(glm.dot(normal, p1))
         self.distance = glm.dot(normal, p1)
+
+    # def set_normal(self, normal):
+    #     self.normal = glm.normalize(normal)
 
 class Frustum:
     def __init__(self):
