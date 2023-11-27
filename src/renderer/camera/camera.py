@@ -1,5 +1,6 @@
 import glm
 import math
+import numpy as np
 
 # class to implement a 3D virtual camera
 class Camera:
@@ -50,31 +51,19 @@ class Camera:
 
         front_mult_far = self.z_far * self.front
 
-        print(self.position, self.z_near, self.front)
         self.frustum.near = Plane(self.position + self.z_near * self.front, self.front)
-        print("near")
-        print(self.frustum.near.normal)
-        print(self.frustum.near.point)
+
         self.frustum.far  = Plane(self.position + front_mult_far, -self.front)
-        print("far")
-        print(self.frustum.far.normal)
-        print(self.frustum.far.point)
-        self.frustum.right = Plane(self.position, glm.cross(front_mult_far - self.right * half_h_side, self.up))
-        print("right")
-        print(self.frustum.right.normal)
-        print(self.frustum.right.point)
-        self.frustum.left = Plane(self.position, glm.cross(self.up, front_mult_far + self.right * half_h_side))
-        print("left")
-        print(self.frustum.left.normal)
-        print(self.frustum.left.point)
-        self.frustum.top = Plane(self.position, glm.cross(self.right, front_mult_far - self.up * half_v_side))
-        print("top")
-        print(self.frustum.top.normal)
-        print(self.frustum.top.point)
-        self.frustum.bottom = Plane(self.position, glm.cross(front_mult_far + self.up * half_v_side, self.right))
-        print("bottom")
-        print(self.frustum.bottom.normal)
-        print(self.frustum.bottom.point)
+
+        self.frustum.right = Plane(self.position, glm.cross(front_mult_far + self.right * half_h_side, self.up))
+
+        self.frustum.left = Plane(self.position, glm.cross(self.up, front_mult_far - self.right * half_h_side))
+
+        self.frustum.top = Plane(self.position, glm.cross(self.right, front_mult_far + self.up * half_v_side))
+
+        self.frustum.bottom = Plane(self.position, glm.cross(front_mult_far - self.up * half_v_side, self.right))
+
+
     # method to move the camera forwards and backwards
     def move(self, amount):
         self.position += amount * self.front
@@ -127,11 +116,19 @@ class Camera:
 
 class Plane:
     def __init__(self, p1, normal):
-        # self.normal = glm.normalize(normal)
-        self.point = p1
         self.normal = glm.normalize(normal)
-        # self.distance = abs(glm.dot(normal, p1))
-        self.distance = glm.dot(normal, p1)
+
+        if isinstance(p1, glm.vec3):
+            # self.normal = glm.normalize(normal)
+            self.point = p1
+            # self.distance = abs(glm.dot(normal, p1))
+            self.distance = glm.dot(self.normal, p1)
+        elif isinstance(p1, float):
+            self.distance = p1
+
+    # def __init__(self, distance: float, normal: glm.vec3):
+    #     self.normal = glm.normalize(normal)
+    #     self.distance = distance
 
     # def set_normal(self, normal):
     #     self.normal = glm.normalize(normal)
@@ -144,3 +141,21 @@ class Frustum:
         self.left = None
         self.far = None
         self.near = None
+
+    def __str__(self):
+        string = ""
+
+        if self.near != None:
+            string += "Near:  \n Normal: " + str(self.near.normal) + "\n Distance: " + str(self.near.distance) + "\n Center: " + str(self.near.point) + "\n"
+        if self.far != None:
+            string += "Far:   \n Normal: " + str(self.far.normal) + "\n Distance: " + str(self.far.distance) + "\n Center: " + str(self.far.point) + "\n"
+        if self.right != None:
+            string += "Right: \n Normal: " + str(self.right.normal) + "\n Distance: " + str(self.right.distance) + "\n Center: " + str(self.right.point) + "\n"
+        if self.left != None:
+            string += "Left:  \n Normal: " + str(self.left.normal) + "\n Distance: " + str(self.left.distance) + "\n Center: " + str(self.left.point) + "\n"
+        if self.top != None:
+            string += "Top:   \n Normal: " + str(self.top.normal) + "\n Distance: " + str(self.top.distance) + "\n Center: " + str(self.top.point) + "\n"
+        if self.bottom != None:
+            string += "Bottom:\n Normal: " + str(self.bottom.normal) + "\n Distance: " + str(self.bottom.distance) + "\n Center: " + str(self.bottom.point) + "\n"
+
+        return(string)

@@ -1005,7 +1005,7 @@ class RendererManager(metaclass=Singleton):
         max_scale = max(max(scale.x, scale.y), scale.z)
 
         self.model_bounding_sphere_center[name] = self.bounding_sphere_center[self.models[name].mesh] + self.positions[name]
-        self.model_bounding_sphere_radius[name] = self.bounding_sphere_radius[self.models[name].mesh] * (max_scale * 0.5)
+        self.model_bounding_sphere_radius[name] = self.bounding_sphere_radius[self.models[name].mesh] * max_scale
 
     # method to check if an instance should be updated after a transformation
     def _check_instance_update(self, name):
@@ -1013,7 +1013,7 @@ class RendererManager(metaclass=Singleton):
             return
         
         for instance in self.instances.values():
-            if self.models[name] in instance.models:
+            if self.models[name] in instance.models.values():
                 instance.to_update["model_matrices"] = True
                 instance.change_model_matrix(self.models[name], self.model_matrices[name])
 
@@ -1369,6 +1369,8 @@ class RendererManager(metaclass=Singleton):
         # get the model's bounding sphere's center and radius
         center = self.model_bounding_sphere_center[model]
         radius = self.model_bounding_sphere_radius[model]
+
+        # return(True)
 
         if not self.is_on_forward_plane(self.camera.frustum.near, center, radius):
             return(False)

@@ -63,6 +63,7 @@ class Instance:
 
         self.models_to_render = dict()
         self.previous_models_to_render = dict()
+        self.changed_models = set()
 
     # method to set the mesh in the instance
     def set_mesh(self, mesh, vertex_vbo, normal_vbo, uv_vbo):
@@ -100,17 +101,24 @@ class Instance:
     # method to change the model matrix of a model in the instance
     def change_model_matrix(self, model, model_matrix):
         # get the index of the model selected
-        model_index = self.models.index(model)
+        # model_index = self.models.index(model)
 
-        offset = 0
-        # scroll through the columns in the matrix
+        # offset = 0
+        # # scroll through the columns in the matrix
+        # for col in model_matrix:
+        #     # scroll through the values in the column
+        #     for value in col:
+        #         # update stored model matrix with the new value
+        #         self.model_matrices[model_index * 16 + offset] = value
+        #         # increase the offset
+        #         offset += 1
+        matrix = []
         for col in model_matrix:
-            # scroll through the values in the column
             for value in col:
-                # update stored model matrix with the new value
-                self.model_matrices[model_index * 16 + offset] = value
-                # increase the offset
-                offset += 1
+                matrix.append(value)
+        self.model_matrices[model.name] = matrix
+
+        self.changed_models.add(model.name)
 
     # method to change the ambient value in an instance
     def change_ambient(self, material):
@@ -298,12 +306,28 @@ class Instance:
         if len(self.models_to_render) == 0:
             return()
         
-        if self.models_to_render == self.previous_models_to_render:
+        if self.models_to_render == self.previous_models_to_render and len(self.changed_models) == 0:
             return()
 
         intersection = set(self.previous_models_to_render) & set(self.models_to_render)
         models_to_remove = set(self.previous_models_to_render) - intersection
-        models_to_add = set(self.models_to_render) - intersection
+        models_to_add = (set(self.models_to_render) - intersection).union(self.changed_models)
+
+        models_to_update = intersection & self.changed_models
+
+        models_to_remove = models_to_remove.union(models_to_update)
+        models_to_add = models_to_add.union(models_to_update)
+
+        self.changed_models = set()
+
+        for name in models_to_remove:
+            self.render_model_matrices.pop(name)
+            # self.render_ambients.pop(name)
+            self.render_diffuses.pop(name)
+            # self.render_speculars.pop(name)
+            # self.render_shininesses.pop(name)
+            self.render_roughnesses.pop(name)
+            self.render_metallicnesses.pop(name)
 
         for name in models_to_add:
             self.render_model_matrices[name] = self.model_matrices[name]
@@ -314,14 +338,7 @@ class Instance:
             self.render_roughnesses[name] = self.roughnesses[name]
             self.render_metallicnesses[name] = self.metallicnesses[name]
 
-        for name in models_to_remove:
-            self.render_model_matrices.pop(name)
-            # self.render_ambients.pop(name)
-            self.render_diffuses.pop(name)
-            # self.render_speculars.pop(name)
-            # self.render_shininesses.pop(name)
-            self.render_roughnesses.pop(name)
-            self.render_metallicnesses.pop(name)
+        
 
         model_matrices_array = np.array(list(self.render_model_matrices.values()), dtype=np.float32).flatten()
         # bind the ambient vbo

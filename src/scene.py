@@ -16,7 +16,7 @@ def setup():
     pw = PhysicsWorld()
     engine = Engine()
 
-    count = 1000
+    count = 2000
 
     # rm.new_shader("cel", "assets/shaders/cel_shading/cel_shading.vert", "assets/shaders/cel_shading/cel_shading.frag")
     # rm.new_shader("pbr_texture", "assets/shaders/pbr_texture/pbr_texture.vert", "assets/shaders/pbr_texture/pbr_texture.frag")
@@ -184,7 +184,7 @@ def setup():
                             random.uniform(0, 1),
                             random.uniform(0, 1))
             
-            rm.new_model("entity_box" + str(i * 10 + j), mesh="sphere", shader="pbr", material="color_box" + str(i * 10 + j))
+            rm.new_model("entity_box" + str(i * 10 + j), mesh="box", shader="pbr", material="color_box" + str(i * 10 + j))
             rm.scale("entity_box" + str(i * 10 + j), 0.5, 0.5, 0.5)
             rm.place(name, (random.random() - 0.5) * distance, (random.random() + 0.1) * distance, (random.random() - 0.5) * distance)
             pw.new_body("entity_box" + str(i * 10 + j), "sphere", 1.0, position=[(random.random() - 0.5) * distance, (random.random() + 0.1) * distance, (random.random() - 0.5) * distance])
