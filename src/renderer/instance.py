@@ -117,84 +117,96 @@ class Instance:
             for value in col:
                 matrix.append(value)
         self.model_matrices[model.name] = matrix
-
         self.changed_models.add(model.name)
 
     # method to change the ambient value in an instance
     def change_ambient(self, material):
         # get the list of models in this instance that use the changed material
-        models_changed = list(set(material.models).intersection(self.models))
+        models_changed = list(set(material.models).intersection(set(self.models.values())))
 
+        # ambient = []
         # for every model with that material
         for model in models_changed:
-            # get the index of the current model
-            model_index = self.models.index(model)
             # change the values of the ambients according to the new material change
-            self.ambients[model_index * 3 + 0] = material.ambient[0]
-            self.ambients[model_index * 3 + 1] = material.ambient[1]
-            self.ambients[model_index * 3 + 2] = material.ambient[2]
+            # ambient.append(material.ambient[0])
+            # ambient.append(material.ambient[1])
+            # ambient.append(material.ambient[2])
+            self.ambients[model.name] = material.ambient
+            self.changed_models.add(model.name)
 
     # method to change the diffuse value in an instance
     def change_diffuse(self, material):
         # get the list of models in this instance that use the changed material
-        models_changed = list(set(material.models).intersection(self.models))
+        models_changed = list(set(material.models).intersection(set(self.models.values())))
 
         # for every model with that material
         for model in models_changed:
             # get the index of the current model
-            model_index = self.models.index(model)
+            # model_index = self.models.index(model)
             # change the values of the diffuses according to the new material change
-            self.diffuses[model_index * 3 + 0] = material.diffuse[0]
-            self.diffuses[model_index * 3 + 1] = material.diffuse[1]
-            self.diffuses[model_index * 3 + 2] = material.diffuse[2]
+            # self.diffuses[model_index * 3 + 0] = material.diffuse[0]
+            # self.diffuses[model_index * 3 + 1] = material.diffuse[1]
+            # self.diffuses[model_index * 3 + 2] = material.diffuse[2]
+            # diffuse.append(materials.diffuse[0])
+            self.diffuses[model.name] = material.diffuse
+            self.changed_models.add(model.name)
+
 
     # method to change the specular value in an instance
     def change_specular(self, material):
         # get the list of models in this instance that use the changed material
-        models_changed = list(set(material.models).intersection(self.models))
+        models_changed = list(set(material.models).intersection(set(self.models.values())))
 
         # for every model with that material
         for model in models_changed:
             # get the index of the current model
-            model_index = self.models.index(model)
-            # change the values of the specular according to the new material change
-            self.speculars[model_index * 3 + 0] = material.specular[0]
-            self.speculars[model_index * 3 + 1] = material.specular[1]
-            self.speculars[model_index * 3 + 2] = material.specular[2]
+            # model_index = self.models.index(model)
+            # # change the values of the specular according to the new material change
+            # self.speculars[model_index * 3 + 0] = material.specular[0]
+            # self.speculars[model_index * 3 + 1] = material.specular[1]
+            # self.speculars[model_index * 3 + 2] = material.specular[2]
+            self.speculars[model.name] = material.specular
+            self.changed_models.add(model.name)
 
     # method to change the shininess value in an instance
     def change_shininess(self, material):
         # get the list of models in this instance that use the changed material
-        models_changed = list(set(material.models).intersection(self.models))
+        models_changed = list(set(material.models).intersection(set(self.models.values())))
 
         # for every model with that material
         for model in models_changed:
             # get the index of the current model
-            model_index = self.models.index(model)
-            # change the values of the shininess according to the new material change
-            self.shininesses[model_index] = material.shininess
+            # model_index = self.models.index(model)
+            # # change the values of the shininess according to the new material change
+            # self.shininesses[model_index] = material.shininess
+            self.shininesses[model.name] = material.shininess
+            self.changed_models.add(model.name)
 
     def change_roughness(self, material):
         # get the list of models in this instance that use the changed material
-        models_changed = list(set(material.models).intersection(self.models))
+        models_changed = list(set(material.models).intersection(set(self.models.values())))
 
         # for every model with that material
         for model in models_changed:
             # get the index of the current model
-            model_index = self.models.index(model)
-            # change the values of the shininess according to the new material change
-            self.roughnesses[model_index] = material.roughness
+            # model_index = self.models.index(model)
+            # # change the values of the shininess according to the new material change
+            # self.roughnesses[model_index] = material.roughness
+            self.roughnesses[model.name] = material.roughness
+            self.changed_models.add(model.name)
 
     def change_metallic(self, material):
         # get the list of models in this instance that use the changed material
-        models_changed = list(set(material.models).intersection(self.models))
+        models_changed = list(set(material.models).intersection(set(self.models.values())))
 
         # for every model with that material
         for model in models_changed:
             # get the index of the current model
-            model_index = self.models.index(model)
-            # change the values of the shininess according to the new material change
-            self.metallicnesses[model_index] = material.metallic
+            # model_index = self.models.index(model)
+            # # change the values of the shininess according to the new material change
+            # self.metallicnesses[model_index] = material.metallic
+            self.metallicnesses[model.name] = material.metallic
+            self.changed_models.add(model.name)
 
     # method to update the properties of the instance
     def update(self):

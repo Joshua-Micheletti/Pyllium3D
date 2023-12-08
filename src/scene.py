@@ -16,7 +16,7 @@ def setup():
     pw = PhysicsWorld()
     engine = Engine()
 
-    count = 2000
+    count = 1000
 
     # rm.new_shader("cel", "assets/shaders/cel_shading/cel_shading.vert", "assets/shaders/cel_shading/cel_shading.frag")
     # rm.new_shader("pbr_texture", "assets/shaders/pbr_texture/pbr_texture.vert", "assets/shaders/pbr_texture/pbr_texture.frag")
@@ -41,6 +41,8 @@ def setup():
     # rm.new_model("light_2", mesh="sphere_low", shader="white")
     # rm.new_model("light_3", mesh="sphere_low", shader="white")
     rm.new_model("sun", mesh="sphere_low", shader="white")
+
+    rm.new_model("test", mesh="sphere", shader="pbr")
     
     rm.new_material("white", *(0.2, 0.2, 0.2), *(0.4, 0.4, 0.4), *(0.8, 0.8, 0.8), 4.0)
     rm.new_material("full_white", *(1.0, 1.0, 1.0), *(1.0, 1.0, 1.0), *(1.0, 1.0, 1.0), 4.0, 0.2, 0.0)
