@@ -1,4 +1,5 @@
 import imgui
+import glfw
 
 from window.window import Window
 from renderer.renderer_manager import RendererManager
@@ -10,6 +11,10 @@ class RightWindow:
     def __init__(self):
         self.width = 0
         self.height = 0
+
+        self.is_resizing = False
+        self.resize_start_pos = [0, 0]
+        self.resize_start_size = [0, 0]
 
         self.selected_model_index = 0
         self.selected_model = ""
@@ -30,13 +35,15 @@ class RightWindow:
         style = imgui.get_style()
 
         imgui.set_next_window_position(window.width, dimensions["main_menu_height"], pivot_x = 1.0)
+        imgui.set_next_window_size(self.width, self.height)
+
         imgui.set_next_window_size_constraints((100, window.height - dimensions["main_menu_height"]), (window.width / 2, window.height - dimensions["main_menu_height"]))
 
         if states["first_draw"]:
             imgui.set_next_window_size(window.width / 6, window.height - dimensions["main_menu_height"])
 
         imgui.push_style_var(imgui.STYLE_WINDOW_PADDING, (0.0, 0.0))
-        _, states["right_window"] = imgui.begin("right_window", flags = imgui.WINDOW_NO_TITLE_BAR)
+        _, states["right_window"] = imgui.begin("right_window", flags = imgui.WINDOW_NO_TITLE_BAR | imgui.WINDOW_NO_RESIZE)
 
         wsize = imgui.get_window_size()
         dimensions["right_window_width"] = wsize.x
@@ -104,10 +111,48 @@ class RightWindow:
             imgui.pop_item_width()
 
             imgui.unindent()
-        
 
+        if imgui.is_window_hovered() and glfw.get_mouse_button(window.window, glfw.MOUSE_BUTTON_LEFT) == glfw.PRESS:
+            if not self.is_resizing and self.is_mouse_pos_on_border():
+                self.is_resizing = True
+                self.resize_start_pos = glfw.get_cursor_pos(window.window)
+                self.resize_start_size = [self.width, self.height]
+
+        if self.is_resizing and glfw.get_mouse_button(window.window, glfw.MOUSE_BUTTON_LEFT) == glfw.RELEASE:
+            self.is_resizing = False
+
+        if self.is_resizing:
+            mouse_x, mouse_y = glfw.get_cursor_pos(window.window)
+            mouse_delta_x = mouse_x - self.resize_start_pos[0]
+            mouse_delta_y = mouse_y - self.resize_start_pos[1]
+            self.width = self.resize_start_size[0] + mouse_delta_x
+            self.height = self.resize_start_size[1] + mouse_delta_y
 
         imgui.pop_style_var()
         imgui.end()
 
+
         return(states, dimensions)
+
+    def is_mouse_pos_on_border(self):
+        io = imgui.get_io()
+
+        border_size = 8.0  # Adjust as needed
+
+         # Check top border
+        if io.mouse_pos.y - imgui.get_window_position()[1] < border_size:
+            return True
+
+        # Check bottom border
+        if imgui.get_window_position()[1] + imgui.get_window_size()[1] - io.mouse_pos.y < border_size:
+            return True
+
+        # Check left border
+        if io.mouse_pos.x - imgui.get_window_position()[0] < border_size:
+            return True
+
+        # Check right border
+        if imgui.get_window_position()[0] + imgui.get_window_size()[0] - io.mouse_pos.x < border_size:
+            return True
+
+        return False

@@ -126,7 +126,7 @@ def setup():
     # # rm.new_model("second_sphere", mesh="sphere", shader="lighting_instanced")
 
     # rm.new_instance("colored_entities", "sphere", "pbr_instanced")
-    rm.new_instance("colored_boxes", "sphere", "pbr_instanced")
+    rm.new_instance("colored_boxes", "box", "pbr_instanced")
 
     entities = []
     pw.create_sphere_shape("sphere")
