@@ -1,5 +1,5 @@
 from renderer.renderer_manager import RendererManager
-from physics.physics_world import PhysicsWorld
+# from physics.physics_world import PhysicsWorld
 from engine.engine import Engine
 import glm
 import random
@@ -13,7 +13,7 @@ def setup():
     timer = Timer()
 
     rm = RendererManager()
-    pw = PhysicsWorld()
+    # pw = PhysicsWorld()
     engine = Engine()
 
     count = 1000
@@ -129,8 +129,8 @@ def setup():
     rm.new_instance("colored_boxes", "box", "pbr_instanced")
 
     entities = []
-    pw.create_sphere_shape("sphere")
-    pw.create_box_shape("box", [0.5, 0.5, 0.5])
+    # pw.create_sphere_shape("sphere")
+    # pw.create_box_shape("box", [0.5, 0.5, 0.5])
 
     # for i in range(int(count / 10)):
     #     for j in range(10):
@@ -189,7 +189,7 @@ def setup():
             rm.new_model("entity_box" + str(i * 10 + j), mesh="box", shader="pbr", material="color_box" + str(i * 10 + j))
             rm.scale("entity_box" + str(i * 10 + j), 0.5, 0.5, 0.5)
             rm.place(name, (random.random() - 0.5) * distance, (random.random() + 0.1) * distance, (random.random() - 0.5) * distance)
-            pw.new_body("entity_box" + str(i * 10 + j), "sphere", 1.0, position=[(random.random() - 0.5) * distance, (random.random() + 0.1) * distance, (random.random() - 0.5) * distance])
+            # pw.new_body("entity_box" + str(i * 10 + j), "sphere", 1.0, position=[(random.random() - 0.5) * distance, (random.random() + 0.1) * distance, (random.random() - 0.5) * distance])
             engine.create_link("entity_box" + str(i * 10 + j), "entity_box" + str(i * 10 + j))
             entities.append("entity_box" + str(i * 10 + j))
 
@@ -237,7 +237,7 @@ def setup():
 
     engine.create_link("sphere", "light")
 
-    pw.new_body("floor", "plane", 0.0, orientation=[0, 0.707, -0.707, 0.0])
+    # pw.new_body("floor", "plane", 0.0, orientation=[0, 0.707, -0.707, 0.0])
     engine.create_link("floor", "floor")
 
     print_success("Initialized Scene in " + str(round(timer.elapsed() / 1000, 2)) + "s")
