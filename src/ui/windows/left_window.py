@@ -4,10 +4,12 @@ import random
 from window.window import Window
 from renderer.renderer_manager import RendererManager
 
-class LeftWindow:
+from ui.windows.resizable_window import ResizableWindow
+
+class LeftWindow (ResizableWindow):
     def __init__(self):
-        self.width = 0
-        self.height = 0
+        super().__init__('right')
+
         self.active_pp_shaders = []
         self.selected_pp_shader_index = 0
         self.selected_active_pp_shader = -1
@@ -21,6 +23,8 @@ class LeftWindow:
         rm = RendererManager()
 
         imgui.set_next_window_position(0, dimensions["main_menu_height"])
+        imgui.set_next_window_size(self.width, self.height)
+        
         imgui.set_next_window_size_constraints((100, window.height - dimensions["main_menu_height"]),
                                                (window.width / 2, window.height - dimensions["main_menu_height"]))
 
@@ -28,7 +32,7 @@ class LeftWindow:
             imgui.set_next_window_size(window.width / 6, window.height - dimensions["main_menu_height"])
         
         imgui.push_style_var(imgui.STYLE_WINDOW_PADDING, (0.0, 0.0))
-        _, states["left_window"] = imgui.begin("left_window", flags = imgui.WINDOW_NO_TITLE_BAR)
+        _, states["left_window"] = imgui.begin("left_window", flags = imgui.WINDOW_NO_TITLE_BAR | imgui.WINDOW_NO_RESIZE)
 
         wsize = imgui.get_window_size()
         dimensions["left_window_width"] = wsize.x
@@ -95,7 +99,9 @@ class LeftWindow:
             for i in range(len(self.active_pp_shaders)):
                 components = self.active_pp_shaders[i].split("###")
                 rm.add_post_processing_shader('post_processing/' + components[0])
-            
+
+        self.handle_resize()
+
         imgui.pop_style_var()
 
         imgui.end()

@@ -7,14 +7,11 @@ from renderer.renderer_manager import RendererManager
 from ui.components.transformation import Transformation
 from ui.components.components import Components
 
-class RightWindow:
-    def __init__(self):
-        self.width = 0
-        self.height = 0
+from ui.windows.resizable_window import ResizableWindow
 
-        self.is_resizing = False
-        self.resize_start_pos = [0, 0]
-        self.resize_start_size = [0, 0]
+class RightWindow(ResizableWindow):
+    def __init__(self):
+        super().__init__('left')
 
         self.selected_model_index = 0
         self.selected_model = ""
@@ -112,47 +109,10 @@ class RightWindow:
 
             imgui.unindent()
 
-        if imgui.is_window_hovered() and glfw.get_mouse_button(window.window, glfw.MOUSE_BUTTON_LEFT) == glfw.PRESS:
-            if not self.is_resizing and self.is_mouse_pos_on_border():
-                self.is_resizing = True
-                self.resize_start_pos = glfw.get_cursor_pos(window.window)
-                self.resize_start_size = [self.width, self.height]
-
-        if self.is_resizing and glfw.get_mouse_button(window.window, glfw.MOUSE_BUTTON_LEFT) == glfw.RELEASE:
-            self.is_resizing = False
-
-        if self.is_resizing:
-            mouse_x, mouse_y = glfw.get_cursor_pos(window.window)
-            mouse_delta_x = mouse_x - self.resize_start_pos[0]
-            mouse_delta_y = mouse_y - self.resize_start_pos[1]
-            self.width = self.resize_start_size[0] + mouse_delta_x
-            self.height = self.resize_start_size[1] + mouse_delta_y
+        self.handle_resize()
 
         imgui.pop_style_var()
         imgui.end()
 
 
         return(states, dimensions)
-
-    def is_mouse_pos_on_border(self):
-        io = imgui.get_io()
-
-        border_size = 8.0  # Adjust as needed
-
-         # Check top border
-        if io.mouse_pos.y - imgui.get_window_position()[1] < border_size:
-            return True
-
-        # Check bottom border
-        if imgui.get_window_position()[1] + imgui.get_window_size()[1] - io.mouse_pos.y < border_size:
-            return True
-
-        # Check left border
-        if io.mouse_pos.x - imgui.get_window_position()[0] < border_size:
-            return True
-
-        # Check right border
-        if imgui.get_window_position()[0] + imgui.get_window_size()[0] - io.mouse_pos.x < border_size:
-            return True
-
-        return False
