@@ -18,7 +18,7 @@ from renderer.renderer import Renderer
 # controller
 from controller.controller import Controller
 
-from physics.physics_world import PhysicsWorld
+# from physics.physics_world import PhysicsWorld
 
 from engine.engine import Engine
 # user interface
@@ -34,7 +34,7 @@ def main():
     # get a reference to the renderer manager
     rm = RendererManager()
 
-    pw = PhysicsWorld()
+    # pw = PhysicsWorld()
 
     engine = Engine()
     # renderer object
