@@ -6,9 +6,12 @@ from ui.components.mesh_tab import MeshTab
 from ui.components.material_tab import MaterialTab
 from ui.components.shader_tab import ShaderTab
 from ui.components.texture_tab import TextureTab
+from ui.windows.resizable_window import ResizableWindow
 
-class BottomWindow:
+class BottomWindow(ResizableWindow):
     def __init__(self):
+        super().__init__('up')
+
         self.width = 0
         self.height = 0
 
@@ -28,6 +31,7 @@ class BottomWindow:
         rm = RendererManager()
         
         imgui.set_next_window_position(dimensions["left_window_width"], window.height, pivot_y = 1.0)
+        imgui.set_next_window_size(self.width, self.height)
         imgui.set_next_window_size_constraints((window.width - dimensions["left_window_width"] - dimensions["right_window_width"], 100),
                                                (window.width - dimensions["left_window_width"] - dimensions["right_window_width"], window.height / 2))
 
@@ -37,7 +41,7 @@ class BottomWindow:
 
         imgui.push_style_var(imgui.STYLE_WINDOW_PADDING, (0.0, 0.0))
 
-        _, states["bottom_window"] = imgui.begin("bottom_window", flags = imgui.WINDOW_NO_TITLE_BAR)
+        _, states["bottom_window"] = imgui.begin("bottom_window", flags = imgui.WINDOW_NO_TITLE_BAR | imgui.WINDOW_NO_RESIZE)
 
         wsize = imgui.get_window_size()
         dimensions["bottom_window_height"] = wsize.y
@@ -64,6 +68,8 @@ class BottomWindow:
                 imgui.end_tab_item()
                 
             imgui.end_tab_bar()
+
+        self.handle_resize()
 
         imgui.pop_style_var()
         imgui.end()

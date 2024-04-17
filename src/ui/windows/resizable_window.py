@@ -36,9 +36,9 @@ class ResizableWindow:
             elif self.resize_direction == 'left':
                 self.width = self.resize_start_size[0] - mouse_delta_x
             elif self.resize_direction == 'up':
-                self.height = self.resize_start_size[1] + mouse_delta_y
-            elif self.resize_direction == 'down':
                 self.height = self.resize_start_size[1] - mouse_delta_y
+            elif self.resize_direction == 'down':
+                self.height = self.resize_start_size[1] + mouse_delta_y
                 
 
 

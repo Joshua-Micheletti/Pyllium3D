@@ -6,7 +6,7 @@ from renderer.renderer_manager import RendererManager
 
 from ui.windows.resizable_window import ResizableWindow
 
-class LeftWindow (ResizableWindow):
+class LeftWindow(ResizableWindow):
     def __init__(self):
         super().__init__('right')
 
