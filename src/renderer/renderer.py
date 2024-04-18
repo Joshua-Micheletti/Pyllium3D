@@ -2,6 +2,7 @@ from utils.singleton import Singleton
 from OpenGL.GL import *
 import numpy as np
 import glm
+from glm import vec3
 import glfw
 
 from utils.timer import Timer
@@ -10,8 +11,8 @@ from renderer.renderer_manager import RendererManager
 # class to render 3D models
 class Renderer(metaclass=Singleton):
     # constructor method
-    def __init__(self):
-        rm = RendererManager()
+    def __init__(self) -> None:
+        rm: RendererManager = RendererManager()
         # set the clear color to a dark grey
         glClearColor(0.1, 0.1, 0.1, 1.0)
         # enable depth testing (hide further away triangles if covered)
@@ -38,7 +39,7 @@ class Renderer(metaclass=Singleton):
         self._render_reflection_map()
 
         # timer to keep track of the rendering time
-        self.timer = Timer()
+        self.timer: Timer = Timer()
 
         # assign texture slot 3 for the depth cubemap
         glActiveTexture(GL_TEXTURE0 + 3)
@@ -57,33 +58,33 @@ class Renderer(metaclass=Singleton):
         glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
 
         # setup the query objects to keep track of the rendering times
-        opengl_queries = glGenQueries(10)
+        opengl_queries: any = glGenQueries(10)
 
         # the objects consist of a list composed of:
         # - opengl query object
         # - flag to keep track of weather to do the query or not
         # - actual value returned from the query
-        self.queries = dict()
-        self.queries["models"]          = [opengl_queries[0], True, 0]
-        self.queries["instances"]       = [opengl_queries[1], True, 0]
-        self.queries["skybox"]          = [opengl_queries[2], True, 0]
-        self.queries["msaa"]            = [opengl_queries[3], True, 0]
-        self.queries["bloom"]           = [opengl_queries[4], True, 0]
+        self.queries: dict[str, tuple[any, bool, int]] = dict()
+        self.queries["models"]          = [opengl_queries[0], True,  0]
+        self.queries["instances"]       = [opengl_queries[1], True,  0]
+        self.queries["skybox"]          = [opengl_queries[2], True,  0]
+        self.queries["msaa"]            = [opengl_queries[3], True,  0]
+        self.queries["bloom"]           = [opengl_queries[4], True,  0]
         self.queries["hdr"]             = [opengl_queries[5], False, 0]
-        self.queries["blur"]            = [opengl_queries[6], True, 0]
-        self.queries["depth_of_field"]  = [opengl_queries[7], True, 0]
-        self.queries["post_processing"] = [opengl_queries[8], True, 0]
-        self.queries["shadow_map"]      = [opengl_queries[9], True, 0]
+        self.queries["blur"]            = [opengl_queries[6], True,  0]
+        self.queries["depth_of_field"]  = [opengl_queries[7], True,  0]
+        self.queries["post_processing"] = [opengl_queries[8], True,  0]
+        self.queries["shadow_map"]      = [opengl_queries[9], True,  0]
         
 
     # ---------------------------- Render methods ---------------------------
     # method to render the 3D models
-    def render(self):
+    def render(self) -> None:
         # reset the timer
         self.timer.reset()
 
         # reference to the renderer manager
-        rm = RendererManager()
+        rm: RendererManager = RendererManager()
         
         # -------------------- Pre-rendering --------------------------
         # render the shadow cubemap
@@ -142,19 +143,20 @@ class Renderer(metaclass=Singleton):
         self.timer.record()
         
     # method to render the models to the render framebuffer
-    def _render_models(self):
+    def _render_models(self) -> None:
         # get a reference to the renderer manager
-        rm = RendererManager()
+        rm: RendererManager = RendererManager()
 
         if rm.render_states["profile"]:
             glBeginQuery(GL_TIME_ELAPSED, self.queries["models"][0])
         
         # variables to keep track of the last used shader and mesh
-        last_shader = ""
-        last_mesh = ""
-        last_material = ""
-        last_texture = ""
-        rendered_models = 0
+        last_shader: str = ""
+        last_mesh: str = ""
+        last_material: str = ""
+        last_texture: str = ""
+        rendered_models: int = 0
+
         # THIS LOOP WILL CHANGE WHEN THE MODELS WILL BE GROUPED BY SHADER, SO THAT THERE ISN'T SO MUCH CONTEXT SWITCHING
         # for every model in the renderer manager
         for model in rm.single_render_models:
@@ -203,14 +205,14 @@ class Renderer(metaclass=Singleton):
             glEndQuery(GL_TIME_ELAPSED)
 
     # method to render instanced models
-    def _render_instances(self):
+    def _render_instances(self) -> None:
         # reference to the renderer manager
-        rm = RendererManager()
+        rm: RendererManager = RendererManager()
 
         if rm.render_states["profile"]:
             glBeginQuery(GL_TIME_ELAPSED, self.queries["instances"][0])
 
-        last_shader = ""
+        last_shader: str = ""
 
         # for every instance in the renderer manager
         for instance in rm.instances.values():
@@ -236,7 +238,7 @@ class Renderer(metaclass=Singleton):
     # method for rendering the shadow cubemap for point light
     def _render_shadow_map(self):
         # reference to the renderer manager
-        rm = RendererManager()
+        rm: RendererManager = RendererManager()
 
         if not rm.render_states["shadow_map"]:
             self.queries["shadow_map"][1] = False
@@ -261,7 +263,7 @@ class Renderer(metaclass=Singleton):
         self._link_shader_uniforms(rm.shaders["depth_cube"])
 
         # keep track of the last bound mesh
-        last_mesh = ""
+        last_mesh: str = ""
 
         # iterate through all the models for single pass rendering
         for model in rm.single_render_models:
@@ -302,7 +304,7 @@ class Renderer(metaclass=Singleton):
     def _render_skybox(self):
         # get a reference to the renderer manager
 
-        rm = RendererManager()
+        rm: RendererManager = RendererManager()
 
         if rm.render_states["profile"]:
             glBeginQuery(GL_TIME_ELAPSED, self.queries["skybox"][0])
@@ -311,7 +313,7 @@ class Renderer(metaclass=Singleton):
         rm.shaders["skybox"].use()
 
         # temporarily place the camera at the origin, to cancel camera movement from the skybox rendering
-        old_position = rm.camera.position
+        old_position: vec3 = rm.camera.position
         rm.camera.place(0, 0, 0)
         self._link_shader_uniforms(rm.shaders["skybox"])
         rm.camera.place(old_position.x, old_position.y, old_position.z)
@@ -333,7 +335,7 @@ class Renderer(metaclass=Singleton):
     # method to resolve the msaa render texture into a single sample texture
     def _render_msaa(self):
         # reference to the renderer manager
-        rm = RendererManager()
+        rm: RendererManager = RendererManager()
 
         if rm.samples == 1:
             self.queries["msaa"][1] = False
@@ -366,7 +368,7 @@ class Renderer(metaclass=Singleton):
     # method to render the blur texture
     def _render_blur(self):
         # reference to the renderer manager
-        rm = RendererManager()
+        rm: RendererManager = RendererManager()
 
         # only render the blur texture if the depth of field or post processing effects are enabled
         if not rm.render_states["depth_of_field"] and not rm.render_states["post_processing"]:
@@ -427,7 +429,7 @@ class Renderer(metaclass=Singleton):
     # method to render the depth of field effect
     def _render_depth_of_field(self):
         # reference to renderer manager
-        rm = RendererManager()
+        rm: RendererManager = RendererManager()
 
         # execute only if it's enabled
         if not rm.render_states["depth_of_field"]:

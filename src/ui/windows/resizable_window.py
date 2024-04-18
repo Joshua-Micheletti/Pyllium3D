@@ -4,18 +4,18 @@ import glfw
 from window.window import Window
 
 class ResizableWindow:
-    def __init__(self, direction):
-        self.width = 0
-        self.height = 0
+    def __init__(self, direction: str) -> None:
+        self.width: int = 0
+        self.height: int = 0
 
-        self.is_resizing = False
-        self.resize_start_pos = [0, 0]
-        self.resize_start_size = [0, 0]
+        self.is_resizing: bool = False
+        self.resize_start_pos: list[int] = [0, 0]
+        self.resize_start_size: list[int] = [0, 0]
 
-        self.resize_direction = direction
+        self.resize_direction: str = direction
 
-    def handle_resize(self):
-        window = Window()
+    def handle_resize(self) -> None:
+        window: Window = Window()
 
         if imgui.is_window_hovered() and glfw.get_mouse_button(window.window, glfw.MOUSE_BUTTON_LEFT) == glfw.PRESS:
             if not self.is_resizing and self.is_mouse_pos_on_border():
@@ -40,27 +40,25 @@ class ResizableWindow:
             elif self.resize_direction == 'down':
                 self.height = self.resize_start_size[1] + mouse_delta_y
                 
+    def is_mouse_pos_on_border(self) -> bool:
+        io: any = imgui.get_io()
 
-
-    def is_mouse_pos_on_border(self):
-        io = imgui.get_io()
-
-        border_size = 8.0  # Adjust as needed
+        border_size: float = 8.0  # Adjust as needed
 
          # Check top border
         if io.mouse_pos.y - imgui.get_window_position()[1] < border_size:
-            return True
+            return(True)
 
         # Check bottom border
         if imgui.get_window_position()[1] + imgui.get_window_size()[1] - io.mouse_pos.y < border_size:
-            return True
+            return(True)
 
         # Check left border
         if io.mouse_pos.x - imgui.get_window_position()[0] < border_size:
-            return True
+            return(True)
 
         # Check right border
         if imgui.get_window_position()[0] + imgui.get_window_size()[0] - io.mouse_pos.x < border_size:
-            return True
+            return(True)
 
-        return False
+        return(False)
