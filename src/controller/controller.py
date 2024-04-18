@@ -1,6 +1,6 @@
 import glfw
 
-from utils.singleton import Singleton
+from utils import Singleton
 from renderer.renderer_manager import RendererManager
 
 # class to handle inputs from the user and update the program logic accordingly (singleton)

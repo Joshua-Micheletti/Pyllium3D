@@ -2,16 +2,16 @@ import imgui
 from imgui.integrations.glfw import GlfwRenderer
 from OpenGL.GL import *
 
-from window.window import Window
-from utils.singleton import Singleton
-from utils.timer import Timer
+from window import Window
+from utils import Singleton
+from utils import Timer
 
-from ui.windows.main_menu import MainMenu
-from ui.windows.game_window import GameWindow
-from ui.windows.left_window import LeftWindow
-from ui.windows.right_window import RightWindow
-from ui.windows.bottom_window import BottomWindow
-from ui.windows.fps_window import FpsWindow
+from ui.windows import MainMenu
+from ui.windows import GameWindow
+from ui.windows import LeftWindow
+from ui.windows import RightWindow
+from ui.windows import BottomWindow
+from ui.windows import FpsWindow
 
 # class to implement UI
 class UI(metaclass=Singleton):

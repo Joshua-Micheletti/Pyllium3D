@@ -1,11 +1,11 @@
 import imgui
 import glfw
 
-from window.window import Window
+from window import Window
 from renderer.renderer_manager import RendererManager
 
-from ui.components.transformation import Transformation
-from ui.components.components import Components
+from ui.components import Transformation
+from ui.components import Components
 
 from ui.windows.resizable_window import ResizableWindow
 

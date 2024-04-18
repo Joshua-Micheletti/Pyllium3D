@@ -1,4 +1,4 @@
-from utils.singleton import Singleton
+from utils import Singleton
 from renderer.renderer_manager import RendererManager
 from physics.physics_world import PhysicsWorld
 

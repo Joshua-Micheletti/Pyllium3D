@@ -1,11 +1,11 @@
 import imgui
 
-from window.window import Window
+from window import Window
 from renderer.renderer_manager import RendererManager
-from ui.components.mesh_tab import MeshTab
-from ui.components.material_tab import MaterialTab
-from ui.components.shader_tab import ShaderTab
-from ui.components.texture_tab import TextureTab
+from ui.components import MeshTab
+from ui.components import MaterialTab
+from ui.components import ShaderTab
+from ui.components import TextureTab
 from ui.windows.resizable_window import ResizableWindow
 
 class BottomWindow(ResizableWindow):

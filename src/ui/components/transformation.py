@@ -1,6 +1,6 @@
 import imgui
 from renderer.renderer_manager import RendererManager
-from utils.colors import gui_colors
+from utils import gui_colors
 
 class Transformation():
     def __init__(self):

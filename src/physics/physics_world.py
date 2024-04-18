@@ -1,8 +1,8 @@
 import pybullet as pb
 import glm
 
-from utils.singleton import Singleton
-from utils.messages import *
+from utils import Singleton
+from utils import *
 
 class PhysicsWorld(metaclass=Singleton):
     def __init__(self):

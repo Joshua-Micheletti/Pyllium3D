@@ -6,8 +6,8 @@ import random
 import math
 import glfw
 
-from utils.timer import Timer
-from utils.messages import *
+from utils import Timer
+from utils import *
 
 def setup():
     timer = Timer()

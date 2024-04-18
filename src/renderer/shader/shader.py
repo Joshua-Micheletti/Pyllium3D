@@ -1,7 +1,7 @@
 from OpenGL.GL.shaders import compileProgram, compileShader
 from OpenGL.GL import *
 
-from utils.messages import *
+from utils import *
 
 # class to represent a shader object
 class Shader:

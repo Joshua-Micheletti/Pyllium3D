@@ -1,14 +1,16 @@
 import imgui
 from array import array
 
-from window.window import Window
+from window import Window
 from renderer.renderer import Renderer
 from renderer.renderer_manager import RendererManager
 
-from ui.components.graph import Graph
+from ui.windows.resizable_window import ResizableWindow
+from ui.components import Graph
 
-class FpsWindow:
+class FpsWindow(ResizableWindow):
     def __init__(self):
+        super().__init__('down')
         self.width = 0
         self.height = 0
 
@@ -47,9 +49,10 @@ class FpsWindow:
         renderer = Renderer()
 
         imgui.set_next_window_position(window.width - dimensions["right_window_width"], dimensions["main_menu_height"], pivot_x = 1.0)
+        imgui.set_next_window_size(self.width, self.height)
         imgui.set_next_window_size_constraints((200, 60), (window.width / 2, window.height / 2 - dimensions["main_menu_height"]))
 
-        _, states["fps_window"] = imgui.begin("fps_window", flags = imgui.WINDOW_NO_TITLE_BAR)
+        _, states["fps_window"] = imgui.begin("fps_window", flags = imgui.WINDOW_NO_TITLE_BAR | imgui.WINDOW_NO_RESIZE)
 
         self.fps_graph.draw(1000 / dt)
 
@@ -86,6 +89,8 @@ class FpsWindow:
             self.control_graph.draw(controltime)
             self.update_graph.draw(updatetime)
             self.rm_update_graph.draw(rmupdatetime)
+
+        self.handle_resize()
 
         imgui.end()
 

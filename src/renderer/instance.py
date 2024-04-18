@@ -1,8 +1,8 @@
 from OpenGL.GL import *
 import numpy as np
 
-from utils.colors import colors
-from utils.timer import Timer
+from utils import colors
+from utils import Timer
 
 # class to implement an instance for rendering
 class Instance:
@@ -95,8 +95,6 @@ class Instance:
         glEnableVertexAttribArray(2)
         # link the VBO to the index 2 of the VAO and interpret it as 2 floats
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
-
-
 
     # method to change the model matrix of a model in the instance
     def change_model_matrix(self, model, model_matrix):

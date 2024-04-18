@@ -1,10 +1,10 @@
 import imgui
 from OpenGL.GL import *
 
-from window.window import Window
+from window import Window
 from renderer.renderer_manager import RendererManager
 
-from ui.components.crosshair import Crosshair
+from ui.components import Crosshair
 
 class GameWindow:
     def __init__(self):

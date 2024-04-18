@@ -1,7 +1,7 @@
 import imgui
 import random
 
-from window.window import Window
+from window import Window
 from renderer.renderer_manager import RendererManager
 
 from ui.windows.resizable_window import ResizableWindow

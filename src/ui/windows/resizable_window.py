@@ -1,7 +1,7 @@
 import imgui
 import glfw
 
-from window.window import Window
+from window import Window
 
 class ResizableWindow:
     def __init__(self, direction: str) -> None:

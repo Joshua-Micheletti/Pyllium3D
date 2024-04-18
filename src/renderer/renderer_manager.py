@@ -12,11 +12,11 @@ import json
 import os
 
 # custom modules imports
-from utils.singleton import Singleton
-from utils.colors import colors
-from utils.vbo_indexer import *
-from utils.messages import *
-from utils.timer import Timer
+from utils import Singleton
+from utils import colors
+from utils import *
+from utils import *
+from utils import Timer
 
 from renderer.model.model import Model
 from renderer.material.material import Material

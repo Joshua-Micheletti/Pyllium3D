@@ -4,13 +4,11 @@ import glfw
 # import the scene
 import scene
 
-import cProfile
-
 # local modules:
 # utils
-from utils.timer import Timer
+from utils import Timer
 # window
-from window.window import Window
+from window import Window
 # renderer manager
 from renderer.renderer_manager import RendererManager
 # renderer
@@ -22,7 +20,7 @@ from controller.controller import Controller
 
 from engine.engine import Engine
 # user interface
-from ui.ui import UI
+from ui import UI
 
 # -------------------------- Main ---------------------------
 def main():

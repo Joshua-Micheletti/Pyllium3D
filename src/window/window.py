@@ -2,8 +2,8 @@ import glfw
 from OpenGL.GL import *
 import glm
 
-from utils.singleton import Singleton
-from utils.colors import colors
+from utils import Singleton
+from utils import colors
 from controller.controller import Controller
 from renderer.renderer_manager import RendererManager
 
