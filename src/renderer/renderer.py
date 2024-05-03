@@ -10,8 +10,15 @@ from renderer.renderer_manager import RendererManager
 
 # class to render 3D models
 class Renderer(metaclass=Singleton):
-    # constructor method
+    """Class that implements the rendering pipeline
+
+    Args:
+        metaclass (_type_, optional): _description_. Defaults to Singleton.
+    """
+
     def __init__(self) -> None:
+        """Constructor method
+        """
         rm: RendererManager = RendererManager()
         # set the clear color to a dark grey
         glClearColor(0.1, 0.1, 0.1, 1.0)
@@ -80,6 +87,8 @@ class Renderer(metaclass=Singleton):
     # ---------------------------- Render methods ---------------------------
     # method to render the 3D models
     def render(self) -> None:
+        """Renders the scene
+        """
         # reset the timer
         self.timer.reset()
 

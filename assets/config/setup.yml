@@ -1,0 +1,11 @@
+application_name: "Pyllium3D"
+window:
+  width: 800
+  height: 600
+  fullscreen: true
+  fov: 60.0
+  min_z: 0.1
+  max_z: 10000.0
+api:
+  opengl_major: 4
+  opengl_minor: 3

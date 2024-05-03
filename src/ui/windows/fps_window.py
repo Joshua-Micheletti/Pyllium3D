@@ -9,10 +9,8 @@ from ui.windows.resizable_window import ResizableWindow
 from ui.components import Graph
 
 class FpsWindow(ResizableWindow):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__('down')
-        self.width = 0
-        self.height = 0
 
         self.fps_values = []
         self.frametime_values = []

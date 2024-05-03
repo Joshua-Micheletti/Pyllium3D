@@ -17,6 +17,7 @@ from ui.windows import FpsWindow
 class UI(metaclass=Singleton):
     # constructor method
     def __init__(self):
+        window = Window()
         # create an OpenGL context for imgui
         imgui.create_context()
         # implement the GLFW backend
@@ -24,8 +25,8 @@ class UI(metaclass=Singleton):
 
         # size of indentation
         self.dimensions = dict()
-        self.dimensions["game_window_width"] = 800
-        self.dimensions["game_window_height"] = 600
+        self.dimensions["game_window_width"] = window.width
+        self.dimensions["game_window_height"] = window.height
         self.dimensions["main_menu_height"] = 0
         self.dimensions["left_window_width"] = 0
         self.dimensions["right_window_width"] = 0

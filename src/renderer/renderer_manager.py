@@ -24,6 +24,7 @@ from renderer.shader.shader import Shader
 from renderer.camera.camera import Camera
 from renderer.instance import Instance
 
+
 # method to setup and handle all the required data for the renderer
 class RendererManager(metaclass=Singleton):
     # --------------------------- Setup ---------------------------

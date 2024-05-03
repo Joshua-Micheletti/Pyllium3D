@@ -5,3 +5,4 @@ from utils.messages import *
 # from utils.printer import * # causes a circular import
 from utils.singleton import *
 from utils.vbo_indexer import *
+from utils.config import Config

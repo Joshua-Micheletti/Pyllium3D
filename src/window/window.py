@@ -3,40 +3,60 @@ from OpenGL.GL import *
 import glm
 
 from utils import Singleton
-from utils import colors
+from utils import messages
+from utils import Config
 from controller.controller import Controller
-from renderer.renderer_manager import RendererManager
+# from renderer.renderer_manager import RendererManager
 
 class Window(metaclass=Singleton):
-    def __init__(self, width = 800, height = 600, name = "Pyphics", opengl_M = 4, opengl_m = 3):
+    """Class that creates and handles all things regarding the window object
+    """
+    
+    def __init__(self, width = 800, height = 600, name = "Pyphics", opengl_M = 4, opengl_m = 3) -> None:
+        setup = Config().setup
         
         # initialize GLFW
         if not glfw.init():
-            print(f"{colors.ERROR}Could not start GLFW{colors.ENDC}")
+            messages.print_error("Could not start GLFW")
             raise(RuntimeError)
         
         # set the OpenGL version
         glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, opengl_M)
         glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, opengl_m)
+        
+        monitor = glfw.get_primary_monitor()
+        screen = glfw.get_video_mode(monitor)[0]
+        
+        # fill the width and height fields with the initial window size
+        if setup['window']['fullscreen']:
+            self.width = screen[0]
+            self.height = screen[1]
+        else:
+            self.width = width
+            self.height = height
 
-        # create the GLFW window with the parameters given by the constructor
-        self.window = glfw.create_window(width, height, name, None, None)
+        # create the GLFW window with the parameters given by the constructor      
+        self.window = glfw.create_window(
+            self.width,
+            self.height,
+            name,
+            monitor if setup['window']['fullscreen'] else None,
+            None
+        )
 
         # check if the window was created
         if not self.window:
-            print(f"{colors.ERROR}Could not start GLFW Window{colors.ENDC}")
+            messages.print_error("Could not start GLFW Window")
             glfw.terminate()
             raise(RuntimeError)
 
         # variable to set the FOV of the window
-        self.fov = 60.0
+        self.fov = setup['window']['fov']
 
         # create a projection matrix with an orthogonal projection
         # self.projection_matrix = Matrix44.orthogonal_projection(-width/2, width/2, -height/2, height/2, -1, 1)
-        self.projection_matrix = glm.perspective(glm.radians(self.fov), float(width)/float(height), 0.1, 10000.0);
-        # fill the width and height fields with the initial window size
-        self.width = width
-        self.height = height
+        self.projection_matrix = glm.perspective(glm.radians(self.fov), float(width)/float(height), setup['window']['min_z'], setup['window']['max_z'])
+        
 
         # set the callback functions related to the window
         # gets called everytime a key is pressed
