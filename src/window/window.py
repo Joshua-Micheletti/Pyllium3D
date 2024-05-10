@@ -1,46 +1,77 @@
 import glfw
 from OpenGL.GL import *
 import glm
+from glm import mat4x4
+from icecream import ic
 
 from utils import Singleton
 from utils import messages
 from utils import Config
 from controller.controller import Controller
-# from renderer.renderer_manager import RendererManager
 
 class Window(metaclass=Singleton):
     """Class that creates and handles all things regarding the window object
     """
     
-    def __init__(self, width = 800, height = 600, name = "Pyphics", opengl_M = 4, opengl_m = 3) -> None:
-        setup = Config().setup
+    def __init__(self, width: int = None, height: int = None, fullscreen: bool = None, name: str = None, fov: float = None, opengl_M: int = None, opengl_m: int = None) -> None:
+        """Constructor for the window object
+
+        Args:
+            width (int, optional): initial width of the window. Defaults to 800.
+            height (int, optional): initial height of the window. Defaults to 600.
+            fullscreen (bool, optional): initial fullscreen state. Defaults to False.
+            name (str, optional): application name shown in the window. Defaults to 'Pyllium3D'.
+            fov (float, optional): FOV of the view. Defaults to 60.
+            opengl_M (int, optional): major OpenGL version to use. Defaults to 4.
+            opengl_m (int, optional): minor OpenGL version to use. Defaults to 3.
+        """
+        
+        # default window configuration
+        default_config = {
+            'width': 800,
+            'height': 600,
+            'fullscreen': False,
+            'opengl_M': 4,
+            'opengl_m': 3,
+            'application_name': 'Pyllium3D',
+            'fov': 60
+        }        
+        
+        # retrieve the configuration from the config file
+        setup: dict = Config().setup
+        
+        # apply the settings with decreasing priority from: function parameters > config file settings > default values
+        self.width:      int   = width      if width      is not None else (setup.get('window').get('width')      if setup.get('window').get('width')      is not None else default_config.get('width'))
+        self.height:     int   = height     if height     is not None else (setup.get('window').get('height')     if setup.get('window').get('height')     is not None else default_config.get('height'))
+        self.opengl_M:   int   = opengl_M   if opengl_M   is not None else (setup.get('api').get('opengl_M')      if setup.get('api').get('opengl_M')      is not None else default_config.get('opengl_M'))
+        self.opengl_m:   int   = opengl_m   if opengl_m   is not None else (setup.get('api').get('opengl_m')      if setup.get('api').get('opengl_m')      is not None else default_config.get('opengl_m'))
+        self.name:       str   = name       if name       is not None else (setup.get('application_name')         if setup.get('application_name')         is not None else default_config.get('application_name'))
+        self.fullscreen: bool  = fullscreen if fullscreen is not None else (setup.get('window').get('fullscreen') if setup.get('window').get('fullscreen') is not None else default_config.get('fullscreen'))
+        self.fov:        float = fov        if fov        is not None else (setup.get('window').get('fov')        if setup.get('window').get('fov')        is not None else default_config.get('fov'))
         
         # initialize GLFW
         if not glfw.init():
             messages.print_error("Could not start GLFW")
-            raise(RuntimeError)
+            raise(RuntimeError("Could not start GLFW"))
         
         # set the OpenGL version
-        glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, opengl_M)
-        glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, opengl_m)
+        glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, self.opengl_M)
+        glfw.window_hint(glfw.CONTEXT_VERSION_MINOR, self.opengl_m)
         
         monitor = glfw.get_primary_monitor()
         screen = glfw.get_video_mode(monitor)[0]
         
         # fill the width and height fields with the initial window size
-        if setup['window']['fullscreen']:
+        if self.fullscreen:
             self.width = screen[0]
             self.height = screen[1]
-        else:
-            self.width = width
-            self.height = height
 
         # create the GLFW window with the parameters given by the constructor      
         self.window = glfw.create_window(
             self.width,
             self.height,
-            name,
-            monitor if setup['window']['fullscreen'] else None,
+            self.name,
+            monitor if self.fullscreen else None,
             None
         )
 
@@ -50,12 +81,9 @@ class Window(metaclass=Singleton):
             glfw.terminate()
             raise(RuntimeError)
 
-        # variable to set the FOV of the window
-        self.fov = setup['window']['fov']
-
         # create a projection matrix with an orthogonal projection
         # self.projection_matrix = Matrix44.orthogonal_projection(-width/2, width/2, -height/2, height/2, -1, 1)
-        self.projection_matrix = glm.perspective(glm.radians(self.fov), float(width)/float(height), setup['window']['min_z'], setup['window']['max_z'])
+        self.projection_matrix: mat4x4 = glm.perspective(glm.radians(self.fov), float(self.width)/float(self.height), setup.get('window').get('min_z'), setup.get('window').get('max_z'))
         
 
         # set the callback functions related to the window
@@ -75,7 +103,7 @@ class Window(metaclass=Singleton):
 
     def get_ogl_matrix(self):
         return(glm.value_ptr(self.projection_matrix))
-        # return(glm.value_ptr(glm.mat4(1)))
+
 
 
 # pass the key presses to the controller

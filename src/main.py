@@ -31,53 +31,45 @@ from ui import UI
 
 
 # -------------------------- Main ---------------------------
-def main():
-    setup = Config().setup
-
+def main() -> None:
     # window object
-    window = Window(
-        width=setup["window"]["width"],
-        height=setup["window"]["height"],
-        name=setup["application_name"],
-        opengl_M=setup["api"]["opengl_major"],
-        opengl_m=setup["api"]["opengl_minor"]
-    )
+    window: Window = Window()
     
     # setup the scene
     scene.setup()
 
     # get a reference to the renderer manager
-    rm = RendererManager()
+    rm: RendererManager = RendererManager()
 
     # pw = PhysicsWorld()
 
     config = Config()
 
-    engine = Engine()
+    engine: Engine = Engine()
     # renderer object
-    renderer = Renderer()
+    renderer: Renderer = Renderer()
     # controller object
-    controller = Controller()
+    controller: Controller = Controller()
     # UI object
-    ui = UI()
+    ui: UI = UI()
 
     # execution timer
-    frametime = Timer()
+    frametime: Timer = Timer()
 
     # time passed between frames
-    dt = 0
+    dt: float = 0
 
     # 60 tps
-    tickrate = 1000.0 / 30.0
+    tickrate: float = 1000.0 / 30.0
 
     # setup the timers to keep track of the execution time
-    swaptime = Timer()
+    swaptime: Timer = Timer()
     swaptime.record()
-    controltime = Timer()
+    controltime: Timer = Timer()
     controltime.record()
-    updatetime = Timer()
+    updatetime: Timer = Timer()
     updatetime.record()
-    rmupdatetime = Timer()
+    rmupdatetime: Timer = Timer()
     rmupdatetime.record()
 
     # 60 fps
@@ -113,7 +105,6 @@ def main():
         rm.update_instances()
         rmupdatetime.record()
 
-        # cProfile.run("Renderer().render()")
         renderer.render()
 
         ui.draw(
