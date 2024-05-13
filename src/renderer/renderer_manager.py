@@ -15,7 +15,6 @@ import os
 from utils import Singleton
 from utils import colors
 from utils import *
-from utils import *
 from utils import Timer
 
 from renderer.model.model import Model
@@ -29,6 +28,7 @@ from renderer.instance import Instance
 class RendererManager(metaclass=Singleton):
     # --------------------------- Setup ---------------------------
     # constructor method
+    @timeit()
     def __init__(self):
         # timer to time setup delay
         timer = Timer()
@@ -170,8 +170,6 @@ class RendererManager(metaclass=Singleton):
         # self._setup_skybox(skybox_path + "hdri/autumn_forest.jpg")
 
         # self._expand_equirectangular_map_to_cubemap("assets/textures/alien/skybox.png")
-
-        print_success("Initialized Renderer Manager in " + str(round(timer.elapsed() / 1000, 2)) + "s")
         
     # method to setup the shaders for the engine
     def _setup_shaders(self):

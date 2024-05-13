@@ -1,4 +1,4 @@
-from utils import colors
+from utils.colors import colors
 import glfw
 
 verbose = True

@@ -1,6 +1,7 @@
 import glfw
 import time
 from icecream import ic
+from utils.messages import *
 
 # class to implement a timer
 class Timer():
@@ -61,7 +62,7 @@ def timeit(*wrap_args, **wrap_kwargs):
                 result = func(*args, **kwargs)
                 end_time = time.perf_counter()
                 total_time = end_time - start_time
-                print(f'{func.__name__} Took {total_time:.4f} seconds')
+                print_success(f'{ref.__class__.__name__} {func.__name__} {total_time:.2f}s')
                 return result
         return timeit_wrapper
     return timeit_decorator
