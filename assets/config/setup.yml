@@ -1,11 +1,23 @@
-application_name: "Pyllium3D"
 window:
+  name: "Pyllium3D"
   width: 800
   height: 600
   fullscreen: false
   fov: 120.0
   min_z: 0.1
   max_z: 10000.0
-api:
   opengl_M: 4
   opengl_m: 3
+ui:
+  crosshair:
+    radius: 2
+    color_r: 1.0
+    color_g: 1.0
+    color_b: 1.0
+    alpha: 0.8
+    outline_r: 0.1
+    outline_g: 0.1
+    outline_b: 0.1
+    outline_radius: 4
+    outline_alpha: 0.8
+    outline_thickness: 2

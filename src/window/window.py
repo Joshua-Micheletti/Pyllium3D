@@ -13,7 +13,18 @@ class Window(metaclass=Singleton):
     """Class that creates and handles all things regarding the window object
     """
     
-    def __init__(self, width: int = None, height: int = None, fullscreen: bool = None, name: str = None, fov: float = None, opengl_M: int = None, opengl_m: int = None) -> None:
+    def __init__(
+        self,
+        width: int = None,
+        height: int = None,
+        fullscreen: bool = None,
+        name: str = None,
+        fov: float = None,
+        opengl_M: int = None,
+        opengl_m: int = None,
+        min_z: float = None,
+        max_z: float = None
+    ) -> None:
         """Constructor for the window object
 
         Args:
@@ -24,6 +35,8 @@ class Window(metaclass=Singleton):
             fov (float, optional): FOV of the view. Defaults to 60.
             opengl_M (int, optional): major OpenGL version to use. Defaults to 4.
             opengl_m (int, optional): minor OpenGL version to use. Defaults to 3.
+            min_z (float, optional): min distance to render from. Defaults to 0.1.
+            max_z (float, optional): max distance to render to. Defaults to 10000.
         """
         
         # default window configuration
@@ -33,21 +46,26 @@ class Window(metaclass=Singleton):
             'fullscreen': False,
             'opengl_M': 4,
             'opengl_m': 3,
-            'application_name': 'Pyllium3D',
-            'fov': 60
-        }        
+            'name': 'Pyllium3D',
+            'fov': 60,
+            'min_z': 0.1,
+            'max_z': 10000
+        }
         
-        # retrieve the configuration from the config file
-        setup: dict = Config().setup
-        
-        # apply the settings with decreasing priority from: function parameters > config file settings > default values
-        self.width:      int   = width      if width      is not None else (setup.get('window').get('width')      if setup.get('window').get('width')      is not None else default_config.get('width'))
-        self.height:     int   = height     if height     is not None else (setup.get('window').get('height')     if setup.get('window').get('height')     is not None else default_config.get('height'))
-        self.opengl_M:   int   = opengl_M   if opengl_M   is not None else (setup.get('api').get('opengl_M')      if setup.get('api').get('opengl_M')      is not None else default_config.get('opengl_M'))
-        self.opengl_m:   int   = opengl_m   if opengl_m   is not None else (setup.get('api').get('opengl_m')      if setup.get('api').get('opengl_m')      is not None else default_config.get('opengl_m'))
-        self.name:       str   = name       if name       is not None else (setup.get('application_name')         if setup.get('application_name')         is not None else default_config.get('application_name'))
-        self.fullscreen: bool  = fullscreen if fullscreen is not None else (setup.get('window').get('fullscreen') if setup.get('window').get('fullscreen') is not None else default_config.get('fullscreen'))
-        self.fov:        float = fov        if fov        is not None else (setup.get('window').get('fov')        if setup.get('window').get('fov')        is not None else default_config.get('fov'))
+        Config().initialize_parameters(
+            self,
+            'window',
+            default_config,
+            width=width,
+            height=height,
+            fullscreen=fullscreen,
+            name=name,
+            fov=fov,
+            opengl_M=opengl_M,
+            opengl_m=opengl_m,
+            min_z=min_z,
+            max_z=max_z    
+        )
         
         # initialize GLFW
         if not glfw.init():
@@ -83,7 +101,7 @@ class Window(metaclass=Singleton):
 
         # create a projection matrix with an orthogonal projection
         # self.projection_matrix = Matrix44.orthogonal_projection(-width/2, width/2, -height/2, height/2, -1, 1)
-        self.projection_matrix: mat4x4 = glm.perspective(glm.radians(self.fov), float(self.width)/float(self.height), setup.get('window').get('min_z'), setup.get('window').get('max_z'))
+        self.projection_matrix: mat4x4 = glm.perspective(glm.radians(self.fov), float(self.width)/float(self.height), self.min_z, self.max_z)
         
 
         # set the callback functions related to the window

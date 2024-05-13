@@ -5,6 +5,7 @@ from OpenGL.GL import *
 from window import Window
 from utils import Singleton
 from utils import Timer
+from utils import timeit
 
 from ui.windows import MainMenu
 from ui.windows import GameWindow
@@ -64,9 +65,8 @@ class UI(metaclass=Singleton):
         self.timer = Timer()
         self.timer.record()
 
+    @timeit()
     def draw(self, dt, swaptime, controltime, updatetime, rmupdatetime):
-        self.timer.reset()
-
         self.implementation.process_inputs()
 
         imgui.new_frame()
@@ -94,8 +94,6 @@ class UI(metaclass=Singleton):
 
         imgui.render()
         self.implementation.render(imgui.get_draw_data())
-
-        self.timer.record()
         
     def _setup_style(self):
         style = imgui.get_style()

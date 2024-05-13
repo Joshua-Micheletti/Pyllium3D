@@ -1,4 +1,6 @@
 import glfw
+import time
+from icecream import ic
 
 # class to implement a timer
 class Timer():
@@ -43,5 +45,25 @@ class Timer():
 
     def get_last_record(self, target = "default"):
         return(self.laps[target][-1])
+
+def timeit(*wrap_args, **wrap_kwargs):
+    def timeit_decorator(func):
+        def timeit_wrapper(*args, **kwargs):
+            ref = args[0]
+            
+            if ref is not None and 'timer' in dir(ref):
+                ref.timer.reset()
+                result = func(*args, **kwargs)
+                ref.timer.record()
+                return result
+            else:
+                start_time = time.perf_counter()
+                result = func(*args, **kwargs)
+                end_time = time.perf_counter()
+                total_time = end_time - start_time
+                print(f'{func.__name__} Took {total_time:.4f} seconds')
+                return result
+        return timeit_wrapper
+    return timeit_decorator
 
 

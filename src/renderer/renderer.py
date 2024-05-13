@@ -1,3 +1,4 @@
+import renderer
 from utils import Singleton
 from OpenGL.GL import *
 import numpy as np
@@ -7,6 +8,7 @@ import glfw
 
 from utils import Timer
 from renderer.renderer_manager import RendererManager
+from utils import timeit
 
 # class to render 3D models
 class Renderer(metaclass=Singleton):
@@ -86,11 +88,10 @@ class Renderer(metaclass=Singleton):
 
     # ---------------------------- Render methods ---------------------------
     # method to render the 3D models
+    @timeit()
     def render(self) -> None:
         """Renders the scene
         """
-        # reset the timer
-        self.timer.reset()
 
         # reference to the renderer manager
         rm: RendererManager = RendererManager()
@@ -147,9 +148,6 @@ class Renderer(metaclass=Singleton):
         # if we're profiling the performance, get the opengl time queries
         if rm.render_states["profile"]:
             self._calculate_render_times()
-
-        # record the time it took to render in the timer
-        self.timer.record()
         
     # method to render the models to the render framebuffer
     def _render_models(self) -> None:
