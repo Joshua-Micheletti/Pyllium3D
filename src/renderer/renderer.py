@@ -7,7 +7,7 @@ from glm import vec3
 import glfw
 
 from utils import Timer
-from renderer.renderer_manager import RendererManager
+from renderer.renderer_manager.renderer_manager import RendererManager
 from utils import timeit
 
 # class to render 3D models
@@ -88,7 +88,7 @@ class Renderer(metaclass=Singleton):
 
     # ---------------------------- Render methods ---------------------------
     # method to render the 3D models
-    @timeit()
+    @timeit(print=False)
     def render(self) -> None:
         """Renders the scene
         """

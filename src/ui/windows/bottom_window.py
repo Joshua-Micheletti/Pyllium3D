@@ -1,7 +1,7 @@
 import imgui
 
 from window import Window
-from renderer.renderer_manager import RendererManager
+from renderer.renderer_manager.renderer_manager import RendererManager
 from ui.components import MeshTab
 from ui.components import MaterialTab
 from ui.components import ShaderTab

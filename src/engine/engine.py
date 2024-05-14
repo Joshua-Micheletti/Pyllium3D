@@ -1,5 +1,5 @@
 from utils import Singleton
-from renderer.renderer_manager import RendererManager
+from renderer.renderer_manager.renderer_manager import RendererManager
 from physics.physics_world import PhysicsWorld
 
 

@@ -3,7 +3,7 @@ from array import array
 
 from window import Window
 from renderer.renderer import Renderer
-from renderer.renderer_manager import RendererManager
+from renderer.renderer_manager.renderer_manager import RendererManager
 
 from ui.windows.resizable_window import ResizableWindow
 from ui.components import Graph

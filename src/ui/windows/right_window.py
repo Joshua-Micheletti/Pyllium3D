@@ -2,7 +2,7 @@ import imgui
 import glfw
 
 from window import Window
-from renderer.renderer_manager import RendererManager
+from renderer.renderer_manager.renderer_manager import RendererManager
 
 from ui.components import Transformation
 from ui.components import Components

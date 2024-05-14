@@ -1,4 +1,4 @@
-from renderer.renderer_manager import RendererManager
+from renderer.renderer_manager.renderer_manager import RendererManager
 from physics.physics_world import PhysicsWorld
 from engine.engine import Engine
 import glm

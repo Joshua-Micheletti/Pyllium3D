@@ -12,7 +12,7 @@ from utils import Timer
 from window import Window
 
 # renderer manager
-from renderer.renderer_manager import RendererManager
+from renderer.renderer_manager.renderer_manager import RendererManager
 
 # renderer
 from renderer.renderer import Renderer

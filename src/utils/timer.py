@@ -2,6 +2,7 @@ import glfw
 import time
 from icecream import ic
 from utils.messages import *
+from utils.colors import colors
 
 # class to implement a timer
 class Timer():
@@ -52,18 +53,29 @@ def timeit(*wrap_args, **wrap_kwargs):
         def timeit_wrapper(*args, **kwargs):
             ref = args[0]
             
-            if ref is not None and 'timer' in dir(ref):
+            should_timer = ref is not None and 'timer' in dir(ref)
+            should_print = wrap_kwargs.get('print', True)
+            
+            if should_timer:
                 ref.timer.reset()
-                result = func(*args, **kwargs)
+            start_time = time.perf_counter()
+            
+            result = func(*args, **kwargs)
+            
+            end_time = time.perf_counter()
+            if should_timer:
                 ref.timer.record()
-                return result
-            else:
-                start_time = time.perf_counter()
-                result = func(*args, **kwargs)
-                end_time = time.perf_counter()
+            
+            if should_print:                
                 total_time = end_time - start_time
-                print_success(f'{ref.__class__.__name__} {func.__name__} {total_time:.2f}s')
-                return result
+                
+                print_time(
+                    f'{colors.OKBLUE + "Class" + colors.ENDC + ": " + ref.__class__.__name__ + " " if ref.__class__.__name__ else ""}' +
+                    f'{colors.OKGREEN + "Function" + colors.ENDC + ": " + func.__name__} ' + 
+                    f'{colors.WARNING}Time{colors.ENDC}: {total_time:.2f}s'
+                )
+                
+            return result
         return timeit_wrapper
     return timeit_decorator
 

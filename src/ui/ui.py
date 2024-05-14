@@ -65,7 +65,7 @@ class UI(metaclass=Singleton):
         self.timer = Timer()
         self.timer.record()
 
-    @timeit()
+    @timeit(print=False)
     def draw(self, dt, swaptime, controltime, updatetime, rmupdatetime):
         self.implementation.process_inputs()
 

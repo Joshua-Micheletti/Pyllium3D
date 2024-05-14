@@ -1,6 +1,6 @@
 import imgui
 
-from renderer.renderer_manager import RendererManager
+from renderer.renderer_manager.renderer_manager import RendererManager
 
 class MaterialTab:
     def __init__(self):

@@ -7,12 +7,14 @@ from icecream import ic
 from utils import Singleton
 from utils import messages
 from utils import Config
+from utils import timeit
 from controller.controller import Controller
 
 class Window(metaclass=Singleton):
     """Class that creates and handles all things regarding the window object
     """
     
+    @timeit()
     def __init__(
         self,
         width: int = None,

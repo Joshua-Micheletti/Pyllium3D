@@ -1,33 +1,14 @@
 # class that represents the model to be rendered
+from dataclasses import dataclass, field
+
+@dataclass
 class Model:
-    # constructor method
-    def __init__(self, name = "", mesh = "default", texture = "default", shader = "default", material = "default"):
-        if len(name) != 0:
-            self.name = name
-        else:
-            self.name = None
-
-        if len(mesh) != 0:
-            self.mesh = mesh
-        else:
-            self.mesh = None
-        
-        if len(texture) != 0:
-            self.texture = texture
-        else:
-            self.texture = None
-        
-        if len(shader) != 0:
-            self.shader = shader
-        else:
-            self.shader = None
-
-        if len(material) != 0:
-            self.material = material
-        else:
-            self.material = None
-
-        self.in_instance = ""
+    name: str
+    mesh: str = field(default="default")
+    texture: str = field(default="default")
+    shader: str = field(default="default")
+    material: str = field(default="default")
+    in_instance: str = field(default="")
 
         
         

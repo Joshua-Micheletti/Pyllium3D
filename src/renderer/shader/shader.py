@@ -6,7 +6,8 @@ from utils import *
 # class to represent a shader object
 class Shader:
     # constructor method, takes the path of the vertex and fragment shaders
-    def __init__(self, vert_path, frag_path, geom_path = ""):
+    @timeit()
+    def __init__(self, vert_path, frag_path, geom_path = "") -> None:
         self.vertex_path = vert_path
         self.frag_path = frag_path
         self.geom_path = geom_path
@@ -46,8 +47,10 @@ class Shader:
         self._check_uniforms()
 
         print_success(f"Compiled shader:  {shader_name_components[0]}")
+     
+    def __str__(self) -> str:
+        return()
 
-        
     def compile(self):
         path_components = self.vertex_path.split("/")
         shader_name_components = path_components[-1].split(".")
