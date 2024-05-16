@@ -1,1 +1,2 @@
 from renderer.renderer_manager.renderer_manager import RendererManager
+from icecream import ic

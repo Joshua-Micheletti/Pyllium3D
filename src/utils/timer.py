@@ -3,6 +3,7 @@ import time
 from icecream import ic
 from utils.messages import *
 from utils.colors import colors
+import re
 
 # class to implement a timer
 class Timer():
@@ -53,8 +54,16 @@ def timeit(*wrap_args, **wrap_kwargs):
         def timeit_wrapper(*args, **kwargs):
             ref = args[0]
             
+            info_to_print = ''
+            
             should_timer = ref is not None and 'timer' in dir(ref)
             should_print = wrap_kwargs.get('print', True)
+            
+            if wrap_kwargs.get('info', False):
+                if len(info_to_print) == 0:
+                    info_to_print += f'{colors.GREY}Info{colors.ENDC}: '
+                
+                info_to_print += ref.__str__()             
             
             if should_timer:
                 ref.timer.reset()
@@ -66,13 +75,20 @@ def timeit(*wrap_args, **wrap_kwargs):
             if should_timer:
                 ref.timer.record()
             
-            if should_print:                
+            if should_print:
                 total_time = end_time - start_time
                 
+                args = list(args)
+                
+                for index, arg in enumerate(args):
+                    if isinstance(arg, str) and re.search('\.{0,1}(\/[a-z-_]*)*\.[a-z]{1}[a-z]*', arg):
+                        args[index] = arg.split('/')[-1]
+                
                 print_time(
-                    f'{colors.OKBLUE + "Class" + colors.ENDC + ": " + ref.__class__.__name__ + " " if ref.__class__.__name__ else ""}' +
-                    f'{colors.OKGREEN + "Function" + colors.ENDC + ": " + func.__name__} ' + 
-                    f'{colors.WARNING}Time{colors.ENDC}: {total_time:.2f}s'
+                    (f'{colors.GREY}Class{colors.ENDC}: {ref.__class__.__name__} ' if ref.__class__.__name__ else "") +
+                    f'{colors.GREY}Function{colors.ENDC}: {func.__name__}({args}, {kwargs}) ' + 
+                    f'{colors.GREY}Time{colors.ENDC}: {total_time:.4f}s '
+                    # (f'{colors.GREY}Info{colors.ENDC}: {ref.__str__()}' if should_print_info else '')
                 )
                 
             return result

@@ -121,6 +121,9 @@ class Window(metaclass=Singleton):
         # disable the cursor above the window
         glfw.set_input_mode(self.window, glfw.CURSOR, glfw.CURSOR_DISABLED)
 
+    def __repr__(self) -> str:
+        return('Window obj')
+
     def get_ogl_matrix(self):
         return(glm.value_ptr(self.projection_matrix))
 

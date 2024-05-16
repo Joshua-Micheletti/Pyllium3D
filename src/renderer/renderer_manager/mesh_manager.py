@@ -6,7 +6,6 @@ from OpenGL.GL import *
 import json
 
 def new_mesh(self, name, file_path):
-    timer = Timer()
     # empty lists to contain the vertices data taken from the file
     formatted_vertices = []
     formatted_normals = []
@@ -95,13 +94,8 @@ def new_mesh(self, name, file_path):
     # pass the data for the element array buffer of indices
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.ebos[name])
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
-
-    print_info("Created mesh: " + name + " in " + str(round(timer.elapsed() / 1000, 2)) + "s")
     
 def new_json_mesh(self, name, file_path):
-    # time the load time
-    timer = Timer()
-
     # open the json model
     f = open(file_path, "r")
     data = json.load(f)
@@ -164,5 +158,3 @@ def new_json_mesh(self, name, file_path):
 
     self.bounding_sphere_radius[name] = max_distance
     self.bounding_sphere_center[name] = center
-
-    print_info("Created mesh: " + name + " in " + str(round(timer.elapsed() / 1000, 2)) + "s")

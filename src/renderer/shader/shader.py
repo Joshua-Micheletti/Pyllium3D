@@ -14,8 +14,8 @@ class Shader:
 
         path_components = vert_path.split("/")
 
-        shader_name_components = path_components[-1].split(".")
-        print_info(f"Compiling shader: {shader_name_components[0]}")
+        self.name = path_components[-1].split(".")[0]
+        # print_info(f"Compiling shader: {shader_name_components[0]}")
 
         # open the vertex shader file and store its content
         f = open(vert_path)
@@ -46,10 +46,13 @@ class Shader:
         # check for uniforms in the shader
         self._check_uniforms()
 
-        print_success(f"Compiled shader:  {shader_name_components[0]}")
+        # print_success(f"Compiled shader:  {shader_name_components[0]}")
      
     def __str__(self) -> str:
-        return()
+        return(self.name)
+    
+    def __repr__(self) -> str:
+        return("Shader obj")
 
     def compile(self):
         path_components = self.vertex_path.split("/")
