@@ -21,10 +21,10 @@ class Timer():
 
         # print the time if it's instructed
         if should_print:
-            print(f"Time: {round(dt, 2)}")
+            print(f"Time: {round(dt, 4)}")
         if should_print_fps:
             if dt != 0:
-                print(f"FPS: {round(1000 / dt, 2)}")
+                print(f"FPS: {round(1000 / dt, 4)}")
 
         # return the elapsed time
         return(dt)
@@ -52,7 +52,10 @@ class Timer():
 def timeit(*wrap_args, **wrap_kwargs):
     def timeit_decorator(func):
         def timeit_wrapper(*args, **kwargs):
-            ref = args[0]
+            if args:
+                ref = args[0]
+            else:
+                ref = None
             
             info_to_print = ''
             
@@ -85,7 +88,7 @@ def timeit(*wrap_args, **wrap_kwargs):
                         args[index] = arg.split('/')[-1]
                 
                 print_time(
-                    (f'{colors.GREY}Class{colors.ENDC}: {ref.__class__.__name__} ' if ref.__class__.__name__ else "") +
+                    (f'{colors.GREY}Class{colors.ENDC}: {ref.__class__.__name__} ' if ref.__class__.__name__ != "NoneType" else "") +
                     f'{colors.GREY}Function{colors.ENDC}: {func.__name__}({args}, {kwargs}) ' + 
                     f'{colors.GREY}Time{colors.ENDC}: {total_time:.4f}s '
                     # (f'{colors.GREY}Info{colors.ENDC}: {ref.__str__()}' if should_print_info else '')

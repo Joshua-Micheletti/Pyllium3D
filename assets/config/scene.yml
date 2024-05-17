@@ -1,0 +1,11 @@
+meshes:
+  gally: "assets/models/default/gally.json"
+  box: "assets/models/default/box.json"
+  quad: "assets/models/default/quad.json"
+  sphere: "assets/models/default/sphere.json"
+  sphere_low: "assets/models/default/sphere_low.json"
+
+models:
+  test:
+    mesh: "sphere_low"
+    shader: "pbr"

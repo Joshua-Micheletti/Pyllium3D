@@ -6,3 +6,4 @@ from utils.messages import *
 from utils.singleton import *
 from utils.vbo_indexer import *
 from utils.config import Config
+from utils.profiler import *
