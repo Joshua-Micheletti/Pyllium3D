@@ -10,31 +10,26 @@ from utils import Timer
 from utils import *
 from utils import Config
 
+
 @timeit()
 def setup():
     scene = Config().scene
-    
-    ic(scene)
-    
+
+    # ic(scene)
+
     rm = RendererManager()
     pw = PhysicsWorld()
     engine = Engine()
-    
-    rm.new_json_mesh("gally", "assets/models/default/gally.json")
-    rm.new_json_mesh("box", "assets/models/default/box.json")
-    rm.new_json_mesh("quad", "assets/models/default/quad.json")
-    rm.new_json_mesh("sphere", "assets/models/default/sphere.json")
-    rm.new_json_mesh("sphere_low", "assets/models/default/sphere_low.json")
 
-    
-    rm.new_model("test", mesh="sphere", shader="pbr")
+    _initialize_meshes(rm)
+    _initialize_textures(rm)
+    _initialize_materials(rm)
+    _initialize_models(rm)
 
-    # rm.new_texture("test", "assets/textures/uv-maptemplate.png")
     # rm.new_model("light", mesh="sphere_low", shader="white")
-    # rm.new_model("sun", mesh="sphere_low", shader="white")
 
     # rm.new_model("test", mesh="sphere", shader="pbr")
-    
+
     # rm.new_material("white", *(0.2, 0.2, 0.2), *(0.4, 0.4, 0.4), *(0.8, 0.8, 0.8), 4.0)
     # rm.new_material("full_white", *(1.0, 1.0, 1.0), *(1.0, 1.0, 1.0), *(1.0, 1.0, 1.0), 4.0, 0.2, 0.0)
 
@@ -48,7 +43,6 @@ def setup():
     # rm.new_light("light_1", (0, 0, 0), (1, 0, 0), 8)
     # rm.new_light("light_2", (0, 0, 0), (0, 1, 0), 8)
     # rm.new_light("light_3", (0, 0, 0), (0, 0, 1), 8)
-    
 
     # rm.new_material("red_wall",   1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 128)
     # rm.new_material("green_wall", 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 128)
@@ -82,7 +76,7 @@ def setup():
     #                         random.uniform(1, 256),
     #                         random.uniform(0, 1),
     #                         random.uniform(0, 1))
-            
+
     #         rm.new_model("entity_box" + str(i * 10 + j), mesh="box", shader="pbr", material="color_box" + str(i * 10 + j))
     #         rm.scale("entity_box" + str(i * 10 + j), 0.5, 0.5, 0.5)
     #         rm.place(name, (random.random() - 0.5) * distance, (random.random() + 0.1) * distance, (random.random() - 0.5) * distance)
@@ -93,7 +87,7 @@ def setup():
     #         # if i * 10 + j % 2 == 0:
     #         #     # rm.instances["colored_boxes"].models_to_render.append(name)
     #         #     rm.set_model_to_render_in_instance(name, "colored_boxes")
-    
+
     # rm.update()
     # rm.set_models_in_instance(entities, "colored_boxes")
 
@@ -104,7 +98,8 @@ def setup():
     # pw.new_body("floor", "plane", 0.0, orientation=[0, 0.707, -0.707, 0.0])
     # engine.create_link("floor", "floor")
 
-def update(dt):
+
+def update(dt: float) -> None:
     rm = RendererManager()
     time = dt / 1000.0
 
@@ -128,6 +123,127 @@ def update(dt):
     # rm.place_light("light_1", *rm.positions["light_1"])
     # rm.place_light("light_2", *rm.positions["light_2"])
     # rm.place_light("light_3", *rm.positions["light_3"])
-    # rm.place_light("sun", *rm.positions["sun"])
+    rm.place_light("sun", *rm.positions["sun"])
     # rm.place_light("light", *rm.positions["light"])
     # rm.place_light("moon", *rm.positions["moon"])
+
+
+def _initialize_meshes(rm: RendererManager) -> None:
+    rm.new_json_mesh("gally", "assets/models/default/gally.json")
+    rm.new_json_mesh("box", "assets/models/default/box.json")
+    rm.new_json_mesh("quad", "assets/models/default/quad.json")
+    rm.new_json_mesh("sphere", "assets/models/default/sphere.json")
+    rm.new_json_mesh("sphere_low", "assets/models/default/sphere_low.json")
+
+
+def _initialize_textures(rm: RendererManager) -> None:
+    rm.new_texture("test", "assets/textures/uv-maptemplate.png")
+
+
+def _initialize_materials(rm: RendererManager) -> None:
+    rm.new_material("rough_white", roughness=0.9, metallic=0.1)
+
+    rm.new_material(
+        "rough_red",
+        diffuse_r=1.0,
+        diffuse_g=0.0,
+        diffuse_b=0.0,
+        roughness=0.9,
+        metallic=0.1,
+    )
+
+    rm.new_material(
+        "rough_green",
+        diffuse_r=0.0,
+        diffuse_g=1.0,
+        diffuse_b=0.0,
+        roughness=0.9,
+        metallic=0.1,
+    )
+
+    rm.new_material(
+        "rough_blue",
+        diffuse_r=0.0,
+        diffuse_g=0.0,
+        diffuse_b=1.0,
+        roughness=0.9,
+        metallic=0.1,
+    )
+
+    rm.new_material("red", diffuse_r=1.0, diffuse_g=0.0, diffuse_b=0.0)
+
+    rm.new_material("green", diffuse_r=0.0, diffuse_g=1.0, diffuse_b=0.0)
+
+    rm.new_material("blue", diffuse_r=0.0, diffuse_g=0.0, diffuse_b=1.0)
+
+    rm.new_material(
+        "shiny_red",
+        diffuse_r=1.0,
+        diffuse_g=0.0,
+        diffuse_b=0.0,
+        roughness=0.1,
+        metallic=0.9,
+    )
+
+    rm.new_material(
+        "shiny_green",
+        diffuse_r=0.0,
+        diffuse_g=1.0,
+        diffuse_b=0.0,
+        roughness=0.1,
+        metallic=0.9,
+    )
+
+    rm.new_material(
+        "shiny_blue",
+        diffuse_r=0.0,
+        diffuse_g=0.0,
+        diffuse_b=1.0,
+        roughness=0.1,
+        metallic=0.9,
+    )
+
+    rm.new_material("shiny", roughness=0.05, metallic=0.95)
+
+
+def _initialize_models(rm: RendererManager) -> None:
+    test_mesh = "sphere"
+
+    rm.new_model("sphere_rough_red", mesh=test_mesh, shader="pbr", material="rough_red")
+    rm.new_model(
+        "sphere_rough_green", mesh=test_mesh, shader="pbr", material="rough_green"
+    )
+    rm.new_model(
+        "sphere_rough_blue", mesh=test_mesh, shader="pbr", material="rough_blue"
+    )
+    rm.new_model("sphere_red", mesh=test_mesh, shader="pbr", material="red")
+    rm.new_model("sphere_green", mesh=test_mesh, shader="pbr", material="green")
+    rm.new_model("sphere_blue", mesh=test_mesh, shader="pbr", material="blue")
+    rm.new_model("sphere_shiny_red", mesh=test_mesh, shader="pbr", material="shiny_red")
+    rm.new_model(
+        "sphere_shiny_green", mesh=test_mesh, shader="pbr", material="shiny_green"
+    )
+    rm.new_model(
+        "sphere_shiny_blue", mesh=test_mesh, shader="pbr", material="shiny_blue"
+    )
+
+    rm.move("sphere_rough_red",  -1.1, 0, 0)
+    rm.move("sphere_rough_green", 0, 0, 0)
+    rm.move("sphere_rough_blue",  1.1, 0, 0)
+    
+    rm.move("sphere_red",  -1.1, 1.1, 0)
+    rm.move("sphere_green", 0, 1.1, 0)
+    rm.move("sphere_blue",  1.1, 1.1, 0)
+    
+    rm.move("sphere_shiny_red",  -1.1, 2.2, 0)
+    rm.move("sphere_shiny_green", 0, 2.2, 0)
+    rm.move("sphere_shiny_blue",  1.1, 2.2, 0)
+
+    rm.new_model("floor", mesh="quad", shader="pbr", material="rough_white")
+    rm.new_model("sun", mesh="sphere_low", shader="white")
+
+    rm.rotate("floor", -90, 0, 0)
+    rm.move("floor", 0, -1, 0)
+    rm.scale("floor", 20, 20, 1)
+    
+    rm.move("sun", 3, 10, 3)

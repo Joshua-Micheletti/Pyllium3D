@@ -19,9 +19,7 @@ from renderer.material.material import Material
 from renderer.shader.shader import Shader
 from renderer.camera.camera import Camera
 
-from renderer.renderer_manager import light_manager, mesh_manager
-from renderer.renderer_manager import model_manager
-from renderer.renderer_manager import instance_manager
+from renderer.renderer_manager.managers import *
 
 
 # method to setup and handle all the required data for the renderer
@@ -32,7 +30,6 @@ class RendererManager(metaclass=Singleton):
     def __init__(self) -> None:
         """Method to initialize the RendererManager object"""
         # ============================= FIELDS SETUP =============================
-
         # ----------------------------- Rendering parameters -----------------------------
         # fields for screen dimensions
         self.width: int = 800
@@ -248,7 +245,7 @@ class RendererManager(metaclass=Singleton):
 
         # creation of a light source object (just a position for now)
         self.new_light("sun", (0, 100, 0), (1, 1, 1), 30)
-        self.new_light("main", light_strength=8)
+        self.new_light("main", light_strength=0)
 
         self.center_cubemap_views = []
 
@@ -475,11 +472,11 @@ class RendererManager(metaclass=Singleton):
     # method to create a new light
     def new_light(
         self,
-        name,
-        light_position=(0.0, 0.0, 0.0),
-        light_color=(1.0, 1.0, 1.0),
-        light_strength=8.0,
-    ):
+        name: str,
+        light_position: tuple[float, float, float] = (0.0, 0.0, 0.0),
+        light_color: tuple[float, float, float] = (1.0, 1.0, 1.0),
+        light_strength: float = 8.0,
+    ) -> None:
         light_manager.new_light(self, name, light_position, light_color, light_strength)
 
     # method to generate a new texture (needs double checking if it's correct)

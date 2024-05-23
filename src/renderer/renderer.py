@@ -11,6 +11,8 @@ from renderer.renderer_manager.renderer_manager import RendererManager
 from utils import timeit
 from utils import profile
 
+from icecream import ic
+
 
 # class to render 3D models
 class Renderer(metaclass=Singleton):
