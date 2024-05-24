@@ -128,6 +128,7 @@ def update(dt: float) -> None:
     # rm.place_light("moon", *rm.positions["moon"])
 
 
+
 def _initialize_meshes(rm: RendererManager) -> None:
     rm.new_json_mesh("gally", "assets/models/default/gally.json")
     rm.new_json_mesh("box", "assets/models/default/box.json")
@@ -141,8 +142,13 @@ def _initialize_textures(rm: RendererManager) -> None:
 
 
 def _initialize_materials(rm: RendererManager) -> None:
+    # rough_white
     rm.new_material("rough_white", roughness=0.9, metallic=0.1)
-
+    # white
+    rm.new_material("white")
+    # shiny_white
+    rm.new_material("shiny_white", roughness=0.05, metallic=0.95)
+    # rough_red
     rm.new_material(
         "rough_red",
         diffuse_r=1.0,
@@ -151,7 +157,7 @@ def _initialize_materials(rm: RendererManager) -> None:
         roughness=0.9,
         metallic=0.1,
     )
-
+    # rough_green
     rm.new_material(
         "rough_green",
         diffuse_r=0.0,
@@ -160,7 +166,7 @@ def _initialize_materials(rm: RendererManager) -> None:
         roughness=0.9,
         metallic=0.1,
     )
-
+    # rough_blue
     rm.new_material(
         "rough_blue",
         diffuse_r=0.0,
@@ -169,13 +175,13 @@ def _initialize_materials(rm: RendererManager) -> None:
         roughness=0.9,
         metallic=0.1,
     )
-
+    # red
     rm.new_material("red", diffuse_r=1.0, diffuse_g=0.0, diffuse_b=0.0)
-
+    # green
     rm.new_material("green", diffuse_r=0.0, diffuse_g=1.0, diffuse_b=0.0)
-
+    # blue
     rm.new_material("blue", diffuse_r=0.0, diffuse_g=0.0, diffuse_b=1.0)
-
+    # shiny_red
     rm.new_material(
         "shiny_red",
         diffuse_r=1.0,
@@ -184,7 +190,7 @@ def _initialize_materials(rm: RendererManager) -> None:
         roughness=0.1,
         metallic=0.9,
     )
-
+    # shiny_green
     rm.new_material(
         "shiny_green",
         diffuse_r=0.0,
@@ -193,7 +199,7 @@ def _initialize_materials(rm: RendererManager) -> None:
         roughness=0.1,
         metallic=0.9,
     )
-
+    # shiny_blue
     rm.new_material(
         "shiny_blue",
         diffuse_r=0.0,
@@ -203,41 +209,84 @@ def _initialize_materials(rm: RendererManager) -> None:
         metallic=0.9,
     )
 
-    rm.new_material("shiny", roughness=0.05, metallic=0.95)
-
 
 def _initialize_models(rm: RendererManager) -> None:
-    test_mesh = "sphere"
-
-    rm.new_model("sphere_rough_red", mesh=test_mesh, shader="pbr", material="rough_red")
-    rm.new_model(
-        "sphere_rough_green", mesh=test_mesh, shader="pbr", material="rough_green"
-    )
-    rm.new_model(
-        "sphere_rough_blue", mesh=test_mesh, shader="pbr", material="rough_blue"
-    )
-    rm.new_model("sphere_red", mesh=test_mesh, shader="pbr", material="red")
-    rm.new_model("sphere_green", mesh=test_mesh, shader="pbr", material="green")
-    rm.new_model("sphere_blue", mesh=test_mesh, shader="pbr", material="blue")
-    rm.new_model("sphere_shiny_red", mesh=test_mesh, shader="pbr", material="shiny_red")
-    rm.new_model(
-        "sphere_shiny_green", mesh=test_mesh, shader="pbr", material="shiny_green"
-    )
-    rm.new_model(
-        "sphere_shiny_blue", mesh=test_mesh, shader="pbr", material="shiny_blue"
-    )
-
-    rm.move("sphere_rough_red",  -1.1, 0, 0)
-    rm.move("sphere_rough_green", 0, 0, 0)
-    rm.move("sphere_rough_blue",  1.1, 0, 0)
+    test_mesh = "box"
+    test_shader = "pbr"
     
-    rm.move("sphere_red",  -1.1, 1.1, 0)
-    rm.move("sphere_green", 0, 1.1, 0)
-    rm.move("sphere_blue",  1.1, 1.1, 0)
+    instance_entities = []
     
-    rm.move("sphere_shiny_red",  -1.1, 2.2, 0)
-    rm.move("sphere_shiny_green", 0, 2.2, 0)
-    rm.move("sphere_shiny_blue",  1.1, 2.2, 0)
+    rm.new_instance("instance", "sphere", "pbr_instanced")
+
+    # sphere_rough_white
+    rm.new_model(
+        "sphere_rough_white", mesh=test_mesh, shader=test_shader, material="rough_white"
+    )
+    instance_entities.append("sphere_rough_white")
+    # sphere_rough_red
+    rm.new_model(
+        "sphere_rough_red", mesh=test_mesh, shader=test_shader, material="rough_red"
+    )
+    instance_entities.append("sphere_rough_red")
+    # sphere_rough_green
+    rm.new_model(
+        "sphere_rough_green", mesh=test_mesh, shader=test_shader, material="rough_green"
+    )
+    instance_entities.append("sphere_rough_green")
+    # sphere_rough_blue
+    rm.new_model(
+        "sphere_rough_blue", mesh=test_mesh, shader=test_shader, material="rough_blue"
+    )
+    instance_entities.append("sphere_rough_blue")
+
+    # sphere_white
+    rm.new_model("sphere_white", mesh=test_mesh, shader=test_shader, material="white")
+    instance_entities.append("sphere_white")
+    # sphere_red
+    rm.new_model("sphere_red", mesh=test_mesh, shader=test_shader, material="red")
+    instance_entities.append("sphere_red")
+    # sphere_green
+    rm.new_model("sphere_green", mesh=test_mesh, shader=test_shader, material="green")
+    instance_entities.append("sphere_green")
+    # sphere_blue
+    rm.new_model("sphere_blue", mesh=test_mesh, shader=test_shader, material="blue")
+    instance_entities.append("sphere_blue")
+
+    # sphere_shiny_white
+    rm.new_model(
+        "sphere_shiny_white", mesh=test_mesh, shader=test_shader, material="shiny_white"
+    )
+    instance_entities.append("sphere_shiny_white")
+    # sphere_shiny_red
+    rm.new_model(
+        "sphere_shiny_red", mesh=test_mesh, shader=test_shader, material="shiny_red"
+    )
+    instance_entities.append("sphere_shiny_red")
+    # sphere_shiny_green
+    rm.new_model(
+        "sphere_shiny_green", mesh=test_mesh, shader=test_shader, material="shiny_green"
+    )
+    instance_entities.append("sphere_shiny_green")
+    # sphere_shiny_blue
+    rm.new_model(
+        "sphere_shiny_blue", mesh=test_mesh, shader=test_shader, material="shiny_blue"
+    )
+    instance_entities.append("sphere_shiny_blue")
+
+    rm.move("sphere_rough_white", -4, 0, 0)
+    rm.move("sphere_rough_red", -1.333, 0, 0)
+    rm.move("sphere_rough_green", 1.333, 0, 0)
+    rm.move("sphere_rough_blue", 4, 0, 0)
+
+    rm.move("sphere_white", -4, 2.666, 0)
+    rm.move("sphere_red", -1.333, 2.666, 0)
+    rm.move("sphere_green", 1.333, 2.666, 0)
+    rm.move("sphere_blue", 4, 2.666, 0)
+
+    rm.move("sphere_shiny_white", -4, 5.333, 0)
+    rm.move("sphere_shiny_red", -1.333, 5.333, 0)
+    rm.move("sphere_shiny_green", 1.333, 5.333, 0)
+    rm.move("sphere_shiny_blue", 4, 5.333, 0)
 
     rm.new_model("floor", mesh="quad", shader="pbr", material="rough_white")
     rm.new_model("sun", mesh="sphere_low", shader="white")
@@ -245,5 +294,8 @@ def _initialize_models(rm: RendererManager) -> None:
     rm.rotate("floor", -90, 0, 0)
     rm.move("floor", 0, -1, 0)
     rm.scale("floor", 20, 20, 1)
-    
+
     rm.move("sun", 3, 10, 3)
+    
+    rm.update()
+    # rm.set_models_in_instance(instance_entities, "instance")

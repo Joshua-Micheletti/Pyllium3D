@@ -50,7 +50,7 @@ class RendererManager(metaclass=Singleton):
         self.render_states = dict()
         self.render_states["depth_of_field"] = True
         self.render_states["post_processing"] = True
-        self.render_states["shadow_map"] = False
+        self.render_states["shadow_map"] = True
         self.render_states["bloom"] = True
         self.render_states["profile"] = True
 
@@ -154,10 +154,10 @@ class RendererManager(metaclass=Singleton):
         skybox_path = "assets/textures/skybox/"
         # method to setup the skybox data
         # self._setup_skybox("./assets/textures/skybox/Epic_BlueSunset/")
-        # self._setup_skybox(skybox_path + "/hdri/alien.png")
+        self._setup_skybox(skybox_path + "/hdri/alien.png")
         # self._setup_skybox("assets/textures/skybox/test/")
         # self._setup_skybox("assets/textures/skybox/hdri/milkyway.png")
-        self._setup_skybox(skybox_path + "hdri/fairytail_garden.jpeg")
+        # self._setup_skybox(skybox_path + "hdri/fairytail_garden.jpeg")
         # self._setup_skybox(skybox_path + "hdri/autumn_forest.jpg")
 
         # self._expand_equirectangular_map_to_cubemap("assets/textures/alien/skybox.png")
@@ -240,7 +240,7 @@ class RendererManager(metaclass=Singleton):
             float(self.width) / float(self.height), glm.radians(self.fov), 0.1, 10000.0
         )
 
-        self.camera.place(9, 16, 0)
+        self.camera.place(0, 2, 5)
         # self.camera.turn(-90, -45)
 
         # creation of a light source object (just a position for now)
