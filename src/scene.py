@@ -24,7 +24,11 @@ def setup():
     _initialize_meshes(rm)
     _initialize_textures(rm)
     _initialize_materials(rm)
-    _initialize_models(rm)
+    _initialize_models(rm, pw, engine)
+
+
+    # rm.new_model("sun", mesh="sphere_low", shader="white")
+    # count = 100
 
     # rm.new_model("light", mesh="sphere_low", shader="white")
 
@@ -93,7 +97,7 @@ def setup():
 
     # engine = Engine()
 
-    # engine.create_link("sphere", "light")
+    # # engine.create_link("sphere", "light")
 
     # pw.new_body("floor", "plane", 0.0, orientation=[0, 0.707, -0.707, 0.0])
     # engine.create_link("floor", "floor")
@@ -210,8 +214,8 @@ def _initialize_materials(rm: RendererManager) -> None:
     )
 
 
-def _initialize_models(rm: RendererManager) -> None:
-    test_mesh = "box"
+def _initialize_models(rm: RendererManager, pw: PhysicsWorld, engine: Engine) -> None:
+    test_mesh = "sphere"
     test_shader = "pbr"
     
     instance_entities = []
@@ -273,20 +277,66 @@ def _initialize_models(rm: RendererManager) -> None:
     )
     instance_entities.append("sphere_shiny_blue")
 
-    rm.move("sphere_rough_white", -4, 0, 0)
-    rm.move("sphere_rough_red", -1.333, 0, 0)
-    rm.move("sphere_rough_green", 1.333, 0, 0)
-    rm.move("sphere_rough_blue", 4, 0, 0)
+    rm.move("sphere_rough_white", -4, 5, 0)
+    rm.scale("sphere_rough_white", 2, 2, 2)
+    pw.new_body("p_sphere_rough_white", shape="sphere", position=[-4, 5, 0], mass=1)
+    engine.create_link("p_sphere_rough_white", "sphere_rough_white")
+    
+    rm.move("sphere_rough_red", -1.333, 5, 0)
+    rm.scale("sphere_rough_red", 2, 2, 2)
+    pw.new_body("p_sphere_rough_red", shape="sphere", position=[-1.333, 5, 0], mass=1)
+    engine.create_link("p_sphere_rough_red", "sphere_rough_red")
+    
+    rm.move("sphere_rough_green", 1.333, 5, 0)
+    rm.scale("sphere_rough_green", 2, 2, 2)
+    pw.new_body("p_sphere_rough_green", shape="sphere", position=[1.333, 5, 0], mass=1)
+    engine.create_link("p_sphere_rough_green", "sphere_rough_green")
+    
+    rm.move("sphere_rough_blue", 4, 5, 0)
+    rm.scale("sphere_rough_blue", 2, 2, 2)
+    pw.new_body("p_sphere_rough_blue", shape="sphere", position=[4, 5, 0], mass=1)
+    engine.create_link("p_sphere_rough_blue", "sphere_rough_blue")
 
-    rm.move("sphere_white", -4, 2.666, 0)
-    rm.move("sphere_red", -1.333, 2.666, 0)
-    rm.move("sphere_green", 1.333, 2.666, 0)
-    rm.move("sphere_blue", 4, 2.666, 0)
+    rm.move("sphere_white", -4.01, 7, 0.01)
+    rm.scale("sphere_white", 2, 2, 2)
+    pw.new_body("p_sphere_white", shape="sphere", position=[-4.01, 7, 0.01], mass=1)
+    engine.create_link("p_sphere_white", "sphere_white")
+    
+    rm.move("sphere_red", -1.3334, 7, 0.01)
+    rm.scale("sphere_red", 2, 2, 2)
+    pw.new_body("p_sphere_red", shape="sphere", position=[-1.3334, 7, 0.01], mass=1)
+    engine.create_link("p_sphere_red", "sphere_red")
+    
+    rm.move("sphere_green", 1.3334, 7, 0.01)
+    rm.scale("sphere_green", 2, 2, 2)
+    pw.new_body("p_sphere_green", shape="sphere", position=[1.3334, 7, 0.01], mass=1)
+    engine.create_link("p_sphere_green", "sphere_green")
+    
+    rm.move("sphere_blue", 4.01, 7, 0.01)
+    rm.scale("sphere_blue", 2, 2, 2)
+    pw.new_body("p_sphere_blue", shape="sphere", position=[4.01, 7, 0.01], mass=1)
+    engine.create_link("p_sphere_blue", "sphere_blue")
 
-    rm.move("sphere_shiny_white", -4, 5.333, 0)
-    rm.move("sphere_shiny_red", -1.333, 5.333, 0)
-    rm.move("sphere_shiny_green", 1.333, 5.333, 0)
-    rm.move("sphere_shiny_blue", 4, 5.333, 0)
+    rm.move("sphere_shiny_white", -4.02, 9, -0.01)
+    rm.scale("sphere_shiny_white", 2, 2, 2)
+    pw.new_body("p_sphere_shiny_white", shape="sphere", position=[-4.02, 9, -0.01], mass=1)
+    engine.create_link("p_sphere_shiny_white", "sphere_shiny_white")
+    
+    rm.move("sphere_shiny_red", -1.3332, 9, -0.01)
+    rm.scale("sphere_shiny_red", 2, 2, 2)
+    pw.new_body("p_sphere_shiny_red", shape="sphere", position=[-1.3332, 9, -0.01], mass=1)
+    engine.create_link("p_sphere_shiny_red", "sphere_shiny_red")
+    
+    rm.move("sphere_shiny_green", 1.3332, 9, -0.01)
+    rm.scale("sphere_shiny_green", 2, 2, 2)
+    pw.new_body("p_sphere_shiny_green", shape="sphere", position=[1.3332, 9, -0.01], mass=1)
+    engine.create_link("p_sphere_shiny_green", "sphere_shiny_green")
+    
+    rm.move("sphere_shiny_blue", 4.02, 9, -0.01)
+    rm.scale("sphere_shiny_blue", 2, 2, 2)
+    pw.new_body("p_sphere_shiny_blue", shape="sphere", position=[4.02, 9, -0.01], mass=1)
+    engine.create_link("p_sphere_shiny_blue", "sphere_shiny_blue")
+
 
     rm.new_model("floor", mesh="quad", shader="pbr", material="rough_white")
     rm.new_model("sun", mesh="sphere_low", shader="white")
@@ -294,6 +344,17 @@ def _initialize_models(rm: RendererManager) -> None:
     rm.rotate("floor", -90, 0, 0)
     rm.move("floor", 0, -1, 0)
     rm.scale("floor", 20, 20, 1)
+    
+    rm.new_model("wall_-x", mesh="box", shader="pbr", material="rough_red")
+    rm.scale("wall_-x", 1, 1, 0.5)
+    # pw.new_body("floor", "plane", 0.0, orientation=[-0.707, 0.0, 0.0, 0.707])
+    pw.new_body("floor", "plane", 0.0, orientation=[-0.707, 0, 0, 0.707])
+    pw.new_body("wall_-x", "plane", 0.0, position=[-4, 0, 0], orientation=[0, 0.707, 0, 0.707])
+    pw.new_body("wall_+x", "plane", 0.0, position=[4, 0, 0], orientation=[0, -0.707, 0, 0.707])
+    pw.new_body("wall_-z", "plane", 0.0, position=[0, 0, -20], orientation=[1, 0, 0, 0])
+    pw.new_body("wall_+z", "plane", 0.0, position=[0, 0, 4], orientation=[0, 1, 0, 0])
+    # engine.create_link("wall_-z", "floor")
+    # engine.create_link("floor", "floor")
 
     rm.move("sun", 3, 10, 3)
     

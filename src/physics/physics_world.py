@@ -11,7 +11,7 @@ class PhysicsWorld(metaclass=Singleton):
         self.shapes = dict()
         self.rigid_bodies = dict()
 
-        pb.setGravity(0.0, -9.8, 0)
+        pb.setGravity(0.0, -20, 0)
 
         pb.setTimeStep(1/60)
 
@@ -20,11 +20,11 @@ class PhysicsWorld(metaclass=Singleton):
         print_success("initialized physics world")
 
     def _setup_scene(self):
-        self.shapes["sphere"] = pb.createCollisionShape(pb.GEOM_SPHERE, radius=0.5)
-        self.shapes["plane"] = pb.createCollisionShape(pb.GEOM_PLANE, planeNormal=[0, 1, 0])
+        self.shapes["sphere"] = pb.createCollisionShape(pb.GEOM_SPHERE, radius=1)
+        self.shapes["plane"] = pb.createCollisionShape(pb.GEOM_PLANE, planeNormal=[0, 0, 1])
 
-        self.rigid_bodies["sphere"] = pb.createMultiBody(baseMass=1.0, baseCollisionShapeIndex=self.shapes["sphere"])
-        self.rigid_bodies["plane"] = pb.createMultiBody(baseMass=0.0, baseCollisionShapeIndex=self.shapes["plane"])
+        # self.rigid_bodies["sphere"] = pb.createMultiBody(baseMass=1.0, baseCollisionShapeIndex=self.shapes["sphere"])
+        # self.rigid_bodies["plane"] = pb.createMultiBody(baseMass=0.0, baseCollisionShapeIndex=self.shapes["plane"])
 
     def create_sphere_shape(self, name, radius=0.5):
         self.shapes[name] = pb.createCollisionShape(pb.GEOM_SPHERE, radius=radius)

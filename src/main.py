@@ -2,6 +2,7 @@
 import glfw
 
 # import the scene
+from physics.physics_world import PhysicsWorld
 import scene
 
 # local modules:
@@ -41,7 +42,7 @@ def main() -> None:
     # get a reference to the renderer manager
     rm: RendererManager = RendererManager()
 
-    # pw = PhysicsWorld()
+    pw: PhysicsWorld = PhysicsWorld()
 
     config = Config()
 
@@ -93,8 +94,8 @@ def main() -> None:
             controltime.record()
 
             updatetime.reset()
-            # pw.update()
-            # engine.update()
+            pw.update()
+            engine.update()
             updatetime.record()
 
             tick_accumulator -= tickrate
