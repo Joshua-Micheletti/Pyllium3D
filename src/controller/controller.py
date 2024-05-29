@@ -18,7 +18,7 @@ class Controller(metaclass=Singleton):
         self.states["left"] = False
         self.states["right"] = False
         self.states["close"] = False
-        self.states["cursor"] = False
+        self.states["cursor"] = True
         self.states["recompile"] = False
 
         # variables to track the mouse movement
