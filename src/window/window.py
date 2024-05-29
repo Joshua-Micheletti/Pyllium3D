@@ -123,7 +123,7 @@ class Window(metaclass=Singleton):
         # don't wait any screen refresh between frame swaps
         glfw.swap_interval(0)
         # disable the cursor above the window
-        glfw.set_input_mode(self.window, glfw.CURSOR, glfw.CURSOR_DISABLED)
+        # glfw.set_input_mode(self.window, glfw.CURSOR, glfw.CURSOR_DISABLED)
 
     def __repr__(self) -> str:
         return "Window obj"
