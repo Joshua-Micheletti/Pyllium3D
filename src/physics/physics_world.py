@@ -54,3 +54,12 @@ class PhysicsWorld(metaclass=Singleton):
 
         return(position, degree_euler_rotation)
         # return(pb.getBasePositionAndOrientation(self.rigid_bodies[physics_body]))
+        
+    def place(self, physics_body: str, x: float, y: float, z: float) -> None:
+        position, rotation = pb.getBasePositionAndOrientation(self.rigid_bodies[physics_body])
+        
+        pb.resetBasePositionAndOrientation(self.rigid_bodies.get(physics_body), [x, y, z], rotation)
+        
+    def move(self, physics_body: str, x: float, y: float, z: float) -> None:
+        position, rotation = pb.getBasePositionAndOrientation(self.rigid_bodies[physics_body])
+        pb.resetBasePositionAndOrientation(self.rigid_bodies.get(physics_body), [x + position[0], y + position[1], z + position[2]], rotation)

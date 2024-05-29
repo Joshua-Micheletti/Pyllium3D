@@ -50,6 +50,7 @@ class UI(metaclass=Singleton):
         self.states["right_window/transformation_header"] = True
         self.states["right_window/components_header"] = True
         self.states["right_window/lights_header"] = True
+        self.states["right_window/physics_body_header"] = True
         self.states["right_window"] = True
         self.states["bottom_window"] = True
         self.states["fps_window"] = True

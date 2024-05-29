@@ -215,9 +215,9 @@ def _initialize_materials(rm: RendererManager) -> None:
 
 
 def _initialize_models(rm: RendererManager, pw: PhysicsWorld, engine: Engine) -> None:
-    test_mesh = "box"
+    test_mesh = "sphere"
     test_shader = "pbr"
-    test_physics_body = "box"
+    test_physics_body = "sphere"
     
     instance_entities = []
     
