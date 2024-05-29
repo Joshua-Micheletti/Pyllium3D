@@ -9,10 +9,10 @@ out vec4 frag_color;
 
 void main() {
     vec2 texture_size = textureSize(screen_texture, 0);
-    frag_color = texture2D(screen_texture, vec2(gl_FragCoord) / texture_size) * weight[0];
+    frag_color = texture(screen_texture, vec2(gl_FragCoord) / texture_size) * weight[0];
 
     for (int i = 1; i < 3; i++) {
-        frag_color += texture2D(screen_texture, (vec2(gl_FragCoord) + vec2(0.0, offset[i])) / texture_size) * weight[i];
-        frag_color += texture2D(screen_texture, (vec2(gl_FragCoord) - vec2(0.0, offset[i])) / texture_size) * weight[i];
+        frag_color += texture(screen_texture, (vec2(gl_FragCoord) + vec2(0.0, offset[i])) / texture_size) * weight[i];
+        frag_color += texture(screen_texture, (vec2(gl_FragCoord) - vec2(0.0, offset[i])) / texture_size) * weight[i];
     }
 }

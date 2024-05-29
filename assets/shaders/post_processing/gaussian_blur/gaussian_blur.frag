@@ -51,7 +51,7 @@ void main() {
     //   if (xx+yy<=rr)
     //     {
     //     w=w0*exp((-xx-yy)/(2.0*rr));
-    //     col+=texture2D(screen_texture,p)*w;
+    //     col+=texture(screen_texture,p)*w;
     //     }}}
     // frag_color=col;
 }  
