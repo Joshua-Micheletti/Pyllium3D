@@ -22,6 +22,7 @@ class PhysicsWorld(metaclass=Singleton):
     def _setup_scene(self):
         self.shapes["sphere"] = pb.createCollisionShape(pb.GEOM_SPHERE, radius=1)
         self.shapes["plane"] = pb.createCollisionShape(pb.GEOM_PLANE, planeNormal=[0, 0, 1])
+        self.shapes["box"] = pb.createCollisionShape(pb.GEOM_BOX, halfExtents=[1, 1, 1])
 
         # self.rigid_bodies["sphere"] = pb.createMultiBody(baseMass=1.0, baseCollisionShapeIndex=self.shapes["sphere"])
         # self.rigid_bodies["plane"] = pb.createMultiBody(baseMass=0.0, baseCollisionShapeIndex=self.shapes["plane"])
