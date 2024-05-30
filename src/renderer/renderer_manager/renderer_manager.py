@@ -536,6 +536,31 @@ class RendererManager(metaclass=Singleton):
         roughness=0.5,
         metallic=0.5,
     ) -> None:
+        if ambient_r == None:
+            ambient_r = 1.0
+        if ambient_g == None:
+            ambient_g = 1.0
+        if ambient_b == None:
+            ambient_b = 1.0
+        if diffuse_r == None:
+            diffuse_r = 1.0
+        if diffuse_g == None:
+            diffuse_g = 1.0
+        if diffuse_b == None:
+            diffuse_b = 1.0
+        if specular_r == None:
+            specular_r = 1.0
+        if specular_g == None:
+            specular_g = 1.0
+        if specular_b == None:
+            specular_b = 1.0
+        if shininess == None:
+            shininess = 1.0
+        if roughness == None:
+            roughness = 0.5
+        if metallic == None:
+            metallic = 0.5
+
         self.materials[name] = Material(
             name,
             [ambient_r, ambient_g, ambient_b],
@@ -556,6 +581,7 @@ class RendererManager(metaclass=Singleton):
         material: str = None,
         count: int = 1,
     ) -> None:
+
         model_manager.new_model(self, name, mesh, shader, texture, material, count)
 
     # method to create a new instance

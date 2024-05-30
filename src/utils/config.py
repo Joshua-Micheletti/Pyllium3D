@@ -21,7 +21,7 @@ class Config(metaclass=Singleton):
         with open("./assets/config/setup.yml", "r") as file:
             self.setup = yaml.safe_load(file)
 
-        with open("./assets/config/scene.yml", "r") as file:
+        with open("./assets/scenes/scene.yml", "r") as file:
             self.scene = yaml.safe_load(file)
 
     def initialize_parameters(

@@ -1,0 +1,367 @@
+meshes:
+  gally: "assets/models/default/gally.json"
+  box: "assets/models/default/box.json"
+  quad: "assets/models/default/quad.json"
+  sphere: "assets/models/default/sphere.json"
+  sphere_low: "assets/models/default/sphere_low.json"
+
+materials:
+  rough_white:
+    roughness: 0.9
+    metallic: 0.1
+
+  rough_red:
+    diffuse_r: 1.0
+    diffuse_g: 0.0
+    diffuse_b: 0.0
+    roughness: 0.9
+    metallic: 0.1
+
+  rough_green:
+    diffuse_r: 0.0
+    diffuse_g: 1.0
+    diffuse_b: 0.0
+    roughness: 0.9
+    metallic: 0.1
+
+  rough_blue:
+    diffuse_r: 0.0
+    diffuse_g: 0.0
+    diffuse_b: 1.0
+    roughness: 0.9
+    metallic: 0.1
+
+  white:
+    diffuse_r: 1.0
+    diffuse_g: 1.0
+    diffuse_b: 1.0
+
+  red:
+    diffuse_r: 1.0
+    diffuse_g: 0.0
+    diffuse_b: 0.0
+
+  green:
+    diffuse_r: 0.0
+    diffuse_g: 1.0
+    diffuse_b: 0.0
+
+  blue:
+    diffuse_r: 0.0
+    diffuse_g: 0.0
+    diffuse_b: 1.0
+
+  shiny_white:
+    diffuse_r: 1.0
+    diffuse_g: 1.0
+    diffuse_b: 1.0
+    roughness: 0.1
+    metallic: 0.9
+
+  shiny_red:
+    diffuse_r: 1.0
+    diffuse_g: 0.0
+    diffuse_b: 0.0
+    roughness: 0.1
+    metallic: 0.9
+
+  shiny_green:
+    diffuse_r: 0.0
+    diffuse_g: 1.0
+    diffuse_b: 0.0
+    roughness: 0.1
+    metallic: 0.9
+
+  shiny_blue:
+    diffuse_r: 0.0
+    diffuse_g: 0.0
+    diffuse_b: 1.0
+    roughness: 0.1
+    metallic: 0.9
+
+models:
+  sun:
+    mesh: "sphere_low"
+    shader: "white"
+    position:
+      x: 3
+      y: 10
+      z: 3
+
+  sphere_rough_white:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "rough_white"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_rough_red:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "rough_red"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_rough_green:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "rough_green"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_rough_blue:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "rough_blue"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_white:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "white"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_red:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "red"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_green:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "green"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_blue:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "blue"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_shiny_white:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "shiny_white"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_shiny_red:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "shiny_red"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_shiny_green:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "shiny_green"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_shiny_blue:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "shiny_blue"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  floor:
+    mesh: "quad"
+    shader: "pbr"
+    material: "rough_white"
+    scale:
+      x: 20
+      y: 20
+      z: 1
+
+physics_bodies:
+  p_sphere_rough_white:
+    shape: "sphere"
+    position:
+      x: -4
+      y: 5
+      z: 0
+
+  p_sphere_rough_red:
+    shape: "sphere"
+    position:
+      x: -1.333
+      y: 5
+      z: 0
+
+  p_sphere_rough_green:
+    shape: "sphere"
+    position:
+      x: 1.333
+      y: 5
+      z: 0
+
+  p_sphere_rough_blue:
+    shape: "sphere"
+    position:
+      x: 4
+      y: 5
+      z: 0
+
+  p_sphere_white:
+    shape: "sphere"
+    position:
+      x: -4.01
+      y: 7
+      z: 0.01
+
+  p_sphere_red:
+    shape: "sphere"
+    position:
+      x: -1.334
+      y: 7
+      z: 0.01
+
+  p_sphere_green:
+    shape: "sphere"
+    position:
+      x: 1.334
+      y: 7
+      z: 0.01
+
+  p_sphere_blue:
+    shape: "sphere"
+    position:
+      x: 4.01
+      y: 7
+      z: 0.01
+
+  p_sphere_shiny_white:
+    shape: "sphere"
+    position:
+      x: -4.02
+      y: 9
+      z: -0.01
+
+  p_sphere_shiny_red:
+    shape: "sphere"
+    position:
+      x: -1.332
+      y: 9
+      z: -0.01
+
+  p_sphere_shiny_green:
+    shape: "sphere"
+    position:
+      x: 1.332
+      y: 9
+      z: -0.01
+
+  p_sphere_shiny_blue:
+    shape: "sphere"
+    position:
+      x: 4.02
+      y: 9
+      z: -0.01
+
+  p_floor:
+    shape: "plane"
+    mass: 0
+    orientation:
+      x: -0.707
+      y: 0.0
+      z: 0.0
+      w: 0.707
+
+  wall_-x:
+    shape: "plane"
+    mass: 0
+    position:
+      x: -6
+      y: 0
+      z: 0
+    orientation:
+      x: 0
+      y: 0.707
+      z: 0
+      w: 0.707
+
+  wall_+x:
+    shape: "plane"
+    mass: 0
+    position:
+      x: 6
+      y: 0
+      z: 0
+    orientation:
+      x: 0
+      y: -0.707
+      z: 0
+      w: 0.707
+
+  wall_-z:
+    shape: "plane"
+    mass: 0
+    position:
+      x: 0
+      y: 0
+      z: -6
+    orientation:
+      x: 0
+      y: 0
+      z: 1
+      w: 0
+
+  wall_+z:
+    shape: "plane"
+    mass: 0
+    position:
+      x: 0
+      y: 0
+      z: 6
+    orientation:
+      x: 0
+      y: 1
+      z: 0
+      w: 0
+
+links:
+  p_sphere_rough_white: "sphere_rough_white"
+  p_sphere_rough_red: "sphere_rough_red"
+  p_sphere_rough_green: "sphere_rough_green"
+  p_sphere_rough_blue: "sphere_rough_blue"
+  p_sphere_white: "sphere_white"
+  p_sphere_red: "sphere_red"
+  p_sphere_green: "sphere_green"
+  p_sphere_blue: "sphere_blue"
+  p_sphere_shiny_white: "sphere_shiny_white"
+  p_sphere_shiny_red: "sphere_shiny_red"
+  p_sphere_shiny_green: "sphere_shiny_green"
+  p_sphere_shiny_blue: "sphere_shiny_blue"
+  p_floor: "floor"

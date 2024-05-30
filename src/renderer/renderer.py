@@ -34,10 +34,10 @@ class Renderer(metaclass=Singleton):
         self.timer: Timer = Timer()
 
     def __str__(self):
-        return("Renderer")
-    
+        return "Renderer"
+
     def __repr__(self):
-        return("Renderer obj")
+        return "Renderer obj"
 
     def _setup_opengl(self) -> None:
         # set the clear color to a dark grey

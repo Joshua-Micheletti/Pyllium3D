@@ -5,7 +5,7 @@ from utils import Singleton
 from utils import colors
 from utils import Timer
 
-from renderer.renderer_manager import RendererManager
+from renderer.renderer_manager.renderer_manager import RendererManager
 from renderer.renderer import Renderer
 
 class Printer(metaclass=Singleton):
