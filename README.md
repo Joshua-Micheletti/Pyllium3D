@@ -5,6 +5,7 @@ A 3D engine using the OpenGL API for graphics and Bullet API for physics
 ## Requirements
 Python 3  
 OpenGL 4.5
+Pybullet 3 (for linux arm, needs to be precompiled and set with export PYTHONPATH=)
 
 ## Installation
 - `git clone https://github.com/Joshua-Micheletti/Pyllium3D`

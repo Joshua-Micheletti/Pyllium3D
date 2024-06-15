@@ -1,4 +1,6 @@
 import profile
+
+import numpy as np
 import renderer
 from utils import Singleton
 from OpenGL.GL import *
@@ -1165,14 +1167,19 @@ class Renderer(metaclass=Singleton):
                 query[2] = 0
                 continue
 
-            available = GLint(0)
+            available = GLuint(0)
+            # available = np.array([0], dtype=np.uint32)
 
             while not available:
                 glGetQueryObjectiv(
-                    query[0], GL_QUERY_RESULT_AVAILABLE, ctypes.byref(available)
+                    query[0], GL_QUERY_RESULT_AVAILABLE, available
                 )
+
+            # result = np.array([0], dtype=np.int32)
 
             elapsed_time = GLuint64(0)
             glGetQueryObjectui64v(query[0], GL_QUERY_RESULT, ctypes.byref(elapsed_time))
+            # glGetQueryObjectuiv(query[0], GL_QUERY_RESULT, elapsed_time)
+
 
             query[2] = elapsed_time.value / 1000000

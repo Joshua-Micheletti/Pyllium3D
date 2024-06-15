@@ -10,12 +10,13 @@ from utils import Timer
 from utils import *
 from utils import Config
 
-
 @timeit()
 def setup():
+    """function to setup the scene"""
+    
     scene = Config().scene
 
-    ic(scene)
+    # ic(scene)
 
     rm = RendererManager()
     pw = PhysicsWorld()
@@ -30,6 +31,12 @@ def setup():
 
 
 def update(dt: float) -> None:
+    """function to update the state of the entities
+
+    Args:
+        dt (float): time that passed since the last update
+    """
+    
     rm = RendererManager()
     time = dt / 1000.0
 
@@ -43,7 +50,6 @@ def update(dt: float) -> None:
     #     i += 1
     #     if i == 2000:
     #         break
-
     # for model in rm.models.values():
     #     rm.move(model.name, time, time, time)
 
@@ -59,6 +65,13 @@ def update(dt: float) -> None:
 
 
 def _initialize_meshes(rm: RendererManager, meshes: dict) -> None:
+    """initialize all the meshes passed as an argument
+
+    Args:
+        rm (RendererManager): RendererManager object reference
+        meshes (dict): dictionary of paths to mesh files
+    """
+    
     for key, value in meshes.items():
         rm.new_json_mesh(key, value)
 
