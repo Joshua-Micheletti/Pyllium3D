@@ -19,6 +19,7 @@ class UI(metaclass=Singleton):
     # constructor method
     def __init__(self):
         window = Window()
+        
         # create an OpenGL context for imgui
         imgui.create_context()
         # implement the GLFW backend

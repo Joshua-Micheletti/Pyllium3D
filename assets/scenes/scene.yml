@@ -201,8 +201,8 @@ models:
     shader: "pbr"
     material: "rough_white"
     scale:
-      x: 20
-      y: 20
+      x: 50
+      y: 50
       z: 1
 
 physics_bodies:

@@ -1,12 +1,6 @@
 from renderer.renderer_manager.renderer_manager import RendererManager
 from physics.physics_world import PhysicsWorld
 from engine.engine import Engine
-import glm
-import random
-import math
-import glfw
-
-from utils import Timer
 from utils import *
 from utils import Config
 
@@ -16,8 +10,6 @@ def setup():
     
     scene = Config().scene
 
-    # ic(scene)
-
     rm = RendererManager()
     pw = PhysicsWorld()
     engine = Engine()
@@ -25,7 +17,7 @@ def setup():
     _initialize_meshes(rm, scene.get("meshes"))
     _initialize_textures(rm, scene.get("textures"))
     _initialize_materials(rm, scene.get("materials"))
-    _initialize_models(rm, pw, engine, scene.get("models"))
+    _initialize_models(rm, scene.get("models"))
     _initialize_physics(pw, scene.get("physics_bodies"))
     _initialize_links(engine, scene.get("links"))
 
@@ -100,7 +92,7 @@ def _initialize_materials(rm: RendererManager, materials: dict) -> None:
 
 
 def _initialize_models(
-    rm: RendererManager, pw: PhysicsWorld, engine: Engine, models: dict
+    rm: RendererManager, models: dict
 ) -> None:
     for key, value in models.items():
         rm.new_model(

@@ -1,7 +1,6 @@
 import profile
 
 import numpy as np
-import renderer
 from utils import Singleton
 from OpenGL.GL import *
 import glm
@@ -42,6 +41,8 @@ class Renderer(metaclass=Singleton):
         return "Renderer obj"
 
     def _setup_opengl(self) -> None:
+        """Function to setup the OpenGL constants for rendering"""
+
         # set the clear color to a dark grey
         glClearColor(0.1, 0.1, 0.1, 1.0)
         # enable depth testing (hide further away triangles if covered)
@@ -59,6 +60,7 @@ class Renderer(metaclass=Singleton):
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
 
     def _setup_textures(self) -> None:
+        """function to setup the necessary textures for rendering"""
         # get a reference to the RendererManager
         rm: RendererManager = RendererManager()
 
@@ -88,6 +90,8 @@ class Renderer(metaclass=Singleton):
         glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
 
     def _setup_opengl_timers(self) -> None:
+        """function to setup OpenGL queries to keep track of performance"""
+
         # setup the query objects to keep track of the rendering times
         opengl_queries: any = glGenQueries(10)
 
@@ -95,17 +99,60 @@ class Renderer(metaclass=Singleton):
         # - opengl query object
         # - flag to keep track of weather to do the query or not
         # - actual value returned from the query
-        self.queries: dict[str, tuple[any, bool, int]] = dict()
-        self.queries["models"] = [opengl_queries[0], True, 0]
-        self.queries["instances"] = [opengl_queries[1], True, 0]
-        self.queries["skybox"] = [opengl_queries[2], True, 0]
-        self.queries["msaa"] = [opengl_queries[3], True, 0]
-        self.queries["bloom"] = [opengl_queries[4], True, 0]
-        self.queries["hdr"] = [opengl_queries[5], False, 0]
-        self.queries["blur"] = [opengl_queries[6], True, 0]
-        self.queries["depth_of_field"] = [opengl_queries[7], True, 0]
-        self.queries["post_processing"] = [opengl_queries[8], True, 0]
-        self.queries["shadow_map"] = [opengl_queries[9], True, 0]
+        self.queries: dict[str, dict] = dict(
+            {
+                "models": {
+                    "ogl_id": opengl_queries[0],
+                    "active": True,
+                    "value": 0,
+                },
+                "instances": {
+                    "ogl_id": opengl_queries[1],
+                    "active": True,
+                    "value": 0,
+                },
+                "skybox": {
+                    "ogl_id": opengl_queries[2],
+                    "active": True,
+                    "value": 0,
+                },
+                "msaa": {
+                    "ogl_id": opengl_queries[3],
+                    "active": True,
+                    "value": 0,
+                },
+                "bloom": {
+                    "ogl_id": opengl_queries[4],
+                    "active": True,
+                    "value": 0,
+                },
+                "hdr": {
+                    "ogl_id": opengl_queries[5],
+                    "active": False,
+                    "value": 0,
+                },
+                "blur": {
+                    "ogl_id": opengl_queries[6],
+                    "active": True,
+                    "value": 0,
+                },
+                "depth_of_field": {
+                    "ogl_id": opengl_queries[7],
+                    "active": True,
+                    "value": 0,
+                },
+                "post_processing": {
+                    "ogl_id": opengl_queries[8],
+                    "active": True,
+                    "value": 0,
+                },
+                "shadow_map": {
+                    "ogl_id": opengl_queries[9],
+                    "active": True,
+                    "value": 0,
+                },
+            }
+        )
 
     # ---------------------------- Render methods ---------------------------
     # method to render the 3D models
@@ -175,7 +222,7 @@ class Renderer(metaclass=Singleton):
         rm: RendererManager = RendererManager()
 
         if rm.render_states["profile"]:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries["models"][0])
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get("models").get('ogl_id'))
 
         # variables to keep track of the last used shader and mesh
         last_shader: str = ""
@@ -239,7 +286,7 @@ class Renderer(metaclass=Singleton):
         rm: RendererManager = RendererManager()
 
         if rm.render_states["profile"]:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries["instances"][0])
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get("instances").get('ogl_id'))
 
         last_shader: str = ""
 
@@ -276,13 +323,13 @@ class Renderer(metaclass=Singleton):
         rm: RendererManager = RendererManager()
 
         if not rm.render_states["shadow_map"]:
-            self.queries["shadow_map"][1] = False
+            self.queries.get("shadow_map")['active'] = False
             return ()
 
         self.queries["shadow_map"][1] = True
 
         if rm.render_states["profile"]:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries["shadow_map"][0])
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get("shadow_map").get('ogl_id'))
 
         # set the viewport to match the dimensions of the shadow texture
         glViewport(0, 0, rm.shadow_size, rm.shadow_size)
@@ -349,7 +396,7 @@ class Renderer(metaclass=Singleton):
         rm: RendererManager = RendererManager()
 
         if rm.render_states["profile"]:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries["skybox"][0])
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get("skybox").get('ogl_id'))
 
         # use the skybox shader
         rm.shaders["skybox"].use()
@@ -384,7 +431,7 @@ class Renderer(metaclass=Singleton):
             return ()
 
         if rm.render_states["profile"]:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries["msaa"][0])
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get("msaa").get('ogl_id'))
 
         # bind the solved framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
@@ -430,13 +477,13 @@ class Renderer(metaclass=Singleton):
             not rm.render_states["depth_of_field"]
             and not rm.render_states["post_processing"]
         ):
-            self.queries["blur"][1] = False
+            self.queries.get("blur")['active'] = False
             return ()
 
-        self.queries["blur"][1] = True
+        self.queries.get("blur")['active'] = True
 
         if rm.render_states["profile"]:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries["blur"][0])
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get("blur").get('ogl_id'))
 
         # bind the blurred framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.get_back_framebuffer())
@@ -470,13 +517,13 @@ class Renderer(metaclass=Singleton):
 
         # execute only if it's enabled
         if not rm.render_states["depth_of_field"]:
-            self.queries["depth_of_field"][1] = False
+            self.queries.get("depth_of_field")['active'] = False
             return ()
 
-        self.queries["depth_of_field"][1] = True
+        self.queries.get("depth_of_field")['active'] = True
 
         if rm.render_states["profile"]:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries["depth_of_field"][0])
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get("depth_of_field").get('ogl_id'))
 
         # bind the main render framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
@@ -509,14 +556,14 @@ class Renderer(metaclass=Singleton):
         rm = RendererManager()
 
         if not rm.render_states["bloom"]:
-            self.queries["bloom"][1] = False
+            self.queries.get("bloom")['active'] = False
             self._render_hdr()
             return ()
 
-        self.queries["bloom"][1] = True
+        self.queries.get("bloom")['active'] = True
 
         if rm.render_states["profile"]:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries["bloom"][0])
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get("bloom").get('ogl_id'))
 
         glBindFramebuffer(GL_FRAMEBUFFER, rm.bloom_framebuffer)
 
@@ -596,7 +643,8 @@ class Renderer(metaclass=Singleton):
         rm = RendererManager()
 
         if rm.render_states["profile"]:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries["hdr"][0])
+            # ic(self.queries.get('hdr'))
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get("hdr").get('ogl_id'))
 
         glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
 
@@ -648,18 +696,18 @@ class Renderer(metaclass=Singleton):
 
         # only execute if the post processing is enabled
         if not rm.render_states["post_processing"]:
-            self.queries["post_processing"][1] = False
+            self.queries.get("post_processing")['active'] = False
             return ()
 
         # only execute if there are effects in the post processing list
         if len(rm.post_processing_shaders) == 0:
-            self.queries["post_processing"][1] = False
+            self.queries.get("post_processing")['active'] = False
             return ()
 
-        self.queries["post_processing"][1] = True
+        self.queries.get("post_processing")['active'] = True
 
         if rm.render_states["profile"]:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries["post_processing"][0])
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get("post_processing").get('ogl_id'))
 
         # bind the screen quad mesh VAO and indices buffer
         i = 0
@@ -1163,23 +1211,18 @@ class Renderer(metaclass=Singleton):
     def _calculate_render_times(self):
         for name, query in self.queries.items():
 
-            if not query[1]:
-                query[2] = 0
+            if not query.get('active'):
+                query['value'] = 0
                 continue
 
             available = GLuint(0)
-            # available = np.array([0], dtype=np.uint32)
 
             while not available:
-                glGetQueryObjectiv(
-                    query[0], GL_QUERY_RESULT_AVAILABLE, available
-                )
+                glGetQueryObjectiv(query.get('ogl_id'), GL_QUERY_RESULT_AVAILABLE, available)
 
             # result = np.array([0], dtype=np.int32)
 
             elapsed_time = GLuint64(0)
-            glGetQueryObjectui64v(query[0], GL_QUERY_RESULT, ctypes.byref(elapsed_time))
-            # glGetQueryObjectuiv(query[0], GL_QUERY_RESULT, elapsed_time)
+            glGetQueryObjectui64v(query.get('ogl_id'), GL_QUERY_RESULT, ctypes.byref(elapsed_time))
 
-
-            query[2] = elapsed_time.value / 1000000
+            query['value'] = elapsed_time.value / 1000000

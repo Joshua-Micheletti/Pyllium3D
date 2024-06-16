@@ -63,21 +63,21 @@ class FpsWindow(ResizableWindow):
             self.rendertime_graph.draw(total_render_time)
 
             if RendererManager().render_states["profile"]:
-                self.modeltimegraph.draw(renderer.queries["models"][2])
-                self.instancetimegraph.draw(renderer.queries["instances"][2])
-                self.skyboxtimegraph.draw(renderer.queries["skybox"][2])
-                self.msaatimegraph.draw(renderer.queries["msaa"][2])
-                self.bloomtimegraph.draw(renderer.queries["bloom"][2])
-                self.hdrtimegraph.draw(renderer.queries["hdr"][2])
-                self.blurtimegraph.draw(renderer.queries["blur"][2])
-                self.doftimegraph.draw(renderer.queries["depth_of_field"][2])
-                self.postproctimegraph.draw(renderer.queries["post_processing"][2])
-                self.shadowmaptimegraph.draw(renderer.queries["shadow_map"][2])
+                self.modeltimegraph.draw(renderer.queries.get("models").get('value'))
+                self.instancetimegraph.draw(renderer.queries.get("instances").get('value'))
+                self.skyboxtimegraph.draw(renderer.queries.get("skybox").get('value'))
+                self.msaatimegraph.draw(renderer.queries.get("msaa").get('value'))
+                self.bloomtimegraph.draw(renderer.queries.get("bloom").get('value'))
+                self.hdrtimegraph.draw(renderer.queries.get("hdr").get('value'))
+                self.blurtimegraph.draw(renderer.queries.get("blur").get('value'))
+                self.doftimegraph.draw(renderer.queries.get("depth_of_field").get('value'))
+                self.postproctimegraph.draw(renderer.queries.get("post_processing").get('value'))
+                self.shadowmaptimegraph.draw(renderer.queries.get("shadow_map").get('value'))
                 
                 remaining_time = total_render_time
 
                 for query in renderer.queries.values():
-                    remaining_time -= query[2]
+                    remaining_time -= query.get('value')
 
                 self.othertimegraph.draw(remaining_time)
 

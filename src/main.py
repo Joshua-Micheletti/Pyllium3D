@@ -17,6 +17,7 @@ from renderer.renderer_manager.renderer_manager import RendererManager
 
 # renderer
 from renderer.renderer import Renderer
+from renderer.raytracer import RayTracer
 
 # controller
 from controller.controller import Controller
@@ -49,6 +50,8 @@ def main() -> None:
     engine: Engine = Engine()
     # renderer object
     renderer: Renderer = Renderer()
+    
+    raytracer: RayTracer = RayTracer()
     # controller object
     controller: Controller = Controller()
     # UI object
@@ -107,6 +110,7 @@ def main() -> None:
         rmupdatetime.record()
 
         renderer.render()
+        # raytracer.render()
 
         ui.draw(
             dt,
