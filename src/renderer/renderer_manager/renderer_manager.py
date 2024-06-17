@@ -786,6 +786,16 @@ class RendererManager(metaclass=Singleton):
             shadow_mats.append(glm.value_ptr(self.shadow_transforms[i]))
 
         return shadow_mats
+    
+    def get_ogl_inv_view_proj_matrix(self):
+        proj_view_matrix = self.projection_matrix * self.camera.view_matrix
+        array = np.array(proj_view_matrix.to_list())
+        
+        inverted_proj_view_matrix = np.linalg.inv(array)
+        
+        glm_inverted_proj_view_matrix = glm.mat4(*inverted_proj_view_matrix.flatten())
+        
+        return glm.value_ptr(glm_inverted_proj_view_matrix)
 
     # ------------------------------ Updaters ---------------------------------------
 

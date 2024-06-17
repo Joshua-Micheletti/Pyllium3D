@@ -110,6 +110,9 @@ class Camera:
     # obtain a formatted version of the view matrix ready for opengl uniforms
     def get_ogl_matrix(self):
         return(glm.value_ptr(self.view_matrix))
+    
+    def get_inv_view_proj_matrix(self):
+        view_projection_matrix = self.projection_matrix * self.get_view_matrix()
 
     # def get_skybox_ogl_matrix(self):
     #     return(glm.value_ptr(glm.lookAt(glm.vec3(0), self.front, self.world_up)))

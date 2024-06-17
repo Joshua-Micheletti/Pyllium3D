@@ -1,6 +1,10 @@
 from ctypes import c_void_p
+
+import numpy as np
 from utils import Singleton
 from OpenGL.GL import *
+from renderer.renderer_manager import RendererManager
+import time
 
 class RayTracer(metaclass=Singleton):
     """RayTracer engine
@@ -138,7 +142,14 @@ class RayTracer(metaclass=Singleton):
         self.denoise = 0
         self.far_plane = 1.0
         
+        # self.load_material(1, 1, 1, 1, 1, 1, 10, 1, 1, 1, 1, 1)
+        # self.load_sphere(1, 1, 1, 1, 0)
+        
+        self.update_materials(np.array([1, 1, 1, 1, 1, 1, 10, 1, 1, 1, 1, 1]))
+        self.update_spheres(np.array([1, 1, 1, 1, 0]))
+        
     def render(self):
+        rm = RendererManager()
         # set the active texture slot to 0
         glActiveTexture(GL_TEXTURE0)
         # bind the screen texture to that slot
@@ -150,17 +161,17 @@ class RayTracer(metaclass=Singleton):
         glUseProgram(self.program_id)
 
         # get the inverse view projection matrix from the camera
-        glUniformMatrix4fv(glGetUniformLocation(self.program_id, "inverse_view_projection"), 1, GL_FALSE, self.camera.get_inv_view_proj_matrix())
+        glUniformMatrix4fv(glGetUniformLocation(self.program_id, "inverse_view_projection"), 1, GL_FALSE, rm.get_ogl_inv_view_proj_matrix())
         # get the camera position
-        glUniform3f(glGetUniformLocation(self.program_id, "eye"), self.camera.position[0], self.camera.position[1], self.camera.position[2])
+        glUniform3f(glGetUniformLocation(self.program_id, "eye"), rm.camera.position[0], rm.camera.position[1], rm.camera.position[2])
         # get the time to the shader
         glUniform1f(glGetUniformLocation(self.program_id, "time"), float(time.time() % 1))
         # get the number of bounces to the shader
         glUniform1f(glGetUniformLocation(self.program_id, "bounces"), float(self.bounces))
         # pass the different camera vertices to the shader
-        glUniform3f(glGetUniformLocation(self.program_id, "camera_up"), self.camera.up[0], self.camera.up[1], self.camera.up[2])
-        glUniform3f(glGetUniformLocation(self.program_id, "camera_right"), self.camera.right[0], self.camera.right[1], self.camera.right[2])
-        glUniform3f(glGetUniformLocation(self.program_id, "camera_front"), self.camera.front[0], self.camera.front[1], self.camera.front[2])
+        glUniform3f(glGetUniformLocation(self.program_id, "camera_up"), rm.camera.up[0], rm.camera.up[1], rm.camera.up[2])
+        glUniform3f(glGetUniformLocation(self.program_id, "camera_right"), rm.camera.right[0], rm.camera.right[1], rm.camera.right[2])
+        glUniform3f(glGetUniformLocation(self.program_id, "camera_front"), rm.camera.front[0], rm.camera.front[1], rm.camera.front[2])
 
         # dispatch the compute workers depending on the size of the screen
         glDispatchCompute(int(self.render_x / 8), int(self.render_y / 4), 1)
@@ -169,13 +180,16 @@ class RayTracer(metaclass=Singleton):
         # clear the buffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         # use the screen shader
-        glUseProgram(self.screen_shader.program)
+        # glUseProgram(self.screen_shader.program)
+        screen_shader = rm.shaders.get('raytracing_screen')
+        
+        screen_shader.use()
         
         # pass the required textures
-        glUniform1i(glGetUniformLocation(self.screen_shader.program, "tex"), 0)
-        glUniform1i(glGetUniformLocation(self.screen_shader.program, "old_tex"), 1)
-        glUniform1f(glGetUniformLocation(self.screen_shader.program, "frames"), self.rendered_frames)
-        glUniform1f(glGetUniformLocation(self.screen_shader.program, "denoise"), self.denoise)
+        glUniform1i(glGetUniformLocation(screen_shader.program, "tex"), 0)
+        glUniform1i(glGetUniformLocation(screen_shader.program, "old_tex"), 1)
+        glUniform1f(glGetUniformLocation(screen_shader.program, "frames"), self.rendered_frames)
+        glUniform1f(glGetUniformLocation(screen_shader.program, "denoise"), self.denoise)
         
         glBindVertexArray(self.vao)
 

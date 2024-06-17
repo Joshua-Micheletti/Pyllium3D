@@ -109,8 +109,8 @@ def main() -> None:
         rm.update_instances()
         rmupdatetime.record()
 
-        renderer.render()
-        # raytracer.render()
+        # renderer.render()
+        raytracer.render()
 
         ui.draw(
             dt,
