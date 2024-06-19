@@ -47,9 +47,6 @@ uniform mat4 inverse_view_projection;
 uniform vec3 eye;
 uniform float time;
 uniform float bounces;
-uniform vec3 camera_up;
-uniform vec3 camera_right;
-uniform vec3 camera_forward;
 
 // constants
 // ------------------------------------------------------- //
@@ -187,98 +184,9 @@ void main() {
         color *= mix(get_color(hit), specular.xyz, albedo_chance) * light_strength;
     }
 
-
-
-
-    // hit_t primary_hit = calculate_ray(origin, direction, false);
-
-    // if (!primary_hit.exists) {
-    //     imageStore(img_output, texel_coord, vec4(void_color, 1.0));
-    //     return;
-    // }
-
-    // color = get_color(primary_hit);
-
-    // float t;
-    // if (primary_hit.primitive == SPHERE) {
-    //     t = 0.1;
-    // } else {
-    //     t = 0.00001;
-    // }
-
-    // // REFLECTION PASS
-    // hit_t reflection_hit = primary_hit;
-
-    // // for (int i = 0; i < 1; i++) {
-    // //     origin = reflection_hit.pos + reflection_hit.normal * t;
-    // //     direction = normalize(direction - 2 * reflection_hit.normal * dot(direction, reflection_hit.normal));
-
-    // //     reflection_hit = calculate_ray(origin, direction, false);
-
-    // //     if (reflection_hit.exists) {
-    // //         vec3 reflect_color = vec3(1.0, 1.0, 1.0);
-    // //         vec3 light_position = vec4(light_model * vec4(0, 0, 0, 1)).xyz;
-    // //         origin = reflection_hit.pos + reflection_hit.normal * t;
-    // //         direction = normalize(light_position - origin);
-
-    // //         hit_t reflection_shadow_hit = calculate_shadow_ray(origin, direction, light_position);
-
-    // //         if (reflection_shadow_hit.exists) {
-    // //             reflect_color = get_color(reflection_hit) * 0.5;
-
-    // //         } else {
-    // //             reflect_color = get_color(reflection_hit);
-    // //         }
-
-    // //         color = mix(color, color * reflect_color, get_shininess(primary_hit));  
-
-    // //     } else {
-    // //         color = mix(color, color * srgb_to_rgb(void_color) * 0.5, get_shininess(primary_hit));
-    // //         break;
-    // //     }
-    // // }
-
-    // // SHADOW PASS
-    
-    // origin = vec3(primary_hit.pos + primary_hit.normal * t);
-
-    // // float seed = time + dims.y * texel_coord.x / dims.x + texel_coord.y / dims.y;
-
-    // // point light:
-    // // vec3 light_position = vec4(light_model * vec4(0, 0, 0, 1)).xyz;
-    // // direction = normalize(light_position - origin);
-
-    // // direction = normalize(vec3(rand(time), rand(time), rand(time)));
-    // // direction = normalize(hash3((random * position.x * position.y - 0.5) * 2));
-
-    // direction = (vec3(n8rand(position, time), n8rand(position + 0.1, time), n8rand(position + 0.2, time)) - 0.5) * 2;
-
-    // if (dot(direction, primary_hit.normal) < 0) {
-    //     direction = -direction;
-    // }
-    
-    // hit_t light_hit = calculate_ray(origin, direction, false);
-
-
-    // if (light_hit.exists && light_hit.primitive == TRIANGLE && light_hit.index == 2) {
-    //     color *= dot(direction, primary_hit.normal);
-    // } else {
-    //     color *= 0.0;
-    // }
-
-    // if (shadow_hit.exists && shadow_hit.primitive != TRIANGLE shadow_hit.index == 2) {
-       
-    // } else {
-    //     color *= 0.0;
-    // }
-
-    // if (shadow_hit.exists) {
-    //     color *= 0.0;
-    // } else {
-    //     color = color * map(dot(direction, primary_hit.normal), -1.0, 1.0, -1.0, 1.0);;
-    // }
-
     imageStore(img_output, texel_coord, vec4(rgb_to_srgb(light), 1.0));
+    // imageStore(img_output, texel_coord, vec4(0.0, 0.0, 1.0, 1.0));
+    // imageStore(img_output, texel_coord, vec4(camera_forward, 1.0));
 }
 
 

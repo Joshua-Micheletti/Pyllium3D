@@ -36,7 +36,7 @@ from ui import UI
 def main() -> None:
     # window object
     window: Window = Window()
-    
+
     # setup the scene
     scene.setup()
 
@@ -50,7 +50,7 @@ def main() -> None:
     engine: Engine = Engine()
     # renderer object
     renderer: Renderer = Renderer()
-    
+
     raytracer: RayTracer = RayTracer()
     # controller object
     controller: Controller = Controller()
@@ -112,13 +112,13 @@ def main() -> None:
         # renderer.render()
         raytracer.render()
 
-        ui.draw(
-            dt,
-            swaptime.get_last_record(),
-            controltime.get_last_record(),
-            updatetime.get_last_record(),
-            rmupdatetime.get_last_record(),
-        )
+        # ui.draw(
+        #     dt,
+        #     swaptime.get_last_record(),
+        #     controltime.get_last_record(),
+        #     updatetime.get_last_record(),
+        #     rmupdatetime.get_last_record(),
+        # )
 
         swaptime.reset()
         glfw.swap_buffers(window.window)

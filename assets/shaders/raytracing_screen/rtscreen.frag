@@ -105,7 +105,6 @@ void main() {
         accumulated = rgb_to_srgb(mix(old_texCol, texCol, weight));
     }
 
-    
-
     FragColor = vec4(accumulated, 1.0);
+    // FragColor = vec4(1.0, 0.0, 0.0, 1.0);
 }
