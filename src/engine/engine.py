@@ -1,6 +1,6 @@
-from utils import Singleton
-from renderer.renderer_manager.renderer_manager import RendererManager
 from physics.physics_world import PhysicsWorld
+from renderer.renderer_manager.renderer_manager import RendererManager
+from utils import Singleton
 
 
 class Engine(metaclass=Singleton):

@@ -1,5 +1,7 @@
 import imgui
-from utils import Config
+
+from utils.config import Config
+
 
 class Crosshair:
     def __init__(
@@ -14,7 +16,7 @@ class Crosshair:
         outline_b: float = None,
         outline_alpha: float = None,
         outline_radius: int = None,
-        outline_thickness: int = None
+        outline_thickness: int = None,
     ) -> None:
         """Constructor method of the crosshair component
 
@@ -30,8 +32,8 @@ class Crosshair:
             outline_alpha (float, optional): opacity of the crosshair. Defaults to 0.4.
             outline_radius (int, optional): radius of the crosshair. Defaults to 4.
             outline_thickness (int, optional): radius of the crosshair. Defaults to 2.
+
         """
-        
         default_values = {
             color_r: 0.5,
             color_g: 0.5,
@@ -43,9 +45,9 @@ class Crosshair:
             outline_b: 0.5,
             outline_alpha: 0.4,
             outline_radius: 4,
-            outline_thickness: 2
+            outline_thickness: 2,
         }
-        
+
         Config().initialize_parameters(
             self,
             'ui.crosshair',
@@ -60,15 +62,25 @@ class Crosshair:
             outline_b=outline_b,
             outline_alpha=outline_alpha,
             outline_radius=outline_radius,
-            outline_thickness=outline_thickness
+            outline_thickness=outline_thickness,
         )
-        
-        
 
     def draw(self):
         wsize = imgui.get_window_size()
         wpos = imgui.get_window_position()
 
         draw_list = imgui.get_window_draw_list()
-        draw_list.add_circle_filled(wsize.x / 2 + wpos.x, wsize.y / 2 + wpos.y, self.radius, imgui.get_color_u32_rgba(self.color_r, self.color_g, self.color_b, self.alpha))
-        draw_list.add_circle(wsize.x / 2 + wpos.x, wsize.y / 2 + wpos.y, self.outline_radius, imgui.get_color_u32_rgba(self.outline_r, self.outline_g, self.outline_b, self.outline_alpha), 10, self.outline_thickness)
+        draw_list.add_circle_filled(
+            wsize.x / 2 + wpos.x,
+            wsize.y / 2 + wpos.y,
+            self.radius,
+            imgui.get_color_u32_rgba(self.color_r, self.color_g, self.color_b, self.alpha),
+        )
+        draw_list.add_circle(
+            wsize.x / 2 + wpos.x,
+            wsize.y / 2 + wpos.y,
+            self.outline_radius,
+            imgui.get_color_u32_rgba(self.outline_r, self.outline_g, self.outline_b, self.outline_alpha),
+            10,
+            self.outline_thickness,
+        )

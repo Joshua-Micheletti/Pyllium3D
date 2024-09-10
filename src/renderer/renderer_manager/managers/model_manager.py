@@ -1,18 +1,18 @@
 import glm
+
 from renderer.model.model import Model
 from utils.messages import *
 
 
 def new_model(self, name, mesh, shader, texture, material, count):
-
     if mesh is None:
-        mesh = "default"
+        mesh = 'default'
     if shader is None:
-        shader = "default"
+        shader = 'default'
     if texture is None:
-        texture = "default"
+        texture = 'default'
     if material is None:
-        material = "default"
+        material = 'default'
     if count is None:
         count = 1
 
@@ -41,9 +41,7 @@ def new_model(self, name, mesh, shader, texture, material, count):
         self.model_bounding_sphere_center[name] = (
             self.bounding_sphere_center[self.models[name].mesh] + self.positions[name]
         )
-        self.model_bounding_sphere_radius[name] = self.bounding_sphere_radius[
-            self.models[name].mesh
-        ]
+        self.model_bounding_sphere_radius[name] = self.bounding_sphere_radius[self.models[name].mesh]
 
 
 # method to place the mesh in a specific spot
@@ -98,9 +96,7 @@ def calculate_model_matrix(self, name):
     # reset the model matrix
     self.model_matrices[name] = glm.mat4(1)
     # calculate the translation
-    self.model_matrices[name] = glm.translate(
-        self.model_matrices[name], self.positions[name]
-    )
+    self.model_matrices[name] = glm.translate(self.model_matrices[name], self.positions[name])
     # calculate the rotation by every axis
     self.model_matrices[name] = glm.rotate(
         self.model_matrices[name],
@@ -124,20 +120,16 @@ def calculate_model_matrix(self, name):
 
     max_scale = max(max(scale.x, scale.y), scale.z)
 
-    self.model_bounding_sphere_center[name] = (
-        self.bounding_sphere_center[self.models[name].mesh] + self.positions[name]
-    )
-    self.model_bounding_sphere_radius[name] = (
-        self.bounding_sphere_radius[self.models[name].mesh] * max_scale
-    )
+    self.model_bounding_sphere_center[name] = self.bounding_sphere_center[self.models[name].mesh] + self.positions[name]
+    self.model_bounding_sphere_radius[name] = self.bounding_sphere_radius[self.models[name].mesh] * max_scale
 
 
 # method to check if an instance should be updated after a transformation
 def check_instance_update(self, name):
-    if self.models[name].in_instance == "":
+    if self.models[name].in_instance == '':
         return
 
     for instance in self.instances.values():
         if self.models[name] in instance.models.values():
-            instance.to_update["model_matrices"] = True
+            instance.to_update['model_matrices'] = True
             instance.change_model_matrix(self.models[name], self.model_matrices[name])

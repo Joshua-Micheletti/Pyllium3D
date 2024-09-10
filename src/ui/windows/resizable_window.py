@@ -1,7 +1,8 @@
-import imgui
 import glfw
+import imgui
 
 from window import Window
+
 
 class ResizableWindow:
     def __init__(self, direction: str) -> None:
@@ -39,26 +40,26 @@ class ResizableWindow:
                 self.height = self.resize_start_size[1] - mouse_delta_y
             elif self.resize_direction == 'down':
                 self.height = self.resize_start_size[1] + mouse_delta_y
-                
+
     def is_mouse_pos_on_border(self) -> bool:
         io: any = imgui.get_io()
 
         border_size: float = 8.0  # Adjust as needed
 
-         # Check top border
+        # Check top border
         if io.mouse_pos.y - imgui.get_window_position()[1] < border_size:
-            return(True)
+            return True
 
         # Check bottom border
         if imgui.get_window_position()[1] + imgui.get_window_size()[1] - io.mouse_pos.y < border_size:
-            return(True)
+            return True
 
         # Check left border
         if io.mouse_pos.x - imgui.get_window_position()[0] < border_size:
-            return(True)
+            return True
 
         # Check right border
         if imgui.get_window_position()[0] + imgui.get_window_size()[0] - io.mouse_pos.x < border_size:
-            return(True)
+            return True
 
-        return(False)
+        return False

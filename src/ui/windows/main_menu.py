@@ -1,5 +1,7 @@
 import imgui
+
 from renderer.renderer_manager.renderer_manager import RendererManager
+
 
 class MainMenu:
     def __init__(self):
@@ -10,61 +12,66 @@ class MainMenu:
         if imgui.begin_main_menu_bar():
             rm = RendererManager()
             wsize = imgui.get_window_size()
-            dimensions["main_menu_height"] = wsize.y
+            dimensions['main_menu_height'] = wsize.y
             self.height = wsize.y
             self.width = wsize.x
 
-            if imgui.begin_menu("File"):
-                imgui.text("uwu")
+            if imgui.begin_menu('File'):
+                imgui.text('uwu')
                 imgui.end_menu()
 
-            if imgui.begin_menu("View"):
+            if imgui.begin_menu('View'):
+                imgui.align_text_to_frame_padding()
+                imgui.text('Left window       ')
+                imgui.same_line()
+                _, states['left_window'] = imgui.checkbox('###left_window_checkbox', states['left_window'])
 
                 imgui.align_text_to_frame_padding()
-                imgui.text("Left window       ")
+                imgui.text('Right window      ')
                 imgui.same_line()
-                _, states["left_window"] = imgui.checkbox("###left_window_checkbox", states["left_window"])
+                _, states['right_window'] = imgui.checkbox('###right_window_checkbox', states['right_window'])
 
                 imgui.align_text_to_frame_padding()
-                imgui.text("Right window      ")
+                imgui.text('Bottom window     ')
                 imgui.same_line()
-                _, states["right_window"] = imgui.checkbox("###right_window_checkbox", states["right_window"])
+                _, states['bottom_window'] = imgui.checkbox('###bottom_window_checkbox', states['bottom_window'])
 
                 imgui.align_text_to_frame_padding()
-                imgui.text("Bottom window     ")
+                imgui.text('Performance window')
                 imgui.same_line()
-                _, states["bottom_window"] = imgui.checkbox("###bottom_window_checkbox", states["bottom_window"])
-
-                imgui.align_text_to_frame_padding()
-                imgui.text("Performance window")
-                imgui.same_line()
-                _, states["fps_window"] = imgui.checkbox("###fps_window_checkbox", states["fps_window"])
+                _, states['fps_window'] = imgui.checkbox('###fps_window_checkbox', states['fps_window'])
 
                 imgui.end_menu()
 
-            if imgui.begin_menu("Render"):
+            if imgui.begin_menu('Render'):
                 imgui.align_text_to_frame_padding()
-                imgui.text("Depth of field ")
+                imgui.text('Depth of field ')
                 imgui.same_line()
-                _, rm.render_states["depth_of_field"] = imgui.checkbox("###depth_of_field_checkbox", rm.render_states["depth_of_field"])
+                _, rm.render_states['depth_of_field'] = imgui.checkbox(
+                    '###depth_of_field_checkbox', rm.render_states['depth_of_field']
+                )
 
                 imgui.align_text_to_frame_padding()
-                imgui.text("Post processing")
+                imgui.text('Post processing')
                 imgui.same_line()
-                _, rm.render_states["post_processing"] = imgui.checkbox("###post_processing_checkbox", rm.render_states["post_processing"])
+                _, rm.render_states['post_processing'] = imgui.checkbox(
+                    '###post_processing_checkbox', rm.render_states['post_processing']
+                )
 
                 imgui.align_text_to_frame_padding()
-                imgui.text("Bloom          ")
+                imgui.text('Bloom          ')
                 imgui.same_line()
-                _, rm.render_states["bloom"] = imgui.checkbox("###bloom_checkbox", rm.render_states["bloom"])
+                _, rm.render_states['bloom'] = imgui.checkbox('###bloom_checkbox', rm.render_states['bloom'])
 
                 imgui.align_text_to_frame_padding()
-                imgui.text("Shadows        ")
+                imgui.text('Shadows        ')
                 imgui.same_line()
-                _, rm.render_states["shadow_map"] = imgui.checkbox("###shadows_checkbox", rm.render_states["shadow_map"])
+                _, rm.render_states['shadow_map'] = imgui.checkbox(
+                    '###shadows_checkbox', rm.render_states['shadow_map']
+                )
 
                 imgui.align_text_to_frame_padding()
-                imgui.text("MSAA")
+                imgui.text('MSAA')
                 imgui.same_line()
 
                 sample_values = []
@@ -77,18 +84,18 @@ class MainMenu:
                         break
 
                     sample_values.append(str(int(new_sample_value)))
-                    
-                changed, sample_index = imgui.combo("###sample_combo", sample_values.index(str(rm.samples)), sample_values)
+
+                changed, sample_index = imgui.combo(
+                    '###sample_combo', sample_values.index(str(rm.samples)), sample_values
+                )
 
                 if changed:
                     rm.set_samples(int(sample_values[sample_index]))
 
                 # _, rm.render_states["msaa"] = imgui.checkbox("###msaa_checkbox", rm.render_states["msaa"])
 
-                
-
                 imgui.end_menu()
 
             imgui.end_main_menu_bar()
 
-        return(states, dimensions)
+        return (states, dimensions)

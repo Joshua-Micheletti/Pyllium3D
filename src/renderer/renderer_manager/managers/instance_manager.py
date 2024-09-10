@@ -1,15 +1,17 @@
-from renderer.instance import Instance
-from utils.messages import *
 import numpy as np
 from OpenGL.GL import *
 
+from renderer.instance import Instance
+from utils.messages import *
+
+
 def new_instance(self, name, mesh, shader):
     # check if the mesh and shader fields have been provided
-    if mesh == "":
+    if mesh == '':
         print_error("Couldn't create the instance, Mesh not set")
         return
-    
-    if shader == "":
+
+    if shader == '':
         print_error("Couldn't create the instance, Shader not set")
         return
 
@@ -24,7 +26,8 @@ def new_instance(self, name, mesh, shader):
 
     # intialize the instance
     self._initialize_instance(name)
-    
+
+
 # method to add a model to an instance
 def add_model_to_instance(self, model, instance):
     model_name = model
@@ -50,11 +53,12 @@ def add_model_to_instance(self, model, instance):
     self.single_render_models.remove(model)
 
     model.in_instance = instance_name
-    instance.to_update["model_matrices"] = True
-    instance.to_update["ambients"] = True
-    instance.to_update["diffuses"] = True
-    instance.to_update["speculars"] = True
-    instance.to_update["shininesses"] = True
+    instance.to_update['model_matrices'] = True
+    instance.to_update['ambients'] = True
+    instance.to_update['diffuses'] = True
+    instance.to_update['speculars'] = True
+    instance.to_update['shininesses'] = True
+
 
 def set_models_in_instance(self, models, instance_name):
     instance = self.instances[instance_name]
@@ -67,6 +71,7 @@ def set_models_in_instance(self, models, instance_name):
 
     self._initialize_instance(instance_name)
 
+
 def remove_model_from_instance(self, model, instance):
     name = model
     model = self.models[model]
@@ -77,8 +82,9 @@ def remove_model_from_instance(self, model, instance):
 
     self.single_render_models.append(model)
 
-    model.in_instance = ""
-    instance.to_update["model_matrices"] = True
+    model.in_instance = ''
+    instance.to_update['model_matrices'] = True
+
 
 def set_instance_mesh(self, instance, mesh):
     if mesh != self.instances[instance].mesh:
@@ -86,12 +92,15 @@ def set_instance_mesh(self, instance, mesh):
     # self.instances[instance].mesh = mesh
     # self.instances[instance].to_update = True
 
+
 def set_instance_shader(self, instance, shader):
     self.instances[instance].shader = shader
     # self.instances[instance].to_update = True
 
+
 def set_model_to_render_in_instance(self, model, instance):
     self.instances[instance].models_to_render[model] = self.models[model]
+
 
 # method to initialize an instance, might move this inside the instance object
 def initialize_instance(self, name):
@@ -99,7 +108,6 @@ def initialize_instance(self, name):
 
     # temporary list of model matrices
     # formatted_model_matrices = []
-        
 
     # formatted_ambients = []
     # formatted_diffuses = []
@@ -107,7 +115,6 @@ def initialize_instance(self, name):
     # formatted_shininesses = []
     # formatted_roughnesses = []
     # formatted_metallicnesses = []
-
 
     for name, model in instance.models.items():
         matrix = []
@@ -117,7 +124,7 @@ def initialize_instance(self, name):
         instance.model_matrices[name] = matrix
 
         material = self.materials[model.material]
-        
+
         ambient = []
         ambient.append(material.ambient[0])
         ambient.append(material.ambient[1])
@@ -129,7 +136,7 @@ def initialize_instance(self, name):
         diffuse.append(material.diffuse[1])
         diffuse.append(material.diffuse[2])
         instance.diffuses[name] = diffuse
-        
+
         specular = []
         specular.append(material.specular[0])
         specular.append(material.specular[1])
@@ -154,11 +161,10 @@ def initialize_instance(self, name):
     # formatted_shininesses = np.array(formatted_shininesses, dtype=np.float32)
     # formatted_roughnesses = np.array(formatted_roughnesses, dtype=np.float32)
     # formatted_metallicnesses = np.array(formatted_metallicnesses, dtype=np.float32)
-        
+
     # convert the list into an array of 32bit floats
     # formatted_model_matrices = np.array(formatted_model_matrices, dtype=np.float32)
     # get the size in bits of an item in the matrices list
-    
 
     # instance.model_matrices = formatted_model_matrices
     # instance.ambients = formatted_ambients
@@ -280,11 +286,11 @@ def initialize_instance(self, name):
     glBindBuffer(GL_ARRAY_BUFFER, instance.diffuse_vbo)
     glEnableVertexAttribArray(8)
     glVertexAttribPointer(8, 3, GL_FLOAT, GL_FALSE, float_size * 3, ctypes.c_void_p(0))
-    
+
     glBindBuffer(GL_ARRAY_BUFFER, instance.specular_vbo)
     glEnableVertexAttribArray(9)
     glVertexAttribPointer(9, 3, GL_FLOAT, GL_FALSE, float_size * 3, ctypes.c_void_p(0))
-    
+
     glBindBuffer(GL_ARRAY_BUFFER, instance.shininess_vbo)
     glEnableVertexAttribArray(10)
     glVertexAttribPointer(10, 1, GL_FLOAT, GL_FALSE, float_size, ctypes.c_void_p(0))
@@ -296,7 +302,6 @@ def initialize_instance(self, name):
     glBindBuffer(GL_ARRAY_BUFFER, instance.metallic_vbo)
     glEnableVertexAttribArray(12)
     glVertexAttribPointer(12, 1, GL_FLOAT, GL_FALSE, float_size, ctypes.c_void_p(0))
-
 
     glVertexBindingDivisor(7, 1)
     glVertexBindingDivisor(8, 1)

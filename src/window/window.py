@@ -1,18 +1,16 @@
+"""Window Class."""
+
 import glfw
-from OpenGL.GL import *
 import glm
 from glm import mat4x4
-from icecream import ic
 
-from utils import Singleton
-from utils import messages
-from utils import Config
-from utils import timeit
 from controller.controller import Controller
+from utils import Singleton, messages, timeit
+from utils.config import Config
 
 
 class Window(metaclass=Singleton):
-    """Class that creates and handles all things regarding the window object"""
+    """Class that creates and handles all things regarding the window object."""
 
     @timeit()
     def __init__(
@@ -27,7 +25,7 @@ class Window(metaclass=Singleton):
         min_z: float = None,
         max_z: float = None,
     ) -> None:
-        """Constructor for the window object
+        """Create a new window object.
 
         Args:
             width (int, optional): initial width of the window. Defaults to 800.
@@ -39,24 +37,24 @@ class Window(metaclass=Singleton):
             opengl_m (int, optional): minor OpenGL version to use. Defaults to 3.
             min_z (float, optional): min distance to render from. Defaults to 0.1.
             max_z (float, optional): max distance to render to. Defaults to 10000.
-        """
 
+        """
         # default window configuration
         default_config = {
-            "width": 800,
-            "height": 600,
-            "fullscreen": False,
-            "opengl_M": 4,
-            "opengl_m": 3,
-            "name": "Pyllium3D",
-            "fov": 60,
-            "min_z": 0.1,
-            "max_z": 10000,
+            'width': 800,
+            'height': 600,
+            'fullscreen': False,
+            'opengl_M': 4,
+            'opengl_m': 3,
+            'name': 'Pyllium3D',
+            'fov': 60,
+            'min_z': 0.1,
+            'max_z': 10000,
         }
 
         Config().initialize_parameters(
             self,
-            "window",
+            'window',
             default_config,
             width=width,
             height=height,
@@ -71,8 +69,8 @@ class Window(metaclass=Singleton):
 
         # initialize GLFW
         if not glfw.init():
-            messages.print_error("Could not start GLFW")
-            raise (RuntimeError("Could not start GLFW"))
+            messages.print_error('Could not start GLFW')
+            raise (RuntimeError('Could not start GLFW'))
 
         # set the OpenGL version
         glfw.window_hint(glfw.CONTEXT_VERSION_MAJOR, self.opengl_M)
@@ -97,7 +95,7 @@ class Window(metaclass=Singleton):
 
         # check if the window was created
         if not self.window:
-            messages.print_error("Could not start GLFW Window")
+            messages.print_error('Could not start GLFW Window')
             glfw.terminate()
             raise (RuntimeError)
 
@@ -126,14 +124,36 @@ class Window(metaclass=Singleton):
         # glfw.set_input_mode(self.window, glfw.CURSOR, glfw.CURSOR_DISABLED)
 
     def __repr__(self) -> str:
-        return "Window obj"
+        """Represent the object.
+
+        Returns:
+            str: Formatted representation
+
+        """
+        return 'Window obj'
 
     def get_ogl_matrix(self):
+        """Getter of the projection matrix formatted for OpenGL.
+
+        Returns:
+            object: OpenGL formatted projection matrix
+
+        """
         return glm.value_ptr(self.projection_matrix)
 
 
 # pass the key presses to the controller
 def key_callback(window, key, scancode, action, mods):
+    """Handle keyboard events.
+
+    Args:
+        window (Window): window object
+        key (object): key that was pressed
+        scancode (object): code of the key that was pressed
+        action (object): type of action
+        mods (object): additional keys
+
+    """
     if action == glfw.PRESS:
         Controller().handle_key_press(key, mods)
     if action == glfw.RELEASE:
@@ -142,15 +162,29 @@ def key_callback(window, key, scancode, action, mods):
 
 # handle the resizing of the window
 def framebuffer_size_callback(window, width, height):
+    """Handle resize events.
+
+    Args:
+        window (Window): window object
+        width (int): current width of the window
+        height (int): current height of the window
+
+    """
     # glViewport(0, 0, width, height)
     Window().width = width
     Window().height = height
-    Window().projection_matrix = glm.perspective(
-        glm.radians(Window().fov), float(width) / float(height), 0.1, 10000.0
-    )
+    Window().projection_matrix = glm.perspective(glm.radians(Window().fov), float(width) / float(height), 0.1, 10000.0)
     # RendererManager().update_dimensions(width, height)
 
 
 # pass the mouse events to the controller
 def mouse_callback(window, xpos, ypos):
+    """Handle mouse movement from the window.
+
+    Args:
+        window (Window): window object
+        xpos (float): x position of the mouse currently
+        ypos (float): y position of the mouse currently
+
+    """
     Controller().handle_mouse_movement(window, xpos, ypos)

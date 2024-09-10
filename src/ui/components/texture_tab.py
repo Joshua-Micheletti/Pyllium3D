@@ -2,6 +2,7 @@ import imgui
 
 from renderer.renderer_manager.renderer_manager import RendererManager
 
+
 class TextureTab:
     def __init__(self):
         pass
@@ -17,13 +18,13 @@ class TextureTab:
         max_size = wsize.x / 3 - style.item_spacing.x / 2
 
         # if texture_ratio < 1:
-            # width less than height, ratio = 0.n
+        # width less than height, ratio = 0.n
         texture_width = max_size
         texture_height = max_size * texture_ratio
         # else:
-            # width more than height, ratio = 1.n
-            # texture_height = max_size
-            # texture_width = max_size * texture_ratio
+        # width more than height, ratio = 1.n
+        # texture_height = max_size
+        # texture_width = max_size * texture_ratio
 
         # imgui.image(rm.solved_texture, texture_width, texture_height, (0, 1), (1, 0))
         imgui.image(rm.blurred_texture, texture_width, texture_height, (0, 1), (1, 0))

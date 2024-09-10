@@ -1,0 +1,21 @@
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+docstring-code-format = true
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "UP",
+    "B",
+    "SIM",
+    "I",
+    "A",
+    "C",
+    "D"
+]
+ignore = ['E501', 'D203', 'D213']

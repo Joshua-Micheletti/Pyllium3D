@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 
+
 @dataclass
 class Material:
     name: str
@@ -31,5 +32,3 @@ class Material:
 
     def set_metallic(self, m):
         self.metallic = m
-
-    

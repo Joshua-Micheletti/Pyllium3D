@@ -1,8 +1,10 @@
-import imgui
 from array import array
 
+import imgui
+
+
 class Graph:
-    def __init__(self, name, samples = 90, scale_min = 0, scale_max = 60):
+    def __init__(self, name, samples=90, scale_min=0, scale_max=60):
         self.name = name
         self.samples = samples
         self.graph_values = []
@@ -12,7 +14,7 @@ class Graph:
     def draw(self, dt):
         if len(self.graph_values) == 90:
             self.graph_values.pop(0)
-                
+
         self.graph_values.append(dt)
 
         last_values = []
@@ -27,12 +29,21 @@ class Graph:
 
         av_size = imgui.get_content_region_available()
 
-        graph_size = (av_size.x - imgui.calc_text_size(self.name).x - imgui.calc_text_size(str(round(average_value, 1))).x - 16, 20)
+        graph_size = (
+            av_size.x - imgui.calc_text_size(self.name).x - imgui.calc_text_size(str(round(average_value, 1))).x - 16,
+            20,
+        )
 
         plot_values = array('f', self.graph_values)
         imgui.align_text_to_frame_padding()
         imgui.text(self.name)
         imgui.same_line()
-        imgui.plot_lines("###" + self.name + "_plot", plot_values, graph_size = graph_size, scale_min = self.scale_min, scale_max = self.scale_max)
+        imgui.plot_lines(
+            '###' + self.name + '_plot',
+            plot_values,
+            graph_size=graph_size,
+            scale_min=self.scale_min,
+            scale_max=self.scale_max,
+        )
         imgui.same_line()
         imgui.text(str(round(average_value, 1)))

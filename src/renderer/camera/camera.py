@@ -1,6 +1,7 @@
-import glm
 import math
-import numpy as np
+
+import glm
+
 
 # class to implement a 3D virtual camera
 class Camera:
@@ -53,7 +54,7 @@ class Camera:
 
         self.frustum.near = Plane(self.position + self.z_near * self.front, self.front)
 
-        self.frustum.far  = Plane(self.position + front_mult_far, -self.front)
+        self.frustum.far = Plane(self.position + front_mult_far, -self.front)
 
         self.frustum.right = Plane(self.position, glm.cross(front_mult_far + self.right * half_h_side, self.up))
 
@@ -62,7 +63,6 @@ class Camera:
         self.frustum.top = Plane(self.position, glm.cross(self.right, front_mult_far + self.up * half_v_side))
 
         self.frustum.bottom = Plane(self.position, glm.cross(front_mult_far - self.up * half_v_side, self.right))
-
 
     # method to move the camera forwards and backwards
     def move(self, amount):
@@ -99,7 +99,7 @@ class Camera:
         direction = glm.vec3(
             math.cos(glm.radians(self.yaw)) * math.cos(glm.radians(self.pitch)),
             math.sin(glm.radians(self.pitch)),
-            math.sin(glm.radians(self.yaw)) * math.cos(glm.radians(self.pitch))
+            math.sin(glm.radians(self.yaw)) * math.cos(glm.radians(self.pitch)),
         )
 
         # update the front vector
@@ -109,13 +109,14 @@ class Camera:
 
     # obtain a formatted version of the view matrix ready for opengl uniforms
     def get_ogl_matrix(self):
-        return(glm.value_ptr(self.view_matrix))
-    
+        return glm.value_ptr(self.view_matrix)
+
     def get_inv_view_proj_matrix(self):
         view_projection_matrix = self.projection_matrix * self.get_view_matrix()
 
     # def get_skybox_ogl_matrix(self):
     #     return(glm.value_ptr(glm.lookAt(glm.vec3(0), self.front, self.world_up)))
+
 
 class Plane:
     def __init__(self, p1, normal):
@@ -136,6 +137,7 @@ class Plane:
     # def set_normal(self, normal):
     #     self.normal = glm.normalize(normal)
 
+
 class Frustum:
     def __init__(self):
         self.top = None
@@ -146,19 +148,67 @@ class Frustum:
         self.near = None
 
     def __str__(self):
-        string = ""
+        string = ''
 
         if self.near != None:
-            string += "Near:  \n Normal: " + str(self.near.normal) + "\n Distance: " + str(self.near.distance) + "\n Center: " + str(self.near.point) + "\n"
+            string += (
+                'Near:  \n Normal: '
+                + str(self.near.normal)
+                + '\n Distance: '
+                + str(self.near.distance)
+                + '\n Center: '
+                + str(self.near.point)
+                + '\n'
+            )
         if self.far != None:
-            string += "Far:   \n Normal: " + str(self.far.normal) + "\n Distance: " + str(self.far.distance) + "\n Center: " + str(self.far.point) + "\n"
+            string += (
+                'Far:   \n Normal: '
+                + str(self.far.normal)
+                + '\n Distance: '
+                + str(self.far.distance)
+                + '\n Center: '
+                + str(self.far.point)
+                + '\n'
+            )
         if self.right != None:
-            string += "Right: \n Normal: " + str(self.right.normal) + "\n Distance: " + str(self.right.distance) + "\n Center: " + str(self.right.point) + "\n"
+            string += (
+                'Right: \n Normal: '
+                + str(self.right.normal)
+                + '\n Distance: '
+                + str(self.right.distance)
+                + '\n Center: '
+                + str(self.right.point)
+                + '\n'
+            )
         if self.left != None:
-            string += "Left:  \n Normal: " + str(self.left.normal) + "\n Distance: " + str(self.left.distance) + "\n Center: " + str(self.left.point) + "\n"
+            string += (
+                'Left:  \n Normal: '
+                + str(self.left.normal)
+                + '\n Distance: '
+                + str(self.left.distance)
+                + '\n Center: '
+                + str(self.left.point)
+                + '\n'
+            )
         if self.top != None:
-            string += "Top:   \n Normal: " + str(self.top.normal) + "\n Distance: " + str(self.top.distance) + "\n Center: " + str(self.top.point) + "\n"
+            string += (
+                'Top:   \n Normal: '
+                + str(self.top.normal)
+                + '\n Distance: '
+                + str(self.top.distance)
+                + '\n Center: '
+                + str(self.top.point)
+                + '\n'
+            )
         if self.bottom != None:
-            string += "Bottom:\n Normal: " + str(self.bottom.normal) + "\n Distance: " + str(self.bottom.distance) + "\n Center: " + str(self.bottom.point) + "\n"
+            string += (
+                'Bottom:\n Normal: '
+                + str(self.bottom.normal)
+                + '\n Distance: '
+                + str(self.bottom.distance)
+                + '\n Center: '
+                + str(self.bottom.point)
+                + '\n'
+            )
 
-        return(string)
+        return string

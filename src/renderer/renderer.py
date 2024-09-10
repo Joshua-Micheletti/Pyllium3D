@@ -1,18 +1,10 @@
-import profile
-
-import numpy as np
-from utils import Singleton
-from OpenGL.GL import *
+import glfw
 import glm
 from glm import vec3
-import glfw
+from OpenGL.GL import *
 
-from utils import Timer
 from renderer.renderer_manager.renderer_manager import RendererManager
-from utils import timeit
-from utils import profile
-
-from icecream import ic
+from utils import Singleton, Timer, timeit
 
 
 # class to render 3D models
@@ -21,12 +13,12 @@ class Renderer(metaclass=Singleton):
 
     Args:
         metaclass (_type_, optional): _description_. Defaults to Singleton.
+
     """
 
     @timeit()
     def __init__(self) -> None:
         """Constructor method"""
-
         self._setup_opengl()
         self._setup_textures()
         self._setup_opengl_timers()
@@ -35,14 +27,13 @@ class Renderer(metaclass=Singleton):
         self.timer: Timer = Timer()
 
     def __str__(self):
-        return "Renderer"
+        return 'Renderer'
 
     def __repr__(self):
-        return "Renderer obj"
+        return 'Renderer obj'
 
     def _setup_opengl(self) -> None:
         """Function to setup the OpenGL constants for rendering"""
-
         # set the clear color to a dark grey
         glClearColor(0.1, 0.1, 0.1, 1.0)
         # enable depth testing (hide further away triangles if covered)
@@ -60,7 +51,7 @@ class Renderer(metaclass=Singleton):
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
 
     def _setup_textures(self) -> None:
-        """function to setup the necessary textures for rendering"""
+        """Function to setup the necessary textures for rendering"""
         # get a reference to the RendererManager
         rm: RendererManager = RendererManager()
 
@@ -90,8 +81,7 @@ class Renderer(metaclass=Singleton):
         glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
 
     def _setup_opengl_timers(self) -> None:
-        """function to setup OpenGL queries to keep track of performance"""
-
+        """Function to setup OpenGL queries to keep track of performance"""
         # setup the query objects to keep track of the rendering times
         opengl_queries: any = glGenQueries(10)
 
@@ -101,65 +91,64 @@ class Renderer(metaclass=Singleton):
         # - actual value returned from the query
         self.queries: dict[str, dict] = dict(
             {
-                "models": {
-                    "ogl_id": opengl_queries[0],
-                    "active": True,
-                    "value": 0,
+                'models': {
+                    'ogl_id': opengl_queries[0],
+                    'active': True,
+                    'value': 0,
                 },
-                "instances": {
-                    "ogl_id": opengl_queries[1],
-                    "active": True,
-                    "value": 0,
+                'instances': {
+                    'ogl_id': opengl_queries[1],
+                    'active': True,
+                    'value': 0,
                 },
-                "skybox": {
-                    "ogl_id": opengl_queries[2],
-                    "active": True,
-                    "value": 0,
+                'skybox': {
+                    'ogl_id': opengl_queries[2],
+                    'active': True,
+                    'value': 0,
                 },
-                "msaa": {
-                    "ogl_id": opengl_queries[3],
-                    "active": True,
-                    "value": 0,
+                'msaa': {
+                    'ogl_id': opengl_queries[3],
+                    'active': True,
+                    'value': 0,
                 },
-                "bloom": {
-                    "ogl_id": opengl_queries[4],
-                    "active": True,
-                    "value": 0,
+                'bloom': {
+                    'ogl_id': opengl_queries[4],
+                    'active': True,
+                    'value': 0,
                 },
-                "hdr": {
-                    "ogl_id": opengl_queries[5],
-                    "active": False,
-                    "value": 0,
+                'hdr': {
+                    'ogl_id': opengl_queries[5],
+                    'active': False,
+                    'value': 0,
                 },
-                "blur": {
-                    "ogl_id": opengl_queries[6],
-                    "active": True,
-                    "value": 0,
+                'blur': {
+                    'ogl_id': opengl_queries[6],
+                    'active': True,
+                    'value': 0,
                 },
-                "depth_of_field": {
-                    "ogl_id": opengl_queries[7],
-                    "active": True,
-                    "value": 0,
+                'depth_of_field': {
+                    'ogl_id': opengl_queries[7],
+                    'active': True,
+                    'value': 0,
                 },
-                "post_processing": {
-                    "ogl_id": opengl_queries[8],
-                    "active": True,
-                    "value": 0,
+                'post_processing': {
+                    'ogl_id': opengl_queries[8],
+                    'active': True,
+                    'value': 0,
                 },
-                "shadow_map": {
-                    "ogl_id": opengl_queries[9],
-                    "active": True,
-                    "value": 0,
+                'shadow_map': {
+                    'ogl_id': opengl_queries[9],
+                    'active': True,
+                    'value': 0,
                 },
             }
         )
 
     # ---------------------------- Render methods ---------------------------
     # method to render the 3D models
-    @timeit(print=False)
+    # @timeit(print=False)
     def render(self) -> None:
         """Renders the scene"""
-
         # reference to the renderer manager
         rm: RendererManager = RendererManager()
 
@@ -192,7 +181,7 @@ class Renderer(metaclass=Singleton):
         # disable depth testing
         glDisable(GL_DEPTH_TEST)
         # bind the screen quad VAO
-        glBindVertexArray(rm.vaos["screen_quad"])
+        glBindVertexArray(rm.vaos['screen_quad'])
         # these settings are common to all post processing passes
 
         # solve the multisample texture
@@ -213,28 +202,27 @@ class Renderer(metaclass=Singleton):
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
         # if we're profiling the performance, get the opengl time queries
-        if rm.render_states["profile"]:
-            self._calculate_render_times()
+        # if rm.render_states["profile"]:
+        #     self._calculate_render_times()
 
     # method to render the models to the render framebuffer
     def _render_models(self) -> None:
         # get a reference to the renderer manager
         rm: RendererManager = RendererManager()
 
-        if rm.render_states["profile"]:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries.get("models").get('ogl_id'))
+        if rm.render_states['profile']:
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('models').get('ogl_id'))
 
         # variables to keep track of the last used shader and mesh
-        last_shader: str = ""
-        last_mesh: str = ""
-        last_material: str = ""
-        last_texture: str = ""
+        last_shader: str = ''
+        last_mesh: str = ''
+        last_material: str = ''
+        last_texture: str = ''
         rendered_models: int = 0
 
         # THIS LOOP WILL CHANGE WHEN THE MODELS WILL BE GROUPED BY SHADER, SO THAT THERE ISN'T SO MUCH CONTEXT SWITCHING
         # for every model in the renderer manager
         for model in rm.single_render_models:
-
             if not rm.check_visibility(model.name):
                 continue
 
@@ -272,12 +260,10 @@ class Renderer(metaclass=Singleton):
             # draw the mesh
             # glDrawArrays(GL_TRIANGLES, 0, int(rm.vertices_count[model.mesh]))
             # glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
-            glDrawElements(
-                GL_TRIANGLES, int(rm.indices_count[model.mesh]), GL_UNSIGNED_INT, None
-            )
+            glDrawElements(GL_TRIANGLES, int(rm.indices_count[model.mesh]), GL_UNSIGNED_INT, None)
             rendered_models += 1
 
-        if rm.render_states["profile"]:
+        if rm.render_states['profile']:
             glEndQuery(GL_TIME_ELAPSED)
 
     # method to render instanced models
@@ -285,10 +271,10 @@ class Renderer(metaclass=Singleton):
         # reference to the renderer manager
         rm: RendererManager = RendererManager()
 
-        if rm.render_states["profile"]:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries.get("instances").get('ogl_id'))
+        if rm.render_states['profile']:
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('instances').get('ogl_id'))
 
-        last_shader: str = ""
+        last_shader: str = ''
 
         # for every instance in the renderer manager
         for instance in rm.instances.values():
@@ -314,7 +300,7 @@ class Renderer(metaclass=Singleton):
                 len(instance.models_to_render),
             )
 
-        if rm.render_states["profile"]:
+        if rm.render_states['profile']:
             glEndQuery(GL_TIME_ELAPSED)
 
     # method for rendering the shadow cubemap for point light
@@ -322,14 +308,14 @@ class Renderer(metaclass=Singleton):
         # reference to the renderer manager
         rm: RendererManager = RendererManager()
 
-        if not rm.render_states["shadow_map"]:
-            self.queries.get("shadow_map")['active'] = False
+        if not rm.render_states['shadow_map']:
+            self.queries.get('shadow_map')['active'] = False
             return ()
 
-        self.queries["shadow_map"][1] = True
+        self.queries['shadow_map'][1] = True
 
-        if rm.render_states["profile"]:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries.get("shadow_map").get('ogl_id'))
+        if rm.render_states['profile']:
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('shadow_map').get('ogl_id'))
 
         # set the viewport to match the dimensions of the shadow texture
         glViewport(0, 0, rm.shadow_size, rm.shadow_size)
@@ -340,17 +326,17 @@ class Renderer(metaclass=Singleton):
         glClear(GL_DEPTH_BUFFER_BIT)
 
         # use the depth cube shader
-        rm.shaders["depth_cube"].use()
+        rm.shaders['depth_cube'].use()
         # link the shader uniforms
-        self._link_shader_uniforms(rm.shaders["depth_cube"])
+        self._link_shader_uniforms(rm.shaders['depth_cube'])
 
         # keep track of the last bound mesh
-        last_mesh: str = ""
+        last_mesh: str = ''
 
         # iterate through all the models for single pass rendering
         for model in rm.single_render_models:
             # link the model specific uniforms
-            self._link_model_uniforms(rm.shaders["depth_cube"], model.name)
+            self._link_model_uniforms(rm.shaders['depth_cube'], model.name)
 
             # check if the new model has a different mesh
             if last_mesh != model.mesh:
@@ -361,14 +347,12 @@ class Renderer(metaclass=Singleton):
                 last_mesh = model.mesh
 
             # draw the mesh
-            glDrawElements(
-                GL_TRIANGLES, rm.indices_count[model.mesh], GL_UNSIGNED_INT, None
-            )
+            glDrawElements(GL_TRIANGLES, rm.indices_count[model.mesh], GL_UNSIGNED_INT, None)
 
         # use the instance specific shader
-        rm.shaders["depth_cube_instanced"].use()
+        rm.shaders['depth_cube_instanced'].use()
         # link the shader specific uniforms
-        self._link_shader_uniforms(rm.shaders["depth_cube_instanced"])
+        self._link_shader_uniforms(rm.shaders['depth_cube_instanced'])
 
         # for every instance in the renderer manager
         for instance in rm.instances.values():
@@ -386,7 +370,7 @@ class Renderer(metaclass=Singleton):
         # reset the viewport back to the rendering dimensions
         glViewport(0, 0, rm.width, rm.height)
 
-        if rm.render_states["profile"]:
+        if rm.render_states['profile']:
             glEndQuery(GL_TIME_ELAPSED)
 
     # method to render the skybox
@@ -395,30 +379,30 @@ class Renderer(metaclass=Singleton):
 
         rm: RendererManager = RendererManager()
 
-        if rm.render_states["profile"]:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries.get("skybox").get('ogl_id'))
+        if rm.render_states['profile']:
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('skybox').get('ogl_id'))
 
         # use the skybox shader
-        rm.shaders["skybox"].use()
+        rm.shaders['skybox'].use()
 
         # temporarily place the camera at the origin, to cancel camera movement from the skybox rendering
         old_position: vec3 = rm.camera.position
         rm.camera.place(0, 0, 0)
-        self._link_shader_uniforms(rm.shaders["skybox"])
+        self._link_shader_uniforms(rm.shaders['skybox'])
         rm.camera.place(old_position.x, old_position.y, old_position.z)
 
         # bind the default mesh vao (cube)
-        glBindVertexArray(rm.vaos["default"])
+        glBindVertexArray(rm.vaos['default'])
 
         # disable cull facing
         glDisable(GL_CULL_FACE)
 
         # render the cube
-        glDrawElements(GL_TRIANGLES, rm.indices_count["default"], GL_UNSIGNED_INT, None)
+        glDrawElements(GL_TRIANGLES, rm.indices_count['default'], GL_UNSIGNED_INT, None)
         # re-enable face culling
         glEnable(GL_CULL_FACE)
 
-        if rm.render_states["profile"]:
+        if rm.render_states['profile']:
             glEndQuery(GL_TIME_ELAPSED)
 
     # method to resolve the msaa render texture into a single sample texture
@@ -427,11 +411,11 @@ class Renderer(metaclass=Singleton):
         rm: RendererManager = RendererManager()
 
         if rm.samples == 1:
-            self.queries["msaa"][1] = False
+            self.queries['msaa'][1] = False
             return ()
 
-        if rm.render_states["profile"]:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries.get("msaa").get('ogl_id'))
+        if rm.render_states['profile']:
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('msaa').get('ogl_id'))
 
         # bind the solved framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
@@ -439,12 +423,10 @@ class Renderer(metaclass=Singleton):
         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, rm.multisample_render_texture)
 
         # use the msaa shader
-        rm.shaders["msaa"].use()
-        self._link_shader_uniforms(rm.shaders["msaa"])
+        rm.shaders['msaa'].use()
+        self._link_shader_uniforms(rm.shaders['msaa'])
 
-        glDrawElements(
-            GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None
-        )
+        glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
 
         # resolve the depth buffer through nearest filtering
         glBindFramebuffer(GL_READ_FRAMEBUFFER, rm.render_framebuffer)
@@ -464,7 +446,7 @@ class Renderer(metaclass=Singleton):
 
         rm.swap_back_framebuffer()
 
-        if rm.render_states["profile"]:
+        if rm.render_states['profile']:
             glEndQuery(GL_TIME_ELAPSED)
 
     # method to render the blur texture
@@ -473,41 +455,34 @@ class Renderer(metaclass=Singleton):
         rm: RendererManager = RendererManager()
 
         # only render the blur texture if the depth of field or post processing effects are enabled
-        if (
-            not rm.render_states["depth_of_field"]
-            and not rm.render_states["post_processing"]
-        ):
-            self.queries.get("blur")['active'] = False
+        if not rm.render_states['depth_of_field'] and not rm.render_states['post_processing']:
+            self.queries.get('blur')['active'] = False
             return ()
 
-        self.queries.get("blur")['active'] = True
+        self.queries.get('blur')['active'] = True
 
-        if rm.render_states["profile"]:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries.get("blur").get('ogl_id'))
+        if rm.render_states['profile']:
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('blur').get('ogl_id'))
 
         # bind the blurred framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.get_back_framebuffer())
         # clear the blur texture
         glClear(GL_COLOR_BUFFER_BIT)
 
-        shader = rm.shaders["post_processing/horizontal_blur"]
+        shader = rm.shaders['post_processing/horizontal_blur']
         shader.use()
         # glUniform1fv(shader.uniforms["gaussian_kernel"], 10, rm.gaussian_kernel_weights)
         glBindTexture(GL_TEXTURE_2D, rm.get_front_texture())
-        glDrawElements(
-            GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None
-        )
+        glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
 
         glBindFramebuffer(GL_FRAMEBUFFER, rm.blurred_framebuffer)
         glBindTexture(GL_TEXTURE_2D, rm.get_back_texture())
-        shader = rm.shaders["post_processing/vertical_blur"]
+        shader = rm.shaders['post_processing/vertical_blur']
         shader.use()
 
-        glDrawElements(
-            GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None
-        )
+        glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
 
-        if rm.render_states["profile"]:
+        if rm.render_states['profile']:
             glEndQuery(GL_TIME_ELAPSED)
 
     # method to render the depth of field effect
@@ -516,22 +491,22 @@ class Renderer(metaclass=Singleton):
         rm: RendererManager = RendererManager()
 
         # execute only if it's enabled
-        if not rm.render_states["depth_of_field"]:
-            self.queries.get("depth_of_field")['active'] = False
+        if not rm.render_states['depth_of_field']:
+            self.queries.get('depth_of_field')['active'] = False
             return ()
 
-        self.queries.get("depth_of_field")['active'] = True
+        self.queries.get('depth_of_field')['active'] = True
 
-        if rm.render_states["profile"]:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries.get("depth_of_field").get('ogl_id'))
+        if rm.render_states['profile']:
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('depth_of_field').get('ogl_id'))
 
         # bind the main render framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
 
         # use the depth of field shader
-        rm.shaders["depth_of_field"].use()
+        rm.shaders['depth_of_field'].use()
         # link the shader specific uniforms
-        self._link_shader_uniforms(rm.shaders["depth_of_field"])
+        self._link_shader_uniforms(rm.shaders['depth_of_field'])
 
         # bind the required textures to the correct texture slots
         glBindTexture(GL_TEXTURE_2D, rm.get_front_texture())
@@ -542,59 +517,53 @@ class Renderer(metaclass=Singleton):
         glBindTexture(GL_TEXTURE_2D, rm.solved_depth_texture)
 
         # draw the scene with depth of field
-        glDrawElements(
-            GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None
-        )
+        glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
 
         # set back the active texture slot to index 0
         glActiveTexture(GL_TEXTURE0)
 
-        if rm.render_states["profile"]:
+        if rm.render_states['profile']:
             glEndQuery(GL_TIME_ELAPSED)
 
     def _render_bloom(self):
         rm = RendererManager()
 
-        if not rm.render_states["bloom"]:
-            self.queries.get("bloom")['active'] = False
+        if not rm.render_states['bloom']:
+            self.queries.get('bloom')['active'] = False
             self._render_hdr()
             return ()
 
-        self.queries.get("bloom")['active'] = True
+        self.queries.get('bloom')['active'] = True
 
-        if rm.render_states["profile"]:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries.get("bloom").get('ogl_id'))
+        if rm.render_states['profile']:
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('bloom').get('ogl_id'))
 
         glBindFramebuffer(GL_FRAMEBUFFER, rm.bloom_framebuffer)
 
         # DOWNSAMPLE
         glBindTexture(GL_TEXTURE_2D, rm.get_back_texture())
 
-        shader = rm.shaders["bloom_downsample"]
+        shader = rm.shaders['bloom_downsample']
         shader.use()
-        glUniform2f(shader.uniforms["src_resolution"], rm.width, rm.height)
+        glUniform2f(shader.uniforms['src_resolution'], rm.width, rm.height)
 
         for i in range(len(rm.bloom_mips)):
             glViewport(0, 0, rm.bloom_mips_sizes[i][0], rm.bloom_mips_sizes[i][1])
-            glFramebufferTexture2D(
-                GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rm.bloom_mips[i], 0
-            )
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rm.bloom_mips[i], 0)
 
-            glUniform1f(shader.uniforms["mip_level"], i)
+            glUniform1f(shader.uniforms['mip_level'], i)
 
-            glDrawElements(
-                GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None
-            )
+            glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
 
             glUniform2f(
-                shader.uniforms["src_resolution"],
+                shader.uniforms['src_resolution'],
                 rm.bloom_mips_sizes[i][0],
                 rm.bloom_mips_sizes[i][1],
             )
             glBindTexture(GL_TEXTURE_2D, rm.bloom_mips[i])
 
         # UPSAMPLE
-        shader = rm.shaders["bloom_upsample"]
+        shader = rm.shaders['bloom_upsample']
         shader.use()
 
         glEnable(GL_BLEND)
@@ -607,13 +576,9 @@ class Renderer(metaclass=Singleton):
             glBindTexture(GL_TEXTURE_2D, current_mip)
 
             glViewport(0, 0, next_mip_size[0], next_mip_size[1])
-            glFramebufferTexture2D(
-                GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, next_mip, 0
-            )
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, next_mip, 0)
 
-            glDrawElements(
-                GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None
-            )
+            glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
 
         glViewport(0, 0, rm.width, rm.height)
         glDisable(GL_BLEND)
@@ -621,45 +586,41 @@ class Renderer(metaclass=Singleton):
         # BLENDING
         glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
 
-        shader = rm.shaders["bloom"]
+        shader = rm.shaders['bloom']
         shader.use()
 
         glBindTexture(GL_TEXTURE_2D, rm.get_back_texture())
         glActiveTexture(GL_TEXTURE0 + 1)
         glBindTexture(GL_TEXTURE_2D, rm.bloom_mips[0])
 
-        glDrawElements(
-            GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None
-        )
+        glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
 
         # rm.swap_back_framebuffer()
         # glBindFramebuffer(GL_FRAMEBUFFER, 0)
         glActiveTexture(GL_TEXTURE0)
 
-        if rm.render_states["profile"]:
+        if rm.render_states['profile']:
             glEndQuery(GL_TIME_ELAPSED)
 
     def _render_hdr(self):
         rm = RendererManager()
 
-        if rm.render_states["profile"]:
+        if rm.render_states['profile']:
             # ic(self.queries.get('hdr'))
-            glBeginQuery(GL_TIME_ELAPSED, self.queries.get("hdr").get('ogl_id'))
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('hdr').get('ogl_id'))
 
         glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
 
-        shader = rm.shaders["hdr"]
+        shader = rm.shaders['hdr']
         shader.use()
 
         glBindTexture(GL_TEXTURE_2D, rm.get_back_texture())
 
-        glDrawElements(
-            GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None
-        )
+        glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
-        if rm.render_states["profile"]:
+        if rm.render_states['profile']:
             glEndQuery(GL_TIME_ELAPSED)
 
     # method to render the screen texture to the main framebuffer
@@ -677,13 +638,11 @@ class Renderer(metaclass=Singleton):
         glDisable(GL_CULL_FACE)
 
         # use the screen shader
-        rm.shaders["screen"].use()
+        rm.shaders['screen'].use()
         # bind the render framebuffer color texture
         glBindTexture(GL_TEXTURE_2D, rm.get_front_texture())
 
-        glDrawElements(
-            GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None
-        )
+        glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
 
         # re-enable depth testing and cull face
         glEnable(GL_DEPTH_TEST)
@@ -695,19 +654,19 @@ class Renderer(metaclass=Singleton):
         rm = RendererManager()
 
         # only execute if the post processing is enabled
-        if not rm.render_states["post_processing"]:
-            self.queries.get("post_processing")['active'] = False
+        if not rm.render_states['post_processing']:
+            self.queries.get('post_processing')['active'] = False
             return ()
 
         # only execute if there are effects in the post processing list
         if len(rm.post_processing_shaders) == 0:
-            self.queries.get("post_processing")['active'] = False
+            self.queries.get('post_processing')['active'] = False
             return ()
 
-        self.queries.get("post_processing")['active'] = True
+        self.queries.get('post_processing')['active'] = True
 
-        if rm.render_states["profile"]:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries.get("post_processing").get('ogl_id'))
+        if rm.render_states['profile']:
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('post_processing').get('ogl_id'))
 
         # bind the screen quad mesh VAO and indices buffer
         i = 0
@@ -744,22 +703,20 @@ class Renderer(metaclass=Singleton):
             glActiveTexture(GL_TEXTURE0)
 
             # render the effect
-            glDrawElements(
-                GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None
-            )
+            glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
 
         if i % 2 == 0:
             glBindFramebuffer(GL_FRAMEBUFFER, rm.solved_framebuffer)
             glBindTexture(GL_TEXTURE_2D, rm.tmp_texture)
-            rm.shaders["screen"].use()
+            rm.shaders['screen'].use()
             glDrawElements(
                 GL_TRIANGLES,
-                int(rm.indices_count["screen_quad"]),
+                int(rm.indices_count['screen_quad']),
                 GL_UNSIGNED_INT,
                 None,
             )
 
-        if rm.render_states["profile"]:
+        if rm.render_states['profile']:
             glEndQuery(GL_TIME_ELAPSED)
 
     # method to render the irradiance cubemap of the skybox
@@ -773,19 +730,19 @@ class Renderer(metaclass=Singleton):
         glBindFramebuffer(GL_FRAMEBUFFER, rm.irradiance_framebuffer)
 
         # use the irradiance cubemap shader
-        shader = rm.shaders["irradiance_cube"]
+        shader = rm.shaders['irradiance_cube']
         shader.use()
 
         # bind the cubemap projection matrix to the projection uniform
         glUniformMatrix4fv(
-            shader.uniforms["projection"],
+            shader.uniforms['projection'],
             1,
             GL_FALSE,
             glm.value_ptr(rm.cubemap_projection),
         )
 
         # bind the cube mesh VAO
-        glBindVertexArray(rm.vaos["default"])
+        glBindVertexArray(rm.vaos['default'])
 
         # bind the skybox texture cubemap as source
         glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
@@ -797,7 +754,7 @@ class Renderer(metaclass=Singleton):
         for i in range(6):
             # update the view matrix
             glUniformMatrix4fv(
-                shader.uniforms["view"],
+                shader.uniforms['view'],
                 1,
                 GL_FALSE,
                 glm.value_ptr(rm.center_cubemap_views[i]),
@@ -813,9 +770,7 @@ class Renderer(metaclass=Singleton):
             # clear the texture
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
             # draw the irradiance texture
-            glDrawElements(
-                GL_TRIANGLES, rm.indices_count["default"], GL_UNSIGNED_INT, None
-            )
+            glDrawElements(GL_TRIANGLES, rm.indices_count['default'], GL_UNSIGNED_INT, None)
 
         # re-enable backface culling
         glEnable(GL_CULL_FACE)
@@ -838,19 +793,19 @@ class Renderer(metaclass=Singleton):
         glBindFramebuffer(GL_FRAMEBUFFER, rm.skybox_framebuffer)
 
         # use the equirect skybox shader
-        shader = rm.shaders["equirect_skybox"]
+        shader = rm.shaders['equirect_skybox']
         shader.use()
 
         # set the projection uniform to the cubemap projection
         glUniformMatrix4fv(
-            shader.uniforms["projection"],
+            shader.uniforms['projection'],
             1,
             GL_FALSE,
             glm.value_ptr(rm.cubemap_projection),
         )
 
         # bind the cube mesh VAO
-        glBindVertexArray(rm.vaos["default"])
+        glBindVertexArray(rm.vaos['default'])
 
         # bind the source equirect skybox texture
         glBindTexture(GL_TEXTURE_2D, rm.equirect_skybox)
@@ -862,7 +817,7 @@ class Renderer(metaclass=Singleton):
         for i in range(6):
             # update the view matrix accordingly
             glUniformMatrix4fv(
-                shader.uniforms["view"],
+                shader.uniforms['view'],
                 1,
                 GL_FALSE,
                 glm.value_ptr(rm.center_cubemap_views[i]),
@@ -879,9 +834,7 @@ class Renderer(metaclass=Singleton):
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
             # draw the face to the cubemap
-            glDrawElements(
-                GL_TRIANGLES, rm.indices_count["default"], GL_UNSIGNED_INT, None
-            )
+            glDrawElements(GL_TRIANGLES, rm.indices_count['default'], GL_UNSIGNED_INT, None)
 
         # re-enable backface culling
         glEnable(GL_CULL_FACE)
@@ -900,17 +853,15 @@ class Renderer(metaclass=Singleton):
         glBindFramebuffer(GL_FRAMEBUFFER, rm.brdf_integration_framebuffer)
 
         # use the brdf integration shader
-        shader = rm.shaders["brdf_integration"]
+        shader = rm.shaders['brdf_integration']
         shader.use()
 
         # clear the texture
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         # draw the quad
-        glBindVertexArray(rm.vaos["screen_quad"])
-        glDrawElements(
-            GL_TRIANGLES, rm.indices_count["screen_quad"], GL_UNSIGNED_INT, None
-        )
+        glBindVertexArray(rm.vaos['screen_quad'])
+        glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
 
         # set the viewport back to its original dimensions
         glViewport(0, 0, rm.width, rm.height)
@@ -924,19 +875,19 @@ class Renderer(metaclass=Singleton):
         glBindFramebuffer(GL_FRAMEBUFFER, rm.reflection_framebuffer)
 
         # use the reflection prefilter shader
-        shader = rm.shaders["reflection_prefilter"]
+        shader = rm.shaders['reflection_prefilter']
         shader.use()
 
         # bind the projection matrix uniform to the cubemap projection matrix
         glUniformMatrix4fv(
-            shader.uniforms["projection"],
+            shader.uniforms['projection'],
             1,
             GL_FALSE,
             glm.value_ptr(rm.cubemap_projection),
         )
 
         # bind the cube mesh VAO
-        glBindVertexArray(rm.vaos["default"])
+        glBindVertexArray(rm.vaos['default'])
 
         # bind the skybox texture as source
         glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
@@ -955,9 +906,7 @@ class Renderer(metaclass=Singleton):
 
             # adapt the renderbuffer to accomodate the new resolution
             glBindRenderbuffer(GL_RENDERBUFFER, rm.reflection_depth)
-            glRenderbufferStorage(
-                GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, int(mip_width), int(mip_height)
-            )
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, int(mip_width), int(mip_height))
 
             # set the viewport to the dimensions of the mipmap size
             glViewport(0, 0, int(mip_width), int(mip_height))
@@ -965,13 +914,13 @@ class Renderer(metaclass=Singleton):
             # calculate the attributed roughness value
             roughness = float(mip) / float(max_mip_levels - 1)
             # bind the roughness uniform
-            glUniform1f(shader.uniforms["roughness"], roughness)
+            glUniform1f(shader.uniforms['roughness'], roughness)
 
             # iterate through every face of the cube
             for i in range(6):
                 # update the view matrix for the correct face
                 glUniformMatrix4fv(
-                    shader.uniforms["view"],
+                    shader.uniforms['view'],
                     1,
                     GL_FALSE,
                     glm.value_ptr(rm.center_cubemap_views[i]),
@@ -988,9 +937,7 @@ class Renderer(metaclass=Singleton):
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
                 # draw the blurred reflection map
-                glDrawElements(
-                    GL_TRIANGLES, rm.indices_count["default"], GL_UNSIGNED_INT, None
-                )
+                glDrawElements(GL_TRIANGLES, rm.indices_count['default'], GL_UNSIGNED_INT, None)
 
         # re-enable backface culling
         glEnable(GL_CULL_FACE)
@@ -1003,35 +950,33 @@ class Renderer(metaclass=Singleton):
         # get a reference to the renderer manager
         rm = RendererManager()
 
-        if "view" in shader.uniforms:
+        if 'view' in shader.uniforms:
+            glUniformMatrix4fv(shader.uniforms['view'], 1, GL_FALSE, rm.camera.get_ogl_matrix())
+        if 'projection' in shader.uniforms:
             glUniformMatrix4fv(
-                shader.uniforms["view"], 1, GL_FALSE, rm.camera.get_ogl_matrix()
-            )
-        if "projection" in shader.uniforms:
-            glUniformMatrix4fv(
-                shader.uniforms["projection"],
+                shader.uniforms['projection'],
                 1,
                 GL_FALSE,
                 rm.get_ogl_projection_matrix(),
             )
-        if "light" in shader.uniforms:
+        if 'light' in shader.uniforms:
             glUniform3f(
-                shader.uniforms["light"],
+                shader.uniforms['light'],
                 rm.light_positions[0],
                 rm.light_positions[1],
                 rm.light_positions[2],
             )
-        if "eye" in shader.uniforms:
+        if 'eye' in shader.uniforms:
             glUniform3f(
-                shader.uniforms["eye"],
+                shader.uniforms['eye'],
                 rm.camera.position.x,
                 rm.camera.position.y,
                 rm.camera.position.z,
             )
 
-        if "skybox_view" in shader.uniforms:
+        if 'skybox_view' in shader.uniforms:
             glUniformMatrix4fv(
-                shader.uniforms["skybox_view"],
+                shader.uniforms['skybox_view'],
                 1,
                 GL_FALSE,
                 rm.camera.get_skybox_ogl_matrix(),
@@ -1039,84 +984,80 @@ class Renderer(metaclass=Singleton):
 
         light_material = rm.light_material()
 
-        if "light_ambient" in shader.uniforms:
+        if 'light_ambient' in shader.uniforms:
             glUniform3f(
-                shader.uniforms["light_ambient"],
+                shader.uniforms['light_ambient'],
                 light_material.ambient[0],
                 light_material.ambient[1],
                 light_material.ambient[2],
             )
-        if "light_diffuse" in shader.uniforms:
+        if 'light_diffuse' in shader.uniforms:
             glUniform3f(
-                shader.uniforms["light_diffuse"],
+                shader.uniforms['light_diffuse'],
                 light_material.diffuse[0],
                 light_material.diffuse[1],
                 light_material.diffuse[2],
             )
-        if "light_specular" in shader.uniforms:
+        if 'light_specular' in shader.uniforms:
             glUniform3f(
-                shader.uniforms["light_specular"],
+                shader.uniforms['light_specular'],
                 light_material.specular[0],
                 light_material.specular[1],
                 light_material.specular[2],
             )
-        if "light_color" in shader.uniforms:
+        if 'light_color' in shader.uniforms:
             glUniform3f(
-                shader.uniforms["light_color"],
+                shader.uniforms['light_color'],
                 light_material.diffuse[0],
                 light_material.diffuse[1],
                 light_material.diffuse[2],
             )
-        if "light_strength" in shader.uniforms:
-            glUniform1f(shader.uniforms["light_strength"], rm.light_strengths[0])
+        if 'light_strength' in shader.uniforms:
+            glUniform1f(shader.uniforms['light_strength'], rm.light_strengths[0])
 
-        if "lights" in shader.uniforms:
-            glUniform3fv(shader.uniforms["lights"], rm.lights_count, rm.light_positions)
+        if 'lights' in shader.uniforms:
+            glUniform3fv(shader.uniforms['lights'], rm.lights_count, rm.light_positions)
 
-        if "light_colors" in shader.uniforms:
-            glUniform3fv(
-                shader.uniforms["light_colors"], rm.lights_count, rm.light_colors
-            )
+        if 'light_colors' in shader.uniforms:
+            glUniform3fv(shader.uniforms['light_colors'], rm.lights_count, rm.light_colors)
 
-        if "light_strengths" in shader.uniforms:
-            glUniform1fv(
-                shader.uniforms["light_strengths"], rm.lights_count, rm.light_strengths
-            )
+        if 'light_strengths' in shader.uniforms:
+            glUniform1fv(shader.uniforms['light_strengths'], rm.lights_count, rm.light_strengths)
 
-        if "lights_count" in shader.uniforms:
-            glUniform1f(shader.uniforms["lights_count"], rm.lights_count)
+        if 'lights_count' in shader.uniforms:
+            glUniform1f(shader.uniforms['lights_count'], rm.lights_count)
 
-        if "screen_texture" in shader.uniforms:
-            glUniform1i(shader.uniforms["screen_texture"], 0)
-        if "blurred_texture" in shader.uniforms:
-            glUniform1i(shader.uniforms["blurred_texture"], 1)
-        if "depth_texture" in shader.uniforms:
-            glUniform1i(shader.uniforms["depth_texture"], 2)
+        if 'screen_texture' in shader.uniforms:
+            glUniform1i(shader.uniforms['screen_texture'], 0)
+        if 'blurred_texture' in shader.uniforms:
+            glUniform1i(shader.uniforms['blurred_texture'], 1)
+        if 'depth_texture' in shader.uniforms:
+            glUniform1i(shader.uniforms['depth_texture'], 2)
 
-        if "depth_map" in shader.uniforms:
-            glUniform1i(shader.uniforms["depth_map"], 3)
-        if "irradiance_map" in shader.uniforms:
-            glUniform1i(shader.uniforms["irradiance_map"], 4)
-        if "reflection_map" in shader.uniforms:
-            glUniform1i(shader.uniforms["reflection_map"], 5)
-        if "brdf_integration" in shader.uniforms:
-            glUniform1i(shader.uniforms["brdf_integration"], 6)
+        if 'depth_map' in shader.uniforms:
+            glUniform1i(shader.uniforms['depth_map'], 3)
+        if 'irradiance_map' in shader.uniforms:
+            glUniform1i(shader.uniforms['irradiance_map'], 4)
+        if 'reflection_map' in shader.uniforms:
+            glUniform1i(shader.uniforms['reflection_map'], 5)
+        if 'brdf_integration' in shader.uniforms:
+            glUniform1i(shader.uniforms['brdf_integration'], 6)
 
-        if "samples" in shader.uniforms:
-            glUniform1i(shader.uniforms["samples"], rm.samples)
+        if 'samples' in shader.uniforms:
+            glUniform1i(shader.uniforms['samples'], rm.samples)
 
-        if "cube_matrices" in shader.uniforms:
+        if 'cube_matrices' in shader.uniforms:
             shadow_matrices = rm.get_ogl_shadow_matrices()
             for i in range(6):
                 glUniformMatrix4fv(
-                    shader.uniforms["cube_matrices"] + i,
+                    shader.uniforms['cube_matrices'] + i,
                     1,
                     GL_FALSE,
                     shadow_matrices[i],
                 )
 
-        if "far_plane" in shader.uniforms:
-            glUniform1f(shader.uniforms["far_plane"], rm.shadow_far_plane)
+        if 'far_plane' in shader.uniforms:
+            glUniform1f(shader.uniforms['far_plane'], rm.shadow_far_plane)
         # if "cube_matrices" in shader.uniforms:
         #     glUniformMatrix4fv(shader.uniforms["cube_matrices[0]"], rm.)
 
@@ -1124,93 +1065,80 @@ class Renderer(metaclass=Singleton):
     def _link_model_uniforms(self, shader, name):
         rm = RendererManager()
 
-        if "model" in shader.uniforms:
-            glUniformMatrix4fv(
-                shader.uniforms["model"], 1, GL_FALSE, rm.get_ogl_matrix(name)
-            )
+        if 'model' in shader.uniforms:
+            glUniformMatrix4fv(shader.uniforms['model'], 1, GL_FALSE, rm.get_ogl_matrix(name))
 
     def _link_material_uniforms(self, shader, name):
         rm = RendererManager()
         model = rm.models[name]
 
-        if "ambient" in shader.uniforms:
+        if 'ambient' in shader.uniforms:
             glUniform3f(
-                shader.uniforms["ambient"],
+                shader.uniforms['ambient'],
                 rm.materials[model.material].ambient[0],
                 rm.materials[model.material].ambient[1],
                 rm.materials[model.material].ambient[2],
             )
-        if "diffuse" in shader.uniforms:
+        if 'diffuse' in shader.uniforms:
             glUniform3f(
-                shader.uniforms["diffuse"],
+                shader.uniforms['diffuse'],
                 rm.materials[model.material].diffuse[0],
                 rm.materials[model.material].diffuse[1],
                 rm.materials[model.material].diffuse[2],
             )
-        if "specular" in shader.uniforms:
+        if 'specular' in shader.uniforms:
             glUniform3f(
-                shader.uniforms["specular"],
+                shader.uniforms['specular'],
                 rm.materials[model.material].specular[0],
                 rm.materials[model.material].specular[1],
                 rm.materials[model.material].specular[2],
             )
-        if "shininess" in shader.uniforms:
-            glUniform1f(
-                shader.uniforms["shininess"], rm.materials[model.material].shininess
-            )
-        if "albedo" in shader.uniforms:
+        if 'shininess' in shader.uniforms:
+            glUniform1f(shader.uniforms['shininess'], rm.materials[model.material].shininess)
+        if 'albedo' in shader.uniforms:
             glUniform3f(
-                shader.uniforms["albedo"],
+                shader.uniforms['albedo'],
                 rm.materials[model.material].diffuse[0],
                 rm.materials[model.material].diffuse[1],
                 rm.materials[model.material].diffuse[2],
             )
-        if "roughness" in shader.uniforms:
-            glUniform1f(
-                shader.uniforms["roughness"], rm.materials[model.material].roughness
-            )
-        if "metallic" in shader.uniforms:
-            glUniform1f(
-                shader.uniforms["metallic"], rm.materials[model.material].metallic
-            )
+        if 'roughness' in shader.uniforms:
+            glUniform1f(shader.uniforms['roughness'], rm.materials[model.material].roughness)
+        if 'metallic' in shader.uniforms:
+            glUniform1f(shader.uniforms['metallic'], rm.materials[model.material].metallic)
 
     def _link_post_processing_uniforms(self, shader):
-        if "time" in shader.uniforms:
-            glUniform1f(shader.uniforms["time"], glfw.get_time() * 10)
+        if 'time' in shader.uniforms:
+            glUniform1f(shader.uniforms['time'], glfw.get_time() * 10)
 
     def _link_user_uniforms(self, shader):
-        if "user_distance" in shader.uniforms:
+        if 'user_distance' in shader.uniforms:
+            glUniform1f(shader.uniforms['user_distance'], shader.user_uniforms['user_distance'])
+        if 'user_range' in shader.uniforms:
+            glUniform1f(shader.uniforms['user_range'], shader.user_uniforms['user_range'])
+        if 'user_parameter_0' in shader.uniforms:
             glUniform1f(
-                shader.uniforms["user_distance"], shader.user_uniforms["user_distance"]
+                shader.uniforms['user_parameter_0'],
+                shader.user_uniforms['user_parameter_0'],
             )
-        if "user_range" in shader.uniforms:
+        if 'user_parameter_1' in shader.uniforms:
             glUniform1f(
-                shader.uniforms["user_range"], shader.user_uniforms["user_range"]
+                shader.uniforms['user_parameter_1'],
+                shader.user_uniforms['user_parameter_1'],
             )
-        if "user_parameter_0" in shader.uniforms:
+        if 'user_parameter_2' in shader.uniforms:
             glUniform1f(
-                shader.uniforms["user_parameter_0"],
-                shader.user_uniforms["user_parameter_0"],
+                shader.uniforms['user_parameter_2'],
+                shader.user_uniforms['user_parameter_2'],
             )
-        if "user_parameter_1" in shader.uniforms:
+        if 'user_parameter_3' in shader.uniforms:
             glUniform1f(
-                shader.uniforms["user_parameter_1"],
-                shader.user_uniforms["user_parameter_1"],
-            )
-        if "user_parameter_2" in shader.uniforms:
-            glUniform1f(
-                shader.uniforms["user_parameter_2"],
-                shader.user_uniforms["user_parameter_2"],
-            )
-        if "user_parameter_3" in shader.uniforms:
-            glUniform1f(
-                shader.uniforms["user_parameter_3"],
-                shader.user_uniforms["user_parameter_3"],
+                shader.uniforms['user_parameter_3'],
+                shader.user_uniforms['user_parameter_3'],
             )
 
     def _calculate_render_times(self):
         for name, query in self.queries.items():
-
             if not query.get('active'):
                 query['value'] = 0
                 continue

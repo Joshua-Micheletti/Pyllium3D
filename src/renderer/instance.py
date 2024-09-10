@@ -1,13 +1,11 @@
-from OpenGL.GL import *
 import numpy as np
+from OpenGL.GL import *
 
-from utils import colors
-from utils import Timer
 
 # class to implement an instance for rendering
 class Instance:
     # constructor method
-    def __init__(self, mesh = "", shader = ""):
+    def __init__(self, mesh='', shader=''):
         # mesh name for the models in the instance
         self.mesh = mesh
         # shader models in the instance
@@ -53,13 +51,13 @@ class Instance:
         # dictionary to keep track of what to update in the instance every cycle
         self.to_update = dict()
 
-        self.to_update["model_matrices"] = False
-        self.to_update["ambients"] = False
-        self.to_update["diffuses"] = False
-        self.to_update["speculars"] = False
-        self.to_update["shininesses"] = False
-        self.to_update["roughnesses"] = False
-        self.to_update["metallicnesses"] = False
+        self.to_update['model_matrices'] = False
+        self.to_update['ambients'] = False
+        self.to_update['diffuses'] = False
+        self.to_update['speculars'] = False
+        self.to_update['shininesses'] = False
+        self.to_update['roughnesses'] = False
+        self.to_update['metallicnesses'] = False
 
         self.models_to_render = dict()
         self.previous_models_to_render = dict()
@@ -149,7 +147,6 @@ class Instance:
             self.diffuses[model.name] = material.diffuse
             self.changed_models.add(model.name)
 
-
     # method to change the specular value in an instance
     def change_specular(self, material):
         # get the list of models in this instance that use the changed material
@@ -231,7 +228,7 @@ class Instance:
         #     self.update_metallicnesses()
         #     self.to_update["metallicnesses"] = False
         self.setup_buffers()
-        
+
     # method to update the model matrices vbo
     def update_model_matrices(self):
         # convert the array into a numpy array of float 32bit
@@ -314,10 +311,10 @@ class Instance:
 
     def setup_buffers(self):
         if len(self.models_to_render) == 0:
-            return()
-        
+            return ()
+
         if self.models_to_render == self.previous_models_to_render and len(self.changed_models) == 0:
-            return()
+            return ()
 
         intersection = set(self.previous_models_to_render) & set(self.models_to_render)
         models_to_remove = set(self.previous_models_to_render) - intersection
@@ -347,8 +344,6 @@ class Instance:
             # self.render_shininesses[name] = self.shininesses[name]
             self.render_roughnesses[name] = self.roughnesses[name]
             self.render_metallicnesses[name] = self.metallicnesses[name]
-
-        
 
         model_matrices_array = np.array(list(self.render_model_matrices.values()), dtype=np.float32).flatten()
         # bind the ambient vbo

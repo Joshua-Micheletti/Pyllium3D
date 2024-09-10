@@ -1,7 +1,8 @@
-import glm
 import multiprocessing
-import threading
 from threading import Thread
+
+import glm
+
 
 # function to create an indexed version of the vertices of a model
 def index_vertices(vertices, normals, uvs):
@@ -17,10 +18,12 @@ def index_vertices(vertices, normals, uvs):
     # for each input vertex:
     for i in range(int(len(vertices) / 3)):
         # create a packed vertex (object that stores position, uv and normal information)
-        packed_vertex = PackedVertex(position=glm.vec3(vertices[i * 3 + 0], vertices[i * 3 + 1], vertices[i * 3 + 2]),
-                                     uv = glm.vec2(uvs[i * 2 + 0], uvs[i * 2 + 1]),
-                                     normal = glm.vec3(normals[i * 3 + 0], normals[i * 3 + 1], normals[i * 3 + 2]))
-        
+        packed_vertex = PackedVertex(
+            position=glm.vec3(vertices[i * 3 + 0], vertices[i * 3 + 1], vertices[i * 3 + 2]),
+            uv=glm.vec2(uvs[i * 2 + 0], uvs[i * 2 + 1]),
+            normal=glm.vec3(normals[i * 3 + 0], normals[i * 3 + 1], normals[i * 3 + 2]),
+        )
+
         # check if a similar vertex exists, if so, get its index
         found, index = get_similar_vertex_index(packed_vertex, vertices_dict)
 
@@ -51,11 +54,12 @@ def index_vertices(vertices, normals, uvs):
             vertices_dict[packed_vertex] = new_index
 
     # return the output lists
-    return(out_indices, out_vertices, out_normals, out_uvs)
+    return (out_indices, out_vertices, out_normals, out_uvs)
+
 
 def index_vertices_st_worker(vertices, normals, uvs, procnum, return_dict):
     return_dict[procnum] = index_vertices(vertices, normals, uvs)
-        
+
 
 def index_vertices_multi_thread(vertices, normals, uvs):
     thread_count = multiprocessing.cpu_count()
@@ -76,20 +80,22 @@ def index_vertices_multi_thread(vertices, normals, uvs):
     return_dict = manager.dict()
 
     threads = []
-    for i in range(thread_count): 
+    for i in range(thread_count):
         # if i == thread_count - 1:
         #     thread_vertices = [vertices[index] for index in range(i*vertex_length, len(vertices))]
         #     thread_normals = [normals[index] for index in range(i*vertex_length, len(normals))]
         #     thread_uvs = [uvs[index] for index in range(i*uv_length, len(uvs))]
 
         # else:
-        thread_vertices = [vertices[index] for index in range(i*vertex_length, i*vertex_length+vertex_length)]
-        thread_normals = [normals[index] for index in range(i*vertex_length, i*vertex_length+vertex_length)]
-        thread_uvs = [uvs[index] for index in range(i*uv_length, i*uv_length+uv_length)]
+        thread_vertices = [vertices[index] for index in range(i * vertex_length, i * vertex_length + vertex_length)]
+        thread_normals = [normals[index] for index in range(i * vertex_length, i * vertex_length + vertex_length)]
+        thread_uvs = [uvs[index] for index in range(i * uv_length, i * uv_length + uv_length)]
 
-        print(f"normals thread size: {len(thread_normals)}")
-            
-        p = multiprocessing.Process(target=index_vertices_st_worker, args=(thread_vertices, thread_normals, thread_uvs, i, return_dict))
+        print(f'normals thread size: {len(thread_normals)}')
+
+        p = multiprocessing.Process(
+            target=index_vertices_st_worker, args=(thread_vertices, thread_normals, thread_uvs, i, return_dict)
+        )
         threads.append(p)
         p.start()
 
@@ -101,13 +107,12 @@ def index_vertices_multi_thread(vertices, normals, uvs):
         out_normals += result[2]
         out_uvs += result[3]
 
-    print(f"len reduced vertices: {len(out_vertices)}")
-    print(f"len reduced normals: {len(out_normals)}")
-    print(f"len reduced uvs: {len(out_uvs)}")
+    print(f'len reduced vertices: {len(out_vertices)}')
+    print(f'len reduced normals: {len(out_normals)}')
+    print(f'len reduced uvs: {len(out_uvs)}')
 
-    return(index_vertices(out_vertices, out_normals, out_uvs))
+    return index_vertices(out_vertices, out_normals, out_uvs)
 
-    
 
 # function to check wether a packed vertex is similar to any vertex in the dictionary (==)
 def get_similar_vertex_index(packed, vertices):
@@ -116,10 +121,10 @@ def get_similar_vertex_index(packed, vertices):
         # check if it's similar to the current packed vertex
         if vertex == packed:
             # if a similar vertex is found, return True and the index it was found at
-            return(True, index)
+            return (True, index)
 
-    # if no vertex in the dictionary is similar, return False    
-    return(False, None)
+    # if no vertex in the dictionary is similar, return False
+    return (False, None)
 
 
 # class to store and compare packed vertices
@@ -134,7 +139,7 @@ class PackedVertex:
     # method to execute when the "==" operator is used
     def __eq__(self, other):
         # return true if the fields are the same
-        return(self.__dict__ == other.__dict__)
+        return self.__dict__ == other.__dict__
         # return(self.position.x == other.position.x and \
         #        self.position.y == other.position.y and \
         #        self.position.z == other.position.z and \
@@ -158,8 +163,9 @@ class PackedVertex:
 
     # method to check if a value can be considered near enough to another value
     def is_near(self, v1, v2):
-        return(abs(v1 - v2) < 0.001)
-    
+        return abs(v1 - v2) < 0.001
+
+
 class IndexingThread(Thread):
     def __init__(self, vertices, normals, uvs):
         Thread.__init__(self)
@@ -182,10 +188,12 @@ class IndexingThread(Thread):
         # for each input vertex:
         for i in range(int(len(self.vertices) / 3)):
             # create a packed vertex (object that stores position, uv and normal information)
-            packed_vertex = PackedVertex(position=glm.vec3(self.vertices[i * 3 + 0], self.vertices[i * 3 + 1], self.vertices[i * 3 + 2]),
-                                         uv = glm.vec2(self.uvs[i * 2 + 0], self.uvs[i * 2 + 1]),
-                                         normal = glm.vec3(self.normals[i * 3 + 0], self.normals[i * 3 + 1], self.normals[i * 3 + 2]))
-            
+            packed_vertex = PackedVertex(
+                position=glm.vec3(self.vertices[i * 3 + 0], self.vertices[i * 3 + 1], self.vertices[i * 3 + 2]),
+                uv=glm.vec2(self.uvs[i * 2 + 0], self.uvs[i * 2 + 1]),
+                normal=glm.vec3(self.normals[i * 3 + 0], self.normals[i * 3 + 1], self.normals[i * 3 + 2]),
+            )
+
             # check if a similar vertex exists, if so, get its index
             found, index = get_similar_vertex_index(packed_vertex, vertices_dict)
 
@@ -217,5 +225,3 @@ class IndexingThread(Thread):
 
         # return the output lists
         self._return = (out_indices, out_vertices, out_normals, out_uvs)
-
-

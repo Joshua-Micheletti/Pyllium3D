@@ -1,14 +1,12 @@
-
-import cProfile, pstats, io
-
+import cProfile
+import io
+import pstats
 
 
 def profile(fnc):
-    
     """A decorator that uses cProfile to profile a function"""
-    
+
     def inner(*args, **kwargs):
-        
         pr = cProfile.Profile()
         pr.enable()
         retval = fnc(*args, **kwargs)

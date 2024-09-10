@@ -1,35 +1,33 @@
 # module to create the window
 import glfw
 
-# import the scene
-from physics.physics_world import PhysicsWorld
 import scene
-
-# local modules:
-# utils
-from utils import Timer
-
-# window
-from window import Window
-
-# renderer manager
-from renderer.renderer_manager.renderer_manager import RendererManager
-
-# renderer
-from renderer.renderer import Renderer
-from renderer.raytracer import RayTracer
 
 # controller
 from controller.controller import Controller
 
-from utils import Config
-
 # from physics.physics_world import PhysicsWorld
-
 from engine.engine import Engine
+
+# import the scene
+from physics.physics_world import PhysicsWorld
+
+# renderer
+from renderer.renderer import Renderer
+
+# renderer manager
+from renderer.renderer_manager.renderer_manager import RendererManager
 
 # user interface
 from ui import UI
+
+# local modules:
+# utils
+from utils import Timer
+from utils.config import Config
+
+# window
+from window import Window
 
 
 # -------------------------- Main ---------------------------
@@ -51,7 +49,7 @@ def main() -> None:
     # renderer object
     renderer: Renderer = Renderer()
 
-    raytracer: RayTracer = RayTracer()
+    # raytracer: RayTracer = RayTracer()
     # controller object
     controller: Controller = Controller()
     # UI object
@@ -109,16 +107,16 @@ def main() -> None:
         rm.update_instances()
         rmupdatetime.record()
 
-        # renderer.render()
-        raytracer.render()
+        renderer.render()
+        # raytracer.render()
 
-        # ui.draw(
-        #     dt,
-        #     swaptime.get_last_record(),
-        #     controltime.get_last_record(),
-        #     updatetime.get_last_record(),
-        #     rmupdatetime.get_last_record(),
-        # )
+        ui.draw(
+            dt,
+            swaptime.get_last_record(),
+            controltime.get_last_record(),
+            updatetime.get_last_record(),
+            rmupdatetime.get_last_record(),
+        )
 
         swaptime.reset()
         glfw.swap_buffers(window.window)
@@ -127,5 +125,5 @@ def main() -> None:
     glfw.terminate()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
