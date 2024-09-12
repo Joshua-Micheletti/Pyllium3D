@@ -2,7 +2,14 @@ import imgui
 from imgui.integrations.glfw import GlfwRenderer
 from OpenGL.GL import *
 
-from ui.windows import BottomWindow, FpsWindow, GameWindow, LeftWindow, MainMenu, RightWindow
+from ui.windows import (
+    BottomWindow,
+    FpsWindow,
+    GameWindow,
+    LeftWindow,
+    MainMenu,
+    RightWindow,
+)
 from utils import Singleton, Timer, timeit
 from window import Window
 
@@ -19,14 +26,14 @@ class UI(metaclass=Singleton):
         self.implementation = GlfwRenderer(Window().window, attach_callbacks=False)
 
         # size of indentation
-        self.dimensions = dict()
-        self.dimensions['game_window_width'] = window.width
-        self.dimensions['game_window_height'] = window.height
-        self.dimensions['main_menu_height'] = 0
-        self.dimensions['left_window_width'] = 0
-        self.dimensions['right_window_width'] = 0
-        self.dimensions['bottom_window_height'] = 0
-        self.dimensions['indent_size'] = 8
+        self.dimensions = {}
+        self.dimensions["game_window_width"] = window.width
+        self.dimensions["game_window_height"] = window.height
+        self.dimensions["main_menu_height"] = 0
+        self.dimensions["left_window_width"] = 0
+        self.dimensions["right_window_width"] = 0
+        self.dimensions["bottom_window_height"] = 0
+        self.dimensions["indent_size"] = 8
 
         # setup the initial style of the UI
         self._setup_style()
@@ -36,19 +43,19 @@ class UI(metaclass=Singleton):
         self._setup_font()
 
         # create a dictionary to keep track of all the states of the UI
-        self.states = dict()
-        self.states['window'] = True
-        self.states['game_window'] = True
-        self.states['left_window'] = True
-        self.states['right_window/model_header'] = True
-        self.states['right_window/transformation_header'] = True
-        self.states['right_window/components_header'] = True
-        self.states['right_window/lights_header'] = True
-        self.states['right_window/physics_body_header'] = True
-        self.states['right_window'] = True
-        self.states['bottom_window'] = True
-        self.states['fps_window'] = True
-        self.states['first_draw'] = True
+        self.states = {}
+        self.states["window"] = True
+        self.states["game_window"] = True
+        self.states["left_window"] = True
+        self.states["right_window/model_header"] = True
+        self.states["right_window/transformation_header"] = True
+        self.states["right_window/components_header"] = True
+        self.states["right_window/lights_header"] = True
+        self.states["right_window/physics_body_header"] = True
+        self.states["right_window"] = True
+        self.states["bottom_window"] = True
+        self.states["fps_window"] = True
+        self.states["first_draw"] = True
 
         self.main_menu = MainMenu()
         self.game_window = GameWindow()
@@ -70,9 +77,15 @@ class UI(metaclass=Singleton):
 
         self.states, self.dimensions = self.main_menu.draw(self.states, self.dimensions)
         self.states = self.game_window.draw(self.states, self.dimensions)
-        self.states, self.dimensions = self.left_window.draw(self.states, self.dimensions)
-        self.states, self.dimensions = self.right_window.draw(self.states, self.dimensions)
-        self.states, self.dimensions = self.bottom_window.draw(self.states, self.dimensions)
+        self.states, self.dimensions = self.left_window.draw(
+            self.states, self.dimensions
+        )
+        self.states, self.dimensions = self.right_window.draw(
+            self.states, self.dimensions
+        )
+        self.states, self.dimensions = self.bottom_window.draw(
+            self.states, self.dimensions
+        )
         self.states, self.dimensions = self.fps_window.draw(
             self.states,
             self.dimensions,
@@ -88,7 +101,7 @@ class UI(metaclass=Singleton):
 
         imgui.pop_font()
 
-        self.states['first_draw'] = False
+        self.states["first_draw"] = False
 
         imgui.render()
         self.implementation.render(imgui.get_draw_data())
@@ -143,14 +156,21 @@ class UI(metaclass=Singleton):
         style.colors[imgui.COLOR_DRAG_DROP_TARGET] = (0.11, 0.64, 0.92, 1.00)
         style.colors[imgui.COLOR_NAV_HIGHLIGHT] = (0.26, 0.59, 0.98, 1.00)
         style.colors[imgui.COLOR_NAV_WINDOWING_HIGHLIGHT] = (0.80, 0.80, 0.80, 0.20)
-        style.colors[imgui.COLOR_NAV_WINDOWING_DIM_BACKGROUND] = (0.80, 0.80, 0.80, 0.35)
+        style.colors[imgui.COLOR_NAV_WINDOWING_DIM_BACKGROUND] = (
+            0.80,
+            0.80,
+            0.80,
+            0.35,
+        )
         style.grab_rounding = style.frame_rounding = style.window_rounding = 2.3
         style.window_border_size = 0.0
-        style.indent_spacing = self.dimensions['indent_size']
+        style.indent_spacing = self.dimensions["indent_size"]
 
     def _setup_font(self):
         io = imgui.get_io()
 
-        self.font = io.fonts.add_font_from_file_ttf('./assets/fonts/DroidSansMono/DroidSansMNerdFont-Regular.ttf', 14)
+        self.font = io.fonts.add_font_from_file_ttf(
+            "./assets/fonts/DroidSansMono/DroidSansMNerdFont-Regular.ttf", 14
+        )
         self.implementation.refresh_font_texture()
         imgui.font(self.font)

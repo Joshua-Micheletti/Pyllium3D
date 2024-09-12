@@ -5,32 +5,32 @@ from OpenGL.GL import *
 # class to implement an instance for rendering
 class Instance:
     # constructor method
-    def __init__(self, mesh='', shader=''):
+    def __init__(self, mesh="", shader=""):
         # mesh name for the models in the instance
         self.mesh = mesh
         # shader models in the instance
         self.shader = shader
 
         # list of models in the instance
-        self.models = dict()
+        self.models = {}
 
         # array of model matrices of the models in the instance
-        self.model_matrices = dict()
+        self.model_matrices = {}
         # array of material components
-        self.ambients = dict()
-        self.diffuses = dict()
-        self.speculars = dict()
-        self.shininesses = dict()
-        self.roughnesses = dict()
-        self.metallicnesses = dict()
+        self.ambients = {}
+        self.diffuses = {}
+        self.speculars = {}
+        self.shininesses = {}
+        self.roughnesses = {}
+        self.metallicnesses = {}
 
-        self.render_model_matrices = dict()
-        self.render_ambients = dict()
-        self.render_diffuses = dict()
-        self.render_speculars = dict()
-        self.render_shininesses = dict()
-        self.render_roughnesses = dict()
-        self.render_metallicnesses = dict()
+        self.render_model_matrices = {}
+        self.render_ambients = {}
+        self.render_diffuses = {}
+        self.render_speculars = {}
+        self.render_shininesses = {}
+        self.render_roughnesses = {}
+        self.render_metallicnesses = {}
 
         # vbos to store instance specific information (model matrices and materials)
         self.model_matrices_vbo = None
@@ -49,18 +49,18 @@ class Instance:
         self.uv_vbo = None
 
         # dictionary to keep track of what to update in the instance every cycle
-        self.to_update = dict()
+        self.to_update = {}
 
-        self.to_update['model_matrices'] = False
-        self.to_update['ambients'] = False
-        self.to_update['diffuses'] = False
-        self.to_update['speculars'] = False
-        self.to_update['shininesses'] = False
-        self.to_update['roughnesses'] = False
-        self.to_update['metallicnesses'] = False
+        self.to_update["model_matrices"] = False
+        self.to_update["ambients"] = False
+        self.to_update["diffuses"] = False
+        self.to_update["speculars"] = False
+        self.to_update["shininesses"] = False
+        self.to_update["roughnesses"] = False
+        self.to_update["metallicnesses"] = False
 
-        self.models_to_render = dict()
-        self.previous_models_to_render = dict()
+        self.models_to_render = {}
+        self.previous_models_to_render = {}
         self.changed_models = set()
 
     # method to set the mesh in the instance
@@ -118,7 +118,9 @@ class Instance:
     # method to change the ambient value in an instance
     def change_ambient(self, material):
         # get the list of models in this instance that use the changed material
-        models_changed = list(set(material.models).intersection(set(self.models.values())))
+        models_changed = list(
+            set(material.models).intersection(set(self.models.values()))
+        )
 
         # ambient = []
         # for every model with that material
@@ -133,7 +135,9 @@ class Instance:
     # method to change the diffuse value in an instance
     def change_diffuse(self, material):
         # get the list of models in this instance that use the changed material
-        models_changed = list(set(material.models).intersection(set(self.models.values())))
+        models_changed = list(
+            set(material.models).intersection(set(self.models.values()))
+        )
 
         # for every model with that material
         for model in models_changed:
@@ -150,7 +154,9 @@ class Instance:
     # method to change the specular value in an instance
     def change_specular(self, material):
         # get the list of models in this instance that use the changed material
-        models_changed = list(set(material.models).intersection(set(self.models.values())))
+        models_changed = list(
+            set(material.models).intersection(set(self.models.values()))
+        )
 
         # for every model with that material
         for model in models_changed:
@@ -166,7 +172,9 @@ class Instance:
     # method to change the shininess value in an instance
     def change_shininess(self, material):
         # get the list of models in this instance that use the changed material
-        models_changed = list(set(material.models).intersection(set(self.models.values())))
+        models_changed = list(
+            set(material.models).intersection(set(self.models.values()))
+        )
 
         # for every model with that material
         for model in models_changed:
@@ -179,7 +187,9 @@ class Instance:
 
     def change_roughness(self, material):
         # get the list of models in this instance that use the changed material
-        models_changed = list(set(material.models).intersection(set(self.models.values())))
+        models_changed = list(
+            set(material.models).intersection(set(self.models.values()))
+        )
 
         # for every model with that material
         for model in models_changed:
@@ -192,7 +202,9 @@ class Instance:
 
     def change_metallic(self, material):
         # get the list of models in this instance that use the changed material
-        models_changed = list(set(material.models).intersection(set(self.models.values())))
+        models_changed = list(
+            set(material.models).intersection(set(self.models.values()))
+        )
 
         # for every model with that material
         for model in models_changed:
@@ -232,11 +244,15 @@ class Instance:
     # method to update the model matrices vbo
     def update_model_matrices(self):
         # convert the array into a numpy array of float 32bit
-        self.model_matrices = np.array(list(self.model_matrices.values()), dtype=np.float32).flatten()
+        self.model_matrices = np.array(
+            list(self.model_matrices.values()), dtype=np.float32
+        ).flatten()
         # bind the model matrices vbo
         glBindBuffer(GL_ARRAY_BUFFER, self.model_matrices_vbo)
         # pass the new data for the vbo
-        glBufferSubData(GL_ARRAY_BUFFER, 0, self.model_matrices.nbytes, self.model_matrices)
+        glBufferSubData(
+            GL_ARRAY_BUFFER, 0, self.model_matrices.nbytes, self.model_matrices
+        )
         # glBufferSubData(GL_ARRAY_BUFFER, 0, self.model_matrices.nbytes, self.model_matrices)
         # bind back to the default vbo
         # glBindBuffer(GL_ARRAY_BUFFER, 0)
@@ -244,33 +260,45 @@ class Instance:
     # method to update the ambients vbo
     def update_ambients(self):
         # convert the array into a numpy array of float 32bit
-        new_ambients = np.array(list(self.ambients.values()), dtype=np.float32).flatten()
+        new_ambients = np.array(
+            list(self.ambients.values()), dtype=np.float32
+        ).flatten()
         # bind the ambient vbo
         glBindBuffer(GL_ARRAY_BUFFER, self.ambient_vbo)
         # pass the new data for the vbo
-        glBufferData(GL_ARRAY_BUFFER, self.ambients.nbytes, self.ambients, GL_STATIC_DRAW)
+        glBufferData(
+            GL_ARRAY_BUFFER, self.ambients.nbytes, self.ambients, GL_STATIC_DRAW
+        )
         # bind back to the default vbo
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
     # method to update the ambients vbo
     def update_diffuses(self):
         # convert the array into a numpy array of float 32bit
-        self.diffuses = np.array(list(self.diffuses.values()), dtype=np.float32).flatten()
+        self.diffuses = np.array(
+            list(self.diffuses.values()), dtype=np.float32
+        ).flatten()
         # bind the diffuse vbo
         glBindBuffer(GL_ARRAY_BUFFER, self.diffuse_vbo)
         # pass the new data for the vbo
-        glBufferData(GL_ARRAY_BUFFER, self.diffuses.nbytes, self.diffuses, GL_STATIC_DRAW)
+        glBufferData(
+            GL_ARRAY_BUFFER, self.diffuses.nbytes, self.diffuses, GL_STATIC_DRAW
+        )
         # bind back to the default vbo
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
     # method to update the ambients vbo
     def update_speculars(self):
         # convert the array into a numpy array of float 32bit
-        self.speculars = np.array(list(self.speculars.values()), dtype=np.float32).flatten()
+        self.speculars = np.array(
+            list(self.speculars.values()), dtype=np.float32
+        ).flatten()
         # bind the specular vbo
         glBindBuffer(GL_ARRAY_BUFFER, self.specular_vbo)
         # pass the new data for the vbo
-        glBufferData(GL_ARRAY_BUFFER, self.speculars.nbytes, self.speculars, GL_STATIC_DRAW)
+        glBufferData(
+            GL_ARRAY_BUFFER, self.speculars.nbytes, self.speculars, GL_STATIC_DRAW
+        )
         # bind back to the default vbo
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
@@ -281,7 +309,9 @@ class Instance:
         # bind the shininess vbo
         glBindBuffer(GL_ARRAY_BUFFER, self.shininess_vbo)
         # pass the new data for the vbo
-        glBufferData(GL_ARRAY_BUFFER, self.shininesses.nbytes, self.shininesses, GL_STATIC_DRAW)
+        glBufferData(
+            GL_ARRAY_BUFFER, self.shininesses.nbytes, self.shininesses, GL_STATIC_DRAW
+        )
         # bind back to the default vbo
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
@@ -292,7 +322,9 @@ class Instance:
         # bind the shininess vbo
         glBindBuffer(GL_ARRAY_BUFFER, self.roughness_vbo)
         # pass the new data for the vbo
-        glBufferData(GL_ARRAY_BUFFER, self.roughnesses.nbytes, self.roughnesses, GL_STATIC_DRAW)
+        glBufferData(
+            GL_ARRAY_BUFFER, self.roughnesses.nbytes, self.roughnesses, GL_STATIC_DRAW
+        )
         # bind back to the default vbo
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         # print("updated roughnesses")
@@ -300,11 +332,18 @@ class Instance:
     # method to update the ambients vbo
     def update_metallicnesses(self):
         # convert the array into a numpy array of float 32bit
-        self.metallicnesses = np.array(list(self.metallicnesses.values()), dtype=np.float32)
+        self.metallicnesses = np.array(
+            list(self.metallicnesses.values()), dtype=np.float32
+        )
         # bind the shininess vbo
         glBindBuffer(GL_ARRAY_BUFFER, self.metallic_vbo)
         # pass the new data for the vbo
-        glBufferData(GL_ARRAY_BUFFER, self.metallicnesses.nbytes, self.metallicnesses, GL_STATIC_DRAW)
+        glBufferData(
+            GL_ARRAY_BUFFER,
+            self.metallicnesses.nbytes,
+            self.metallicnesses,
+            GL_STATIC_DRAW,
+        )
         # bind back to the default vbo
         glBindBuffer(GL_ARRAY_BUFFER, 0)
         # print("updated metallicnesses")
@@ -313,12 +352,17 @@ class Instance:
         if len(self.models_to_render) == 0:
             return ()
 
-        if self.models_to_render == self.previous_models_to_render and len(self.changed_models) == 0:
+        if (
+            self.models_to_render == self.previous_models_to_render
+            and len(self.changed_models) == 0
+        ):
             return ()
 
         intersection = set(self.previous_models_to_render) & set(self.models_to_render)
         models_to_remove = set(self.previous_models_to_render) - intersection
-        models_to_add = (set(self.models_to_render) - intersection).union(self.changed_models)
+        models_to_add = (set(self.models_to_render) - intersection).union(
+            self.changed_models
+        )
 
         models_to_update = intersection & self.changed_models
 
@@ -345,12 +389,16 @@ class Instance:
             self.render_roughnesses[name] = self.roughnesses[name]
             self.render_metallicnesses[name] = self.metallicnesses[name]
 
-        model_matrices_array = np.array(list(self.render_model_matrices.values()), dtype=np.float32).flatten()
+        model_matrices_array = np.array(
+            list(self.render_model_matrices.values()), dtype=np.float32
+        ).flatten()
         # bind the ambient vbo
         glBindBuffer(GL_ARRAY_BUFFER, self.model_matrices_vbo)
         # pass the new data for the vbo
         # glBufferData(GL_ARRAY_BUFFER, model_matrices_array.nbytes, model_matrices_array, GL_STREAM_DRAW)
-        glBufferSubData(GL_ARRAY_BUFFER, 0, model_matrices_array.nbytes, model_matrices_array)
+        glBufferSubData(
+            GL_ARRAY_BUFFER, 0, model_matrices_array.nbytes, model_matrices_array
+        )
         # bind back to the default vbo
         # glBindBuffer(GL_ARRAY_BUFFER, 0)
 
@@ -362,7 +410,9 @@ class Instance:
         # # bind back to the default vbo
         # glBindBuffer(GL_ARRAY_BUFFER, 0)
 
-        diffuses_array = np.array(list(self.render_diffuses.values()), dtype=np.float32).flatten()
+        diffuses_array = np.array(
+            list(self.render_diffuses.values()), dtype=np.float32
+        ).flatten()
         # bind the ambient vbo
         glBindBuffer(GL_ARRAY_BUFFER, self.diffuse_vbo)
         # pass the new data for the vbo
@@ -387,7 +437,9 @@ class Instance:
         # # bind back to the default vbo
         # glBindBuffer(GL_ARRAY_BUFFER, 0)
 
-        roughnesses_array = np.array(list(self.render_roughnesses.values()), dtype=np.float32)
+        roughnesses_array = np.array(
+            list(self.render_roughnesses.values()), dtype=np.float32
+        )
         # bind the ambient vbo
         glBindBuffer(GL_ARRAY_BUFFER, self.roughness_vbo)
         # pass the new data for the vbo
@@ -396,11 +448,15 @@ class Instance:
         # bind back to the default vbo
         # glBindBuffer(GL_ARRAY_BUFFER, 0)
 
-        metallicnesses_array = np.array(list(self.render_metallicnesses.values()), dtype=np.float32)
+        metallicnesses_array = np.array(
+            list(self.render_metallicnesses.values()), dtype=np.float32
+        )
         # bind the ambient vbo
         glBindBuffer(GL_ARRAY_BUFFER, self.metallic_vbo)
         # pass the new data for the vbo
         # glBufferData(GL_ARRAY_BUFFER, metallicnesses_array.nbytes, metallicnesses_array, GL_STREAM_DRAW)
-        glBufferSubData(GL_ARRAY_BUFFER, 0, metallicnesses_array.nbytes, metallicnesses_array)
+        glBufferSubData(
+            GL_ARRAY_BUFFER, 0, metallicnesses_array.nbytes, metallicnesses_array
+        )
         # bind back to the default vbo
         # glBindBuffer(GL_ARRAY_BUFFER, 0)

@@ -7,11 +7,11 @@ from utils.messages import *
 
 def new_instance(self, name, mesh, shader):
     # check if the mesh and shader fields have been provided
-    if mesh == '':
+    if mesh == "":
         print_error("Couldn't create the instance, Mesh not set")
         return
 
-    if shader == '':
+    if shader == "":
         print_error("Couldn't create the instance, Shader not set")
         return
 
@@ -45,24 +45,32 @@ def add_model_to_instance(self, model, instance):
 
     instance.model_matrices = np.append(instance.model_matrices, model_mat_values)
 
-    instance.ambients = np.append(instance.ambients, self.materials[model.material].ambient)
-    instance.diffuses = np.append(instance.diffuses, self.materials[model.material].diffuse)
-    instance.speculars = np.append(instance.speculars, self.materials[model.material].specular)
-    instance.shininesses = np.append(instance.shininesses, self.materials[model.material].shininess)
+    instance.ambients = np.append(
+        instance.ambients, self.materials[model.material].ambient
+    )
+    instance.diffuses = np.append(
+        instance.diffuses, self.materials[model.material].diffuse
+    )
+    instance.speculars = np.append(
+        instance.speculars, self.materials[model.material].specular
+    )
+    instance.shininesses = np.append(
+        instance.shininesses, self.materials[model.material].shininess
+    )
 
     self.single_render_models.remove(model)
 
     model.in_instance = instance_name
-    instance.to_update['model_matrices'] = True
-    instance.to_update['ambients'] = True
-    instance.to_update['diffuses'] = True
-    instance.to_update['speculars'] = True
-    instance.to_update['shininesses'] = True
+    instance.to_update["model_matrices"] = True
+    instance.to_update["ambients"] = True
+    instance.to_update["diffuses"] = True
+    instance.to_update["speculars"] = True
+    instance.to_update["shininesses"] = True
 
 
 def set_models_in_instance(self, models, instance_name):
     instance = self.instances[instance_name]
-    instance.models = dict()
+    instance.models = {}
 
     for model in models:
         instance.models[model] = self.models[model]
@@ -82,13 +90,15 @@ def remove_model_from_instance(self, model, instance):
 
     self.single_render_models.append(model)
 
-    model.in_instance = ''
-    instance.to_update['model_matrices'] = True
+    model.in_instance = ""
+    instance.to_update["model_matrices"] = True
 
 
 def set_instance_mesh(self, instance, mesh):
     if mesh != self.instances[instance].mesh:
-        self.instances[instance].set_mesh(mesh, self.vertex_vbos[mesh], self.normal_vbos[mesh], self.uv_vbo[mesh])
+        self.instances[instance].set_mesh(
+            mesh, self.vertex_vbos[mesh], self.normal_vbos[mesh], self.uv_vbo[mesh]
+        )
     # self.instances[instance].mesh = mesh
     # self.instances[instance].to_update = True
 
@@ -178,47 +188,74 @@ def initialize_instance(self, name):
     # if instance.model_matrices_vbo != None:
     #     glDeleteBuffers(1, instance.model_matrices_vbo)
 
-    model_matrices_array = np.array(list(instance.model_matrices.values()), dtype=np.float32).flatten()
+    model_matrices_array = np.array(
+        list(instance.model_matrices.values()), dtype=np.float32
+    ).flatten()
     # generate a new buffer for the model matrices
     instance.model_matrices_vbo = glGenBuffers(1)
     # bind the new buffer
     glBindBuffer(GL_ARRAY_BUFFER, instance.model_matrices_vbo)
     # pass the data to the buffer
-    glBufferData(GL_ARRAY_BUFFER, model_matrices_array.nbytes, model_matrices_array, GL_STREAM_DRAW)
+    glBufferData(
+        GL_ARRAY_BUFFER,
+        model_matrices_array.nbytes,
+        model_matrices_array,
+        GL_STREAM_DRAW,
+    )
     # glBindBuffer(GL_ARRAY_BUFFER, 0)
     float_size = model_matrices_array.itemsize
 
     # if instance.ambient_vbo != None:
     #     instance.ambient_vbo = glGenBuffers(1)
-    ambients_array = np.array(list(instance.ambients.values()), dtype=np.float32).flatten()
+    ambients_array = np.array(
+        list(instance.ambients.values()), dtype=np.float32
+    ).flatten()
     instance.ambient_vbo = glGenBuffers(1)
     glBindBuffer(GL_ARRAY_BUFFER, instance.ambient_vbo)
-    glBufferData(GL_ARRAY_BUFFER, ambients_array.nbytes, ambients_array, GL_DYNAMIC_DRAW)
+    glBufferData(
+        GL_ARRAY_BUFFER, ambients_array.nbytes, ambients_array, GL_DYNAMIC_DRAW
+    )
 
-    diffuse_array = np.array(list(instance.diffuses.values()), dtype=np.float32).flatten()
+    diffuse_array = np.array(
+        list(instance.diffuses.values()), dtype=np.float32
+    ).flatten()
     instance.diffuse_vbo = glGenBuffers(1)
     glBindBuffer(GL_ARRAY_BUFFER, instance.diffuse_vbo)
     glBufferData(GL_ARRAY_BUFFER, diffuse_array.nbytes, diffuse_array, GL_DYNAMIC_DRAW)
 
-    specular_array = np.array(list(instance.speculars.values()), dtype=np.float32).flatten()
+    specular_array = np.array(
+        list(instance.speculars.values()), dtype=np.float32
+    ).flatten()
     instance.specular_vbo = glGenBuffers(1)
     glBindBuffer(GL_ARRAY_BUFFER, instance.specular_vbo)
-    glBufferData(GL_ARRAY_BUFFER, specular_array.nbytes, specular_array, GL_DYNAMIC_DRAW)
+    glBufferData(
+        GL_ARRAY_BUFFER, specular_array.nbytes, specular_array, GL_DYNAMIC_DRAW
+    )
 
     shininess_array = np.array(list(instance.shininesses.values()), dtype=np.float32)
     instance.shininess_vbo = glGenBuffers(1)
     glBindBuffer(GL_ARRAY_BUFFER, instance.shininess_vbo)
-    glBufferData(GL_ARRAY_BUFFER, shininess_array.nbytes, shininess_array, GL_DYNAMIC_DRAW)
+    glBufferData(
+        GL_ARRAY_BUFFER, shininess_array.nbytes, shininess_array, GL_DYNAMIC_DRAW
+    )
 
-    roughness_array = np.array(list(instance.roughnesses.values()), dtype=np.float32).flatten()
+    roughness_array = np.array(
+        list(instance.roughnesses.values()), dtype=np.float32
+    ).flatten()
     instance.roughness_vbo = glGenBuffers(1)
     glBindBuffer(GL_ARRAY_BUFFER, instance.roughness_vbo)
-    glBufferData(GL_ARRAY_BUFFER, roughness_array.nbytes, roughness_array, GL_DYNAMIC_DRAW)
+    glBufferData(
+        GL_ARRAY_BUFFER, roughness_array.nbytes, roughness_array, GL_DYNAMIC_DRAW
+    )
 
-    metallicness_array = np.array(list(instance.metallicnesses.values()), dtype=np.float32).flatten()
+    metallicness_array = np.array(
+        list(instance.metallicnesses.values()), dtype=np.float32
+    ).flatten()
     instance.metallic_vbo = glGenBuffers(1)
     glBindBuffer(GL_ARRAY_BUFFER, instance.metallic_vbo)
-    glBufferData(GL_ARRAY_BUFFER, metallicness_array.nbytes, metallicness_array, GL_DYNAMIC_DRAW)
+    glBufferData(
+        GL_ARRAY_BUFFER, metallicness_array.nbytes, metallicness_array, GL_DYNAMIC_DRAW
+    )
 
     # if the vao already exists, delete it
     # if instance.vao != None:
@@ -261,17 +298,23 @@ def initialize_instance(self, name):
     # enable the index 4 of the VAO
     glEnableVertexAttribArray(4)
     # link the second column of the matrix to the index 4 of the VAO and interpret it as 4 floats
-    glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, float_size * 16, ctypes.c_void_p(float_size * 4 * 1))
+    glVertexAttribPointer(
+        4, 4, GL_FLOAT, GL_FALSE, float_size * 16, ctypes.c_void_p(float_size * 4 * 1)
+    )
 
     # enable the index 5 of the VAO
     glEnableVertexAttribArray(5)
     # link the third column of the matrix to the index 5 of the VAO and intepret it as 4 floats
-    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, float_size * 16, ctypes.c_void_p(float_size * 4 * 2))
+    glVertexAttribPointer(
+        5, 4, GL_FLOAT, GL_FALSE, float_size * 16, ctypes.c_void_p(float_size * 4 * 2)
+    )
 
     # enable the index 6 of the VAO
     glEnableVertexAttribArray(6)
     # link the fourth column of the matrix to the index 6 of the VAO and intepret it as 4 floats
-    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, float_size * 16, ctypes.c_void_p(float_size * 4 * 3))
+    glVertexAttribPointer(
+        6, 4, GL_FLOAT, GL_FALSE, float_size * 16, ctypes.c_void_p(float_size * 4 * 3)
+    )
 
     # tell OpenGL that the indices 3, 4, 5 and 6 of the VAO need to change after every call
     glVertexBindingDivisor(3, 1)

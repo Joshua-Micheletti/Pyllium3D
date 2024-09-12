@@ -7,7 +7,7 @@ import glm
 # function to create an indexed version of the vertices of a model
 def index_vertices(vertices, normals, uvs):
     # dictionary to keep track of the non repeating vertices
-    vertices_dict = dict()
+    vertices_dict = {}
 
     # lists of indexed vertices to be returned
     out_vertices = []
@@ -19,7 +19,9 @@ def index_vertices(vertices, normals, uvs):
     for i in range(int(len(vertices) / 3)):
         # create a packed vertex (object that stores position, uv and normal information)
         packed_vertex = PackedVertex(
-            position=glm.vec3(vertices[i * 3 + 0], vertices[i * 3 + 1], vertices[i * 3 + 2]),
+            position=glm.vec3(
+                vertices[i * 3 + 0], vertices[i * 3 + 1], vertices[i * 3 + 2]
+            ),
             uv=glm.vec2(uvs[i * 2 + 0], uvs[i * 2 + 1]),
             normal=glm.vec3(normals[i * 3 + 0], normals[i * 3 + 1], normals[i * 3 + 2]),
         )
@@ -87,14 +89,23 @@ def index_vertices_multi_thread(vertices, normals, uvs):
         #     thread_uvs = [uvs[index] for index in range(i*uv_length, len(uvs))]
 
         # else:
-        thread_vertices = [vertices[index] for index in range(i * vertex_length, i * vertex_length + vertex_length)]
-        thread_normals = [normals[index] for index in range(i * vertex_length, i * vertex_length + vertex_length)]
-        thread_uvs = [uvs[index] for index in range(i * uv_length, i * uv_length + uv_length)]
+        thread_vertices = [
+            vertices[index]
+            for index in range(i * vertex_length, i * vertex_length + vertex_length)
+        ]
+        thread_normals = [
+            normals[index]
+            for index in range(i * vertex_length, i * vertex_length + vertex_length)
+        ]
+        thread_uvs = [
+            uvs[index] for index in range(i * uv_length, i * uv_length + uv_length)
+        ]
 
-        print(f'normals thread size: {len(thread_normals)}')
+        print(f"normals thread size: {len(thread_normals)}")
 
         p = multiprocessing.Process(
-            target=index_vertices_st_worker, args=(thread_vertices, thread_normals, thread_uvs, i, return_dict)
+            target=index_vertices_st_worker,
+            args=(thread_vertices, thread_normals, thread_uvs, i, return_dict),
         )
         threads.append(p)
         p.start()
@@ -107,9 +118,9 @@ def index_vertices_multi_thread(vertices, normals, uvs):
         out_normals += result[2]
         out_uvs += result[3]
 
-    print(f'len reduced vertices: {len(out_vertices)}')
-    print(f'len reduced normals: {len(out_normals)}')
-    print(f'len reduced uvs: {len(out_uvs)}')
+    print(f"len reduced vertices: {len(out_vertices)}")
+    print(f"len reduced normals: {len(out_normals)}")
+    print(f"len reduced uvs: {len(out_uvs)}")
 
     return index_vertices(out_vertices, out_normals, out_uvs)
 
@@ -138,6 +149,15 @@ class PackedVertex:
 
     # method to execute when the "==" operator is used
     def __eq__(self, other):
+        """Define the equality criteria.
+
+        Args:
+            other (Obj): object to compare to
+
+        Returns:
+            boolean: true or false depending if the objects match
+
+        """
         # return true if the fields are the same
         return self.__dict__ == other.__dict__
         # return(self.position.x == other.position.x and \
@@ -159,15 +179,46 @@ class PackedVertex:
 
     # redefine the hashing function
     def __hash__(self):
+        """Hashing.
+
+        Returns:
+            str: unique identifier of the object
+
+        """
         return hash(self.__dict__.values())
 
     # method to check if a value can be considered near enough to another value
     def is_near(self, v1, v2):
+        """Check if the vertices are close to each other.
+
+        Args:
+            v1: Vertex 1
+            v2: Vertex 2
+
+        Returns:
+            boolean: true or false depending if the vertices are close enough to each other
+
+        """
         return abs(v1 - v2) < 0.001
 
 
 class IndexingThread(Thread):
+    """Class for creating indexing threads.
+
+    Args:
+        Thread: Class to inherit to be a thread
+
+    """
+
     def __init__(self, vertices, normals, uvs):
+        """Initialize the thread.
+
+        Args:
+            vertices (dict): dictionary of vertices
+            normals (dict): dictionary of normals
+            uvs (dict): dictionary of UVs
+
+        """
         Thread.__init__(self)
         self.vertices = vertices
         self.normals = normals
@@ -176,8 +227,14 @@ class IndexingThread(Thread):
         self._return = None
 
     def run(self):
+        """Thread logic function.
+
+        Returns:
+            tuple: output data
+
+        """
         # dictionary to keep track of the non repeating vertices
-        vertices_dict = dict()
+        vertices_dict = {}
 
         # lists of indexed vertices to be returned
         out_vertices = []
@@ -189,9 +246,17 @@ class IndexingThread(Thread):
         for i in range(int(len(self.vertices) / 3)):
             # create a packed vertex (object that stores position, uv and normal information)
             packed_vertex = PackedVertex(
-                position=glm.vec3(self.vertices[i * 3 + 0], self.vertices[i * 3 + 1], self.vertices[i * 3 + 2]),
+                position=glm.vec3(
+                    self.vertices[i * 3 + 0],
+                    self.vertices[i * 3 + 1],
+                    self.vertices[i * 3 + 2],
+                ),
                 uv=glm.vec2(self.uvs[i * 2 + 0], self.uvs[i * 2 + 1]),
-                normal=glm.vec3(self.normals[i * 3 + 0], self.normals[i * 3 + 1], self.normals[i * 3 + 2]),
+                normal=glm.vec3(
+                    self.normals[i * 3 + 0],
+                    self.normals[i * 3 + 1],
+                    self.normals[i * 3 + 2],
+                ),
             )
 
             # check if a similar vertex exists, if so, get its index

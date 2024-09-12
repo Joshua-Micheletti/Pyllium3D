@@ -5,7 +5,7 @@ from utils import Singleton
 
 class Engine(metaclass=Singleton):
     def __init__(self):
-        self.links = dict()
+        self.links = {}
 
     def create_link(self, physics_body, model):
         self.links[physics_body] = model

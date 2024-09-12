@@ -14,17 +14,19 @@ class Config(metaclass=Singleton):
 
     """
 
-    setup: dict = field(default_factory=lambda: dict())
-    scene: dict = field(default_factory=lambda: dict())
+    setup: dict = field(default_factory=lambda: {})
+    scene: dict = field(default_factory=lambda: {})
 
     def __post_init__(self) -> None:
-        with open('./assets/config/setup.yml') as file:
+        with open("./assets/config/setup.yml") as file:
             self.setup = yaml.safe_load(file)
 
-        with open('./assets/scenes/scene.yml') as file:
+        with open("./assets/scenes/scene.yml") as file:
             self.scene = yaml.safe_load(file)
 
-    def initialize_parameters(self, obj: any, config_location: str, default_config: dict, **kwargs):
+    def initialize_parameters(
+        self, obj: any, config_location: str, default_config: dict, **kwargs
+    ):
         """Method to set the parameters of the incoming object with the incoming values, or the values of the config file, or the default values, in that priority
 
         Args:
@@ -33,7 +35,7 @@ class Config(metaclass=Singleton):
             default_config (dict): default fallback values in case neither the user nor the config file settings were found
 
         """
-        components: list[str] = config_location.split('.')
+        components: list[str] = config_location.split(".")
 
         config: dict = self.setup
 
@@ -47,6 +49,10 @@ class Config(metaclass=Singleton):
                 (
                     value
                     if value is not None
-                    else (config.get(key) if config.get(key) is not None else default_config.get(key))
+                    else (
+                        config.get(key)
+                        if config.get(key) is not None
+                        else default_config.get(key)
+                    )
                 ),
             )
