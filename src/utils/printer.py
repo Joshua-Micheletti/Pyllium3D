@@ -82,13 +82,13 @@ class Printer(metaclass=Singleton):
             render_time_spaces = ''
             other_time_spaces = ''
 
-            for j in range((5 + rounding) - len(str(frametime))):
+            for _ in range((5 + rounding) - len(str(frametime))):
                 frametime_spaces = frametime_spaces + ' '
-            for j in range((5 + rounding) - len(str(fps))):
+            for _ in range((5 + rounding) - len(str(fps))):
                 fps_spaces = fps_spaces + ' '
-            for j in range((5 + rounding) - len(str(render_time))):
+            for _ in range((5 + rounding) - len(str(render_time))):
                 render_time_spaces = render_time_spaces + ' '
-            for j in range((5 + rounding) - len(str(other_time))):
+            for _ in range((5 + rounding) - len(str(other_time))):
                 other_time_spaces = other_time_spaces + ' '
 
             self._print_string += '| FPS: ' + str(fps) + fps_spaces
@@ -117,7 +117,7 @@ class Printer(metaclass=Singleton):
         #     vertices_count += int(value)
         # meshes += 1
 
-        for key, model in RendererManager().models.items():
+        for _, model in RendererManager().models.items():
             vertices_count += int(RendererManager().vertices_count[model.mesh])
             meshes += 1
 
@@ -133,42 +133,46 @@ class Printer(metaclass=Singleton):
         self._print_string = ''
 
         for i in range(len(components)):
-            if i == 0:
-                continue
-
-            if i == len(components) - 1:
+            if i == 0 or i == len(components) - 1:
                 continue
 
             if i == 1 and len(components[0]) == 0:
                 up_phrases = components[i].split('\n')
                 down_phrases = components[i + 1].split('\n')
 
-                for j in range(len(up_phrases[0])):
+                for _ in range(len(up_phrases[0])):
                     self._print_string += '='
+
                 self._print_string += '\n'
                 self._print_string += components[i]
+                self._print_string += '\n'
+
+                if len(up_phrases[0]) > len(down_phrases[0]):
+                    for _ in range(len(up_phrases[0])):
+                        self._print_string += '='
+
+                    self._print_string += '\n'
+                    continue
+
+                for _ in range(len(down_phrases[0])):
+                    self._print_string += '='
 
                 self._print_string += '\n'
-                if len(up_phrases[0]) > len(down_phrases[0]):
-                    for j in range(len(up_phrases[0])):
-                        self._print_string += '='
-                    self._print_string += '\n'
-                else:
-                    for j in range(len(down_phrases[0])):
-                        self._print_string += '='
-                    self._print_string += '\n'
 
-            else:
-                self._print_string += components[i] + '\n'
+                continue
 
-                up_phrases = components[i].split('\n')
-                down_phrases = components[i + 1].split('\n')
+            self._print_string += components[i] + '\n'
 
-                if len(up_phrases[0]) > len(down_phrases[0]):
-                    for j in range(len(up_phrases[0])):
-                        self._print_string += '='
-                    self._print_string += '\n'
-                else:
-                    for j in range(len(down_phrases[0])):
-                        self._print_string += '='
-                    self._print_string += '\n'
+            up_phrases = components[i].split('\n')
+            down_phrases = components[i + 1].split('\n')
+
+            if len(up_phrases[0]) > len(down_phrases[0]):
+                for _ in range(len(up_phrases[0])):
+                    self._print_string += '='
+                self._print_string += '\n'
+                continue
+
+            for _ in range(len(down_phrases[0])):
+                self._print_string += '='
+
+            self._print_string += '\n'

@@ -1,7 +1,7 @@
 import glm
 
 from renderer.model.model import Model
-from utils.messages import *
+from utils.messages import print_error
 
 
 def new_model(self, name, mesh, shader, texture, material, count):

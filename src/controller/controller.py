@@ -12,15 +12,15 @@ class Controller(metaclass=Singleton):
         # then use the states to update the program logic accordingly
         self.states = {}
 
-        self.states["up"] = False
-        self.states["down"] = False
-        self.states["forward"] = False
-        self.states["backwards"] = False
-        self.states["left"] = False
-        self.states["right"] = False
-        self.states["close"] = False
-        self.states["cursor"] = True
-        self.states["recompile"] = False
+        self.states['up'] = False
+        self.states['down'] = False
+        self.states['forward'] = False
+        self.states['backwards'] = False
+        self.states['left'] = False
+        self.states['right'] = False
+        self.states['close'] = False
+        self.states['cursor'] = True
+        self.states['recompile'] = False
 
         # variables to track the mouse movement
         self.first_mouse = True
@@ -30,47 +30,47 @@ class Controller(metaclass=Singleton):
     # function called by the window when a key is pressed
     def handle_key_press(self, key, mods):
         if key == glfw.KEY_W:
-            self.states["forward"] = True
+            self.states['forward'] = True
         if key == glfw.KEY_S:
-            self.states["backwards"] = True
+            self.states['backwards'] = True
         if key == glfw.KEY_A:
-            self.states["left"] = True
+            self.states['left'] = True
         if key == glfw.KEY_D:
-            self.states["right"] = True
+            self.states['right'] = True
         if key == glfw.KEY_SPACE:
-            self.states["up"] = True
+            self.states['up'] = True
         if key == glfw.KEY_LEFT_CONTROL:
-            self.states["down"] = True
+            self.states['down'] = True
 
         if key == glfw.KEY_ESCAPE:
-            self.states["close"] = True
+            self.states['close'] = True
 
         if key == glfw.KEY_R:
-            self.states["recompile"] = True
+            self.states['recompile'] = True
 
-        if key == glfw.KEY_LEFT_ALT and self.states["cursor"] == False:
-            self.states["cursor"] = True
-        elif key == glfw.KEY_LEFT_ALT and self.states["cursor"] == True:
-            self.states["cursor"] = False
+        if key == glfw.KEY_LEFT_ALT and not self.states['cursor']:
+            self.states['cursor'] = True
+        elif key == glfw.KEY_LEFT_ALT and self.states['cursor']:
+            self.states['cursor'] = False
 
     # function called by the window when a key is released
     def handle_key_release(self, key, mods):
         if key == glfw.KEY_W:
-            self.states["forward"] = False
+            self.states['forward'] = False
         if key == glfw.KEY_S:
-            self.states["backwards"] = False
+            self.states['backwards'] = False
         if key == glfw.KEY_A:
-            self.states["left"] = False
+            self.states['left'] = False
         if key == glfw.KEY_D:
-            self.states["right"] = False
+            self.states['right'] = False
         if key == glfw.KEY_SPACE:
-            self.states["up"] = False
+            self.states['up'] = False
         if key == glfw.KEY_LEFT_CONTROL:
-            self.states["down"] = False
+            self.states['down'] = False
 
     # function called by the window when the cursor is moved
     def handle_mouse_movement(self, window, xpos, ypos):
-        if self.states["cursor"] == True:
+        if self.states['cursor']:
             self.first_mouse = True
             return
 
@@ -110,28 +110,28 @@ class Controller(metaclass=Singleton):
         camera_speed = 0.001
 
         # camera controls
-        if self.states["forward"] == True:
+        if self.states['forward']:
             camera.move(camera_speed * dt)
-        if self.states["backwards"] == True:
+        if self.states['backwards']:
             camera.move(-camera_speed * dt)
-        if self.states["left"] == True:
+        if self.states['left']:
             camera.strafe(camera_speed * dt)
-        if self.states["right"] == True:
+        if self.states['right']:
             camera.strafe(-camera_speed * dt)
-        if self.states["up"] == True:
+        if self.states['up']:
             camera.lift(camera_speed * dt)
-        if self.states["down"] == True:
+        if self.states['down']:
             camera.lift(-camera_speed * dt)
 
         # control to close the window
-        if self.states["close"] == True:
+        if self.states['close']:
             glfw.set_window_should_close(window.window, 1)
 
-        if self.states["cursor"] == True:
+        if self.states['cursor']:
             glfw.set_input_mode(window.window, glfw.CURSOR, glfw.CURSOR_NORMAL)
-        elif self.states["cursor"] == False:
+        elif not self.states['cursor']:
             glfw.set_input_mode(window.window, glfw.CURSOR, glfw.CURSOR_DISABLED)
 
-        if self.states["recompile"] == True:
+        if self.states['recompile']:
             rm.recompile_shaders()
-            self.states["recompile"] = False
+            self.states['recompile'] = False

@@ -25,7 +25,7 @@ class RightWindow(ResizableWindow):
         self.components = Components()
 
     def draw(self, states, dimensions):
-        if states['right_window'] == False:
+        if not states['right_window']:
             dimensions['right_window_width'] = 0
             return (states, dimensions)
 

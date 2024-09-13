@@ -1,3 +1,5 @@
+# ruff: noqa: F403, F405
+
 import time
 from ctypes import c_void_p
 
@@ -99,8 +101,8 @@ class RayTracer(metaclass=Singleton):
         # create the compute shader
         self.compute_shader = glCreateShader(GL_COMPUTE_SHADER)
         # read the content of the compute shader
-        text = open('assets/shaders/raytracing/compute.glsl')
-        compute_shader_source = text.read()
+        with open('assets/shaders/raytracing/compute.glsl') as text:
+            compute_shader_source = text.read()
 
         # bind the source of the shader to the shader object
         glShaderSource(self.compute_shader, compute_shader_source)

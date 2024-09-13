@@ -19,9 +19,7 @@ def index_vertices(vertices, normals, uvs):
     for i in range(int(len(vertices) / 3)):
         # create a packed vertex (object that stores position, uv and normal information)
         packed_vertex = PackedVertex(
-            position=glm.vec3(
-                vertices[i * 3 + 0], vertices[i * 3 + 1], vertices[i * 3 + 2]
-            ),
+            position=glm.vec3(vertices[i * 3 + 0], vertices[i * 3 + 1], vertices[i * 3 + 2]),
             uv=glm.vec2(uvs[i * 2 + 0], uvs[i * 2 + 1]),
             normal=glm.vec3(normals[i * 3 + 0], normals[i * 3 + 1], normals[i * 3 + 2]),
         )
@@ -74,7 +72,6 @@ def index_vertices_multi_thread(vertices, normals, uvs):
     out_vertices = []
     out_normals = []
     out_uvs = []
-    out_indices = []
 
     i = 0
 
@@ -89,19 +86,11 @@ def index_vertices_multi_thread(vertices, normals, uvs):
         #     thread_uvs = [uvs[index] for index in range(i*uv_length, len(uvs))]
 
         # else:
-        thread_vertices = [
-            vertices[index]
-            for index in range(i * vertex_length, i * vertex_length + vertex_length)
-        ]
-        thread_normals = [
-            normals[index]
-            for index in range(i * vertex_length, i * vertex_length + vertex_length)
-        ]
-        thread_uvs = [
-            uvs[index] for index in range(i * uv_length, i * uv_length + uv_length)
-        ]
+        thread_vertices = [vertices[index] for index in range(i * vertex_length, i * vertex_length + vertex_length)]
+        thread_normals = [normals[index] for index in range(i * vertex_length, i * vertex_length + vertex_length)]
+        thread_uvs = [uvs[index] for index in range(i * uv_length, i * uv_length + uv_length)]
 
-        print(f"normals thread size: {len(thread_normals)}")
+        print(f'normals thread size: {len(thread_normals)}')
 
         p = multiprocessing.Process(
             target=index_vertices_st_worker,
@@ -118,9 +107,9 @@ def index_vertices_multi_thread(vertices, normals, uvs):
         out_normals += result[2]
         out_uvs += result[3]
 
-    print(f"len reduced vertices: {len(out_vertices)}")
-    print(f"len reduced normals: {len(out_normals)}")
-    print(f"len reduced uvs: {len(out_uvs)}")
+    print(f'len reduced vertices: {len(out_vertices)}')
+    print(f'len reduced normals: {len(out_normals)}')
+    print(f'len reduced uvs: {len(out_uvs)}')
 
     return index_vertices(out_vertices, out_normals, out_uvs)
 

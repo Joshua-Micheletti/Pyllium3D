@@ -1,5 +1,5 @@
 import imgui
-from OpenGL.GL import *
+from OpenGL.GL import glViewport
 
 from renderer.renderer_manager.renderer_manager import RendererManager
 from ui.components import Crosshair
@@ -13,7 +13,7 @@ class GameWindow:
         self.crosshair = Crosshair()
 
     def draw(self, states, dimensions):
-        if states['game_window'] == False:
+        if not states['game_window']:
             return (states, dimensions)
 
         window = Window()
@@ -26,7 +26,8 @@ class GameWindow:
 
         imgui.push_style_var(imgui.STYLE_WINDOW_PADDING, (0.0, 0.0))
         _, states['game_window'] = imgui.begin(
-            'game_window', flags=imgui.WINDOW_NO_TITLE_BAR | imgui.WINDOW_NO_BRING_TO_FRONT_ON_FOCUS
+            'game_window',
+            flags=imgui.WINDOW_NO_TITLE_BAR | imgui.WINDOW_NO_BRING_TO_FRONT_ON_FOCUS,
         )
         # Using a Child allow to fill all the space of the window.
         # It also alows customization

@@ -24,7 +24,6 @@ class Transformation:
             scale = rm.scales[selected_model]
 
             item_spacing = 2.0
-            normal_item_spacing = 8.0
 
             slider_width = (
                 available_region.x

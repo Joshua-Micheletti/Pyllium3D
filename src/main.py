@@ -24,7 +24,6 @@ from ui import UI
 # local modules:
 # utils
 from utils import Timer
-from utils.config import Config
 
 # window
 from window import Window
@@ -42,8 +41,6 @@ def main() -> None:
     rm: RendererManager = RendererManager()
 
     pw: PhysicsWorld = PhysicsWorld()
-
-    config = Config()
 
     engine: Engine = Engine()
     # renderer object

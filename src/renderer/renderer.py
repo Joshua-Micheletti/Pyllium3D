@@ -1,3 +1,5 @@
+# ruff: noqa: F403, F405
+
 import glfw
 import glm
 from glm import vec3
@@ -89,7 +91,7 @@ class Renderer(metaclass=Singleton):
         # - opengl query object
         # - flag to keep track of weather to do the query or not
         # - actual value returned from the query
-        self.queries: dict[str, dict] = dict(
+        self.queries: dict[str, dict] = dict(  # noqa: C418
             {
                 'models': {
                     'ogl_id': opengl_queries[0],
@@ -242,10 +244,9 @@ class Renderer(metaclass=Singleton):
                 # keep track of the last used material
                 last_material = model.material
 
-            if last_texture != model.texture:
-                if model.texture != None:
-                    glBindTexture(GL_TEXTURE_2D, rm.textures[model.texture])
-                    last_texture = model.texture
+            if last_texture != model.texture and model.texture is None:
+                glBindTexture(GL_TEXTURE_2D, rm.textures[model.texture])
+                last_texture = model.texture
 
             # link the model specific uniforms
             self._link_model_uniforms(rm.shaders[model.shader], model.name)
@@ -1138,7 +1139,7 @@ class Renderer(metaclass=Singleton):
             )
 
     def _calculate_render_times(self):
-        for name, query in self.queries.items():
+        for _name, query in self.queries.items():
             if not query.get('active'):
                 query['value'] = 0
                 continue

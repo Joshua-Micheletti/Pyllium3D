@@ -16,7 +16,7 @@ class LeftWindow(ResizableWindow):
         self.selected_active_pp_shader = -1
 
     def draw(self, states, dimensions):
-        if states['left_window'] == False:
+        if not states['left_window']:
             dimensions['left_window_width'] = 0
             return (states, dimensions)
 
@@ -62,7 +62,7 @@ class LeftWindow(ResizableWindow):
 
             clicked = imgui.button('Add###add_pp_shader')
 
-            if clicked and self.selected_pp_shader_index != None:
+            if clicked and self.selected_pp_shader_index is not None:
                 self.active_pp_shaders.append(pp_shaders[self.selected_pp_shader_index] + '###' + str(random.random()))
                 changed = True
 

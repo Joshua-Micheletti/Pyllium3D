@@ -4,7 +4,7 @@ import time
 import glfw
 
 from utils.colors import colors
-from utils.messages import *
+from utils.messages import print_time
 
 
 # class to implement a timer
@@ -23,10 +23,9 @@ class Timer:
 
         # print the time if it's instructed
         if should_print:
-            print(f"Time: {round(dt, 4)}")
-        if should_print_fps:
-            if dt != 0:
-                print(f"FPS: {round(1000 / dt, 4)}")
+            print(f'Time: {round(dt, 4)}')
+        if should_print_fps and dt != 0:
+            print(f'FPS: {round(1000 / dt, 4)}')
 
         # return the elapsed time
         return dt
@@ -39,7 +38,7 @@ class Timer:
         if laps:
             self.laps = {}
 
-    def record(self, target="default"):
+    def record(self, target='default'):
         if target not in self.laps:
             self.laps[target] = []
 
@@ -48,26 +47,23 @@ class Timer:
 
         self.laps[target].append(self.elapsed())
 
-    def get_last_record(self, target="default"):
+    def get_last_record(self, target='default'):
         return self.laps[target][-1]
 
 
 def timeit(*wrap_args, **wrap_kwargs):
     def timeit_decorator(func):
         def timeit_wrapper(*args, **kwargs):
-            if args:
-                ref = args[0]
-            else:
-                ref = None
+            ref = args[0] if args else None
 
-            info_to_print = ""
+            info_to_print = ''
 
-            should_timer = ref is not None and "timer" in dir(ref)
-            should_print = wrap_kwargs.get("print", True)
+            should_timer = ref is not None and 'timer' in dir(ref)
+            should_print = wrap_kwargs.get('print', True)
 
-            if wrap_kwargs.get("info", False):
+            if wrap_kwargs.get('info', False):
                 if len(info_to_print) == 0:
-                    info_to_print += f"{colors.GREY}Info{colors.ENDC}: "
+                    info_to_print += f'{colors.GREY}Info{colors.ENDC}: '
 
                 info_to_print += ref.__str__()
 
@@ -87,19 +83,17 @@ def timeit(*wrap_args, **wrap_kwargs):
                 args = list(args)
 
                 for index, arg in enumerate(args):
-                    if isinstance(arg, str) and re.search(
-                        "\.{0,1}(\/[a-z-_]*)*\.[a-z]{1}[a-z]*", arg
-                    ):
-                        args[index] = arg.split("/")[-1]
+                    if isinstance(arg, str) and re.search('\.{0,1}(\/[a-z-_]*)*\.[a-z]{1}[a-z]*', arg):
+                        args[index] = arg.split('/')[-1]
 
                 print_time(
                     (
-                        f"{colors.GREY}Class{colors.ENDC}: {ref.__class__.__name__} "
-                        if ref.__class__.__name__ != "NoneType"
-                        else ""
+                        f'{colors.GREY}Class{colors.ENDC}: {ref.__class__.__name__} '
+                        if ref.__class__.__name__ != 'NoneType'
+                        else ''
                     )
-                    + f"{colors.GREY}Function{colors.ENDC}: {func.__name__}({args}, {kwargs}) "
-                    + f"{colors.GREY}Time{colors.ENDC}: {total_time:.4f}s "
+                    + f'{colors.GREY}Function{colors.ENDC}: {func.__name__}({args}, {kwargs}) '
+                    + f'{colors.GREY}Time{colors.ENDC}: {total_time:.4f}s '
                     # (f'{colors.GREY}Info{colors.ENDC}: {ref.__str__()}' if should_print_info else '')
                 )
 

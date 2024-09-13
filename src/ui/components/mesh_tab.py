@@ -6,7 +6,7 @@ from renderer.renderer_manager.renderer_manager import RendererManager
 class MeshTab:
     def __init__(self):
         self.selection_meshes = {}
-        self.selected_mesh = ""
+        self.selected_mesh = ''
 
     def draw(self):
         rm = RendererManager()
@@ -15,18 +15,16 @@ class MeshTab:
 
         list_box_size = (wsize.x / 3, wsize.y - 30)
 
-        if imgui.begin_list_box("###meshes_listbox", *list_box_size).opened:
-            for mesh in rm.vaos.keys():
+        if imgui.begin_list_box('###meshes_listbox', *list_box_size).opened:
+            for mesh in rm.vaos:
                 if mesh != self.selected_mesh:
                     self.selection_meshes[mesh] = False
                 else:
                     self.selection_meshes[mesh] = True
 
-                _, self.selection_meshes[mesh] = imgui.selectable(
-                    mesh, self.selection_meshes[mesh]
-                )
+                _, self.selection_meshes[mesh] = imgui.selectable(mesh, self.selection_meshes[mesh])
 
-                if self.selection_meshes[mesh] == True:
+                if self.selection_meshes[mesh]:
                     self.selected_mesh = mesh
 
             imgui.end_list_box()
@@ -36,10 +34,4 @@ class MeshTab:
             triangles = rm.vertices_count[self.selected_mesh] / 3
 
             imgui.same_line()
-            imgui.text(
-                "Triangles: "
-                + str(int(triangles))
-                + "\n"
-                + "Vertices:  "
-                + str(int(vertices))
-            )
+            imgui.text('Triangles: ' + str(int(triangles)) + '\n' + 'Vertices:  ' + str(int(vertices)))

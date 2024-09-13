@@ -111,8 +111,8 @@ class Camera:
     def get_ogl_matrix(self):
         return glm.value_ptr(self.view_matrix)
 
-    def get_inv_view_proj_matrix(self):
-        view_projection_matrix = self.projection_matrix * self.get_view_matrix()
+    # def get_inv_view_proj_matrix(self):
+    #     view_projection_matrix = self.projection_matrix * self.get_view_matrix()
 
     # def get_skybox_ogl_matrix(self):
     #     return(glm.value_ptr(glm.lookAt(glm.vec3(0), self.front, self.world_up)))
@@ -150,7 +150,7 @@ class Frustum:
     def __str__(self):
         string = ''
 
-        if self.near != None:
+        if self.near is not None:
             string += (
                 'Near:  \n Normal: '
                 + str(self.near.normal)
@@ -160,7 +160,7 @@ class Frustum:
                 + str(self.near.point)
                 + '\n'
             )
-        if self.far != None:
+        if self.far is not None:
             string += (
                 'Far:   \n Normal: '
                 + str(self.far.normal)
@@ -170,7 +170,7 @@ class Frustum:
                 + str(self.far.point)
                 + '\n'
             )
-        if self.right != None:
+        if self.right is not None:
             string += (
                 'Right: \n Normal: '
                 + str(self.right.normal)
@@ -180,7 +180,7 @@ class Frustum:
                 + str(self.right.point)
                 + '\n'
             )
-        if self.left != None:
+        if self.left is not None:
             string += (
                 'Left:  \n Normal: '
                 + str(self.left.normal)
@@ -190,7 +190,7 @@ class Frustum:
                 + str(self.left.point)
                 + '\n'
             )
-        if self.top != None:
+        if self.top is not None:
             string += (
                 'Top:   \n Normal: '
                 + str(self.top.normal)
@@ -200,7 +200,7 @@ class Frustum:
                 + str(self.top.point)
                 + '\n'
             )
-        if self.bottom != None:
+        if self.bottom is not None:
             string += (
                 'Bottom:\n Normal: '
                 + str(self.bottom.normal)

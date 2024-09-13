@@ -1,5 +1,8 @@
+# ruff: noqa: F403, F405
+
 import json
 
+import glm
 import numpy as np
 import pywavefront
 from OpenGL.GL import *
@@ -17,7 +20,7 @@ def new_mesh(self, name, file_path):
     scene = pywavefront.Wavefront(file_path, collect_faces=True)
 
     # iterate through all the meshes in the file
-    for key, material in scene.materials.items():
+    for _, material in scene.materials.items():
         # scroll through the vertices data by increments of 8 (u, v, n.x, n.y, n.z, v.x, v.y, v.z)
         for i in range(0, len(material.vertices), 8):
             # u
@@ -102,8 +105,8 @@ def new_mesh(self, name, file_path):
 
 def new_json_mesh(self, name, file_path):
     # open the json model
-    f = open(file_path)
-    data = json.load(f)
+    with open(file_path) as f:
+        data = json.load(f)
 
     # keep track of the indices count
     self.indices_count[name] = len(data['indices'])

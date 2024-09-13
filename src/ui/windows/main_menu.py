@@ -77,7 +77,7 @@ class MainMenu:
                 sample_values = []
                 sample_values.append(str(rm.max_samples))
 
-                for i in range(rm.max_samples):
+                for _ in range(rm.max_samples):
                     new_sample_value = int(sample_values[-1]) / 2
 
                     if int(new_sample_value) < 1:
@@ -86,7 +86,9 @@ class MainMenu:
                     sample_values.append(str(int(new_sample_value)))
 
                 changed, sample_index = imgui.combo(
-                    '###sample_combo', sample_values.index(str(rm.samples)), sample_values
+                    '###sample_combo',
+                    sample_values.index(str(rm.samples)),
+                    sample_values,
                 )
 
                 if changed:

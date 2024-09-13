@@ -18,11 +18,14 @@ class ResizableWindow:
     def handle_resize(self) -> None:
         window: Window = Window()
 
-        if imgui.is_window_hovered() and glfw.get_mouse_button(window.window, glfw.MOUSE_BUTTON_LEFT) == glfw.PRESS:
-            if not self.is_resizing and self.is_mouse_pos_on_border():
-                self.is_resizing = True
-                self.resize_start_pos = glfw.get_cursor_pos(window.window)
-                self.resize_start_size = [self.width, self.height]
+        if (
+            (imgui.is_window_hovered() and glfw.get_mouse_button(window.window, glfw.MOUSE_BUTTON_LEFT) == glfw.PRESS)
+            and not self.is_resizing
+            and self.is_mouse_pos_on_border()
+        ):
+            self.is_resizing = True
+            self.resize_start_pos = glfw.get_cursor_pos(window.window)
+            self.resize_start_size = [self.width, self.height]
 
         if self.is_resizing and glfw.get_mouse_button(window.window, glfw.MOUSE_BUTTON_LEFT) == glfw.RELEASE:
             self.is_resizing = False
@@ -59,7 +62,4 @@ class ResizableWindow:
             return True
 
         # Check right border
-        if imgui.get_window_position()[0] + imgui.get_window_size()[0] - io.mouse_pos.x < border_size:
-            return True
-
-        return False
+        return imgui.get_window_position()[0] + imgui.get_window_size()[0] - io.mouse_pos.x < border_size

@@ -39,7 +39,7 @@ class FpsWindow(ResizableWindow):
         self.rm_update_graph = Graph('RM Update: ')
 
     def draw(self, states, dimensions, dt, ui_time, swaptime, controltime, updatetime, rmupdatetime):
-        if states['fps_window'] == False:
+        if not states['fps_window']:
             return (states, dimensions)
 
         window = Window()
