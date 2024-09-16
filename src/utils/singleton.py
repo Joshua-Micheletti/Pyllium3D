@@ -6,7 +6,7 @@ class Singleton(type):
 
     _instances = {}
 
-    def __call__(cls, *args, **kwargs):
+    def __call__(cls, *args: list[any], **kwargs: dict[any]) -> "Singleton":
         """Possible changes to the value of the `__init__` argument do not affect
         the returned instance.
         """

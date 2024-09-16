@@ -1,5 +1,6 @@
 import re
 import time
+from typing import Callable
 
 import glfw
 
@@ -10,14 +11,14 @@ from utils.messages import print_time
 # class to implement a timer
 class Timer:
     # constructor method
-    def __init__(self):
+    def __init__(self) -> None:
         # intialize the starting time to the current time
         self.start = glfw.get_time()
         self.laps = {}
         self.max_laps = 5
 
     # method to print and obtain the elapsed time
-    def elapsed(self, should_print=False, should_print_fps=False):
+    def elapsed(self, should_print: bool = False, should_print_fps: bool = False) -> float:
         # calculate the elapsed time since the creation or the last reset in ms
         dt = (glfw.get_time() - self.start) * 1000
 
@@ -31,14 +32,14 @@ class Timer:
         return dt
 
     # method to reset the timer
-    def reset(self, laps=False):
+    def reset(self, laps: bool = False) -> None:
         # reset the starting time to the current time
         self.start = glfw.get_time()
 
         if laps:
             self.laps = {}
 
-    def record(self, target='default'):
+    def record(self, target: str = 'default') -> None:
         if target not in self.laps:
             self.laps[target] = []
 
@@ -47,13 +48,13 @@ class Timer:
 
         self.laps[target].append(self.elapsed())
 
-    def get_last_record(self, target='default'):
+    def get_last_record(self, target: str = 'default') -> float:
         return self.laps[target][-1]
 
 
-def timeit(*wrap_args, **wrap_kwargs):
-    def timeit_decorator(func):
-        def timeit_wrapper(*args, **kwargs):
+def timeit(*_wrap_args: list[any], **wrap_kwargs: dict[any]) -> None:
+    def timeit_decorator(func: Callable) -> Callable:
+        def timeit_wrapper(*args: list[any], **kwargs: dict[any]) -> any:
             ref = args[0] if args else None
 
             info_to_print = ''

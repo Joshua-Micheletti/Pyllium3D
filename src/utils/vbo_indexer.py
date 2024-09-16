@@ -5,7 +5,7 @@ import glm
 
 
 # function to create an indexed version of the vertices of a model
-def index_vertices(vertices, normals, uvs):
+def index_vertices(vertices: list[float], normals: list[float], uvs: list[float]) -> tuple[list, list, list, list]:
     # dictionary to keep track of the non repeating vertices
     vertices_dict = {}
 
@@ -57,11 +57,15 @@ def index_vertices(vertices, normals, uvs):
     return (out_indices, out_vertices, out_normals, out_uvs)
 
 
-def index_vertices_st_worker(vertices, normals, uvs, procnum, return_dict):
+def index_vertices_st_worker(
+    vertices: list[float], normals: list[float], uvs: list[float], procnum: bool, return_dict: dict
+) -> None:
     return_dict[procnum] = index_vertices(vertices, normals, uvs)
 
 
-def index_vertices_multi_thread(vertices, normals, uvs):
+def index_vertices_multi_thread(
+    vertices: list[float], normals: list[float], uvs: list[float]
+) -> tuple[list, list, list, list]:
     thread_count = multiprocessing.cpu_count()
     # thread_count = 30
     vertex_length = int(len(vertices) / thread_count)
@@ -115,7 +119,7 @@ def index_vertices_multi_thread(vertices, normals, uvs):
 
 
 # function to check wether a packed vertex is similar to any vertex in the dictionary (==)
-def get_similar_vertex_index(packed, vertices):
+def get_similar_vertex_index(packed: 'PackedVertex', vertices: list['PackedVertex']) -> tuple[bool, int]:
     # for every vertex in the dictionary
     for vertex, index in vertices.items():
         # check if it's similar to the current packed vertex
@@ -130,14 +134,14 @@ def get_similar_vertex_index(packed, vertices):
 # class to store and compare packed vertices
 class PackedVertex:
     # constructor method
-    def __init__(self, position, uv, normal):
+    def __init__(self, position: list[float], uv: list[float], normal: list[float]) -> None:
         # store the passed information
         self.position = position
         self.uv = uv
         self.normal = normal
 
     # method to execute when the "==" operator is used
-    def __eq__(self, other):
+    def __eq__(self, other: any) -> bool:
         """Define the equality criteria.
 
         Args:
@@ -167,7 +171,7 @@ class PackedVertex:
         #        self.is_near(self.normal.z, other.normal.z))
 
     # redefine the hashing function
-    def __hash__(self):
+    def __hash__(self) -> int:
         """Hashing.
 
         Returns:
@@ -177,7 +181,7 @@ class PackedVertex:
         return hash(self.__dict__.values())
 
     # method to check if a value can be considered near enough to another value
-    def is_near(self, v1, v2):
+    def is_near(self, v1: float, v2: float) -> bool:
         """Check if the vertices are close to each other.
 
         Args:
@@ -199,7 +203,7 @@ class IndexingThread(Thread):
 
     """
 
-    def __init__(self, vertices, normals, uvs):
+    def __init__(self, vertices: list[float], normals: list[float], uvs: list[float]) -> None:
         """Initialize the thread.
 
         Args:
@@ -215,7 +219,7 @@ class IndexingThread(Thread):
 
         self._return = None
 
-    def run(self):
+    def run(self) -> None:
         """Thread logic function.
 
         Returns:

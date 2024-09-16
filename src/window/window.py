@@ -20,8 +20,8 @@ class Window(metaclass=Singleton):
         fullscreen: bool = None,
         name: str = None,
         fov: float = None,
-        opengl_M: int = None,
-        opengl_m: int = None,
+        opengl_maj: int = None,
+        opengl_min: int = None,
         min_z: float = None,
         max_z: float = None,
     ) -> None:
@@ -33,8 +33,8 @@ class Window(metaclass=Singleton):
             fullscreen (bool, optional): initial fullscreen state. Defaults to False.
             name (str, optional): application name shown in the window. Defaults to 'Pyllium3D'.
             fov (float, optional): FOV of the view. Defaults to 60.
-            opengl_M (int, optional): major OpenGL version to use. Defaults to 4.
-            opengl_m (int, optional): minor OpenGL version to use. Defaults to 3.
+            opengl_maj (int, optional): major OpenGL version to use. Defaults to 4.
+            opengl_min (int, optional): minor OpenGL version to use. Defaults to 3.
             min_z (float, optional): min distance to render from. Defaults to 0.1.
             max_z (float, optional): max distance to render to. Defaults to 10000.
 
@@ -61,8 +61,8 @@ class Window(metaclass=Singleton):
             fullscreen=fullscreen,
             name=name,
             fov=fov,
-            opengl_M=opengl_M,
-            opengl_m=opengl_m,
+            opengl_M=opengl_maj,
+            opengl_m=opengl_min,
             min_z=min_z,
             max_z=max_z,
         )
@@ -132,7 +132,7 @@ class Window(metaclass=Singleton):
         """
         return 'Window obj'
 
-    def get_ogl_matrix(self):
+    def get_ogl_matrix(self) -> any:
         """Getter of the projection matrix formatted for OpenGL.
 
         Returns:
@@ -143,7 +143,7 @@ class Window(metaclass=Singleton):
 
 
 # pass the key presses to the controller
-def key_callback(window, key, scancode, action, mods):
+def key_callback(window: Window, key: str, scancode: str, action: str, mods: str) -> None:
     """Handle keyboard events.
 
     Args:
@@ -161,7 +161,7 @@ def key_callback(window, key, scancode, action, mods):
 
 
 # handle the resizing of the window
-def framebuffer_size_callback(window, width, height):
+def framebuffer_size_callback(window: Window, width: int, height: int) -> None:
     """Handle resize events.
 
     Args:
@@ -178,7 +178,7 @@ def framebuffer_size_callback(window, width, height):
 
 
 # pass the mouse events to the controller
-def mouse_callback(window, xpos, ypos):
+def mouse_callback(window: Window, xpos: int, ypos: int) -> None:
     """Handle mouse movement from the window.
 
     Args:
