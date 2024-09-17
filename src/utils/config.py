@@ -24,7 +24,7 @@ class Config(metaclass=Singleton):
         with open('./assets/scenes/scene.yml') as file:
             self.scene = yaml.safe_load(file)
 
-    def initialize_parameters(self, obj: any, config_location: str, default_config: dict, **kwargs):
+    def initialize_parameters(self, obj: any, config_location: str, default_config: dict, **kwargs: any) -> None:
         """Method to set the parameters of the incoming object with the incoming values, or the values of the config file, or the default values, in that priority
 
         Args:

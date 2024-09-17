@@ -232,7 +232,7 @@ class RendererManager(metaclass=Singleton):
         return 'RendererManager obj'
 
     # method to setup the shaders for the engine
-    def _setup_shaders(self):
+    def _setup_shaders(self) -> None:
         # path of the shaders folder
         shaders_path = './assets/shaders/'
 
@@ -284,7 +284,7 @@ class RendererManager(metaclass=Singleton):
                 self.available_post_processing_shaders.append(name)
 
     # method to setup entities required for the rendering pipeline
-    def _setup_entities(self):
+    def _setup_entities(self) -> None:
         self.new_json_mesh('screen_quad', 'assets/models/default/quad.json')
         self.new_json_mesh('default', 'assets/models/default/box.json')
 
@@ -314,7 +314,7 @@ class RendererManager(metaclass=Singleton):
         self.center_cubemap_views.append(glm.lookAt(glm.vec3(0.0), glm.vec3(0, 0, -1), glm.vec3(0, -1, 0)))
 
     # method for setting up the render framebuffer
-    def _setup_framebuffers(self):
+    def _setup_framebuffers(self) -> None:
         # create the multisample framebuffer to do the main rendering of meshes
         self.render_framebuffer, self.multisample_render_texture, self.depth_texture = (
             self._create_multisample_framebuffer()
@@ -349,7 +349,7 @@ class RendererManager(metaclass=Singleton):
         )
 
     # method for setting up the skybox
-    def _setup_skybox(self, filepath):
+    def _setup_skybox(self, filepath) -> None:
         components = filepath.split('/')
 
         equirect = '.' in components[-1]
@@ -436,7 +436,7 @@ class RendererManager(metaclass=Singleton):
         # # load the skybox rendering shader
         # self.shaders["skybox"] = Shader("assets/shaders/skybox/skybox.vert", "assets/shaders/skybox/skybox.frag")
 
-    def _setup_bloom(self, length):
+    def _setup_bloom(self, length) -> None:
         self.bloom_framebuffer = glGenFramebuffers(1)
         glBindFramebuffer(GL_FRAMEBUFFER, self.bloom_framebuffer)
 
@@ -501,7 +501,7 @@ class RendererManager(metaclass=Singleton):
         mesh_manager.new_json_mesh(self, name, file_path)
 
     # method to create a new shader
-    def new_shader(self, name, vert_path, frag_path):
+    def new_shader(self, name, vert_path, frag_path) -> None:
         self.shaders[name] = Shader(vert_path, frag_path)
 
     # method to create a new light
@@ -515,7 +515,7 @@ class RendererManager(metaclass=Singleton):
         light_manager.new_light(self, name, light_position, light_color, light_strength)
 
     # method to generate a new texture (needs double checking if it's correct)
-    def new_texture(self, name, filepath):
+    def new_texture(self, name, filepath) -> None:
         # generate a new OpenGL texture
         self.textures[name] = glGenTextures(1)
         # bind the newly created texture
@@ -706,59 +706,59 @@ class RendererManager(metaclass=Singleton):
     # ---------------------------- Modify Models -------------------------------------
 
     # method to place the mesh in a specific spot
-    def place(self, name, x, y, z):
+    def place(self, name, x, y, z) -> None:
         model_manager.place(self, name, x, y, z)
 
     # method to move a mesh by a certain vector
-    def move(self, name, x, y, z):
+    def move(self, name, x, y, z) -> None:
         model_manager.move(self, name, x, y, z)
 
     # method to rotate the mesh
-    def rotate(self, name, x, y, z):
+    def rotate(self, name, x, y, z) -> None:
         model_manager.rotate(self, name, x, y, z)
 
     # method to scale the mesh
-    def scale(self, name, x, y, z):
+    def scale(self, name, x, y, z) -> None:
         model_manager.scale(self, name, x, y, z)
 
-    def place_light(self, name, x, y, z):
+    def place_light(self, name, x, y, z) -> None:
         model_manager.place_light(self, name, x, y, z)
 
     # method to calculate the model matrix after a transformation
-    def _calculate_model_matrix(self, name):
+    def _calculate_model_matrix(self, name) -> None:
         model_manager.calculate_model_matrix(self, name)
 
     # method to check if an instance should be updated after a transformation
-    def _check_instance_update(self, name):
+    def _check_instance_update(self, name) -> None:
         model_manager.check_instance_update(self, name)
 
     # ----------------------------- Modify Materials ---------------------------------
 
-    def set_ambient(self, name, r, g, b):
+    def set_ambient(self, name, r, g, b) -> None:
         self.materials[name].set_ambient(r, g, b)
         self._check_instance_material_update(name, 'ambients')
 
-    def set_diffuse(self, name, r, g, b):
+    def set_diffuse(self, name, r, g, b) -> None:
         self.materials[name].set_diffuse(r, g, b)
         self._check_instance_material_update(name, 'diffuses')
 
-    def set_specular(self, name, r, g, b):
+    def set_specular(self, name, r, g, b) -> None:
         self.materials[name].set_specular(r, g, b)
         self._check_instance_material_update(name, 'speculars')
 
-    def set_shininess(self, name, s):
+    def set_shininess(self, name, s) -> None:
         self.materials[name].set_shininess(s)
         self._check_instance_material_update(name, 'shininesses')
 
-    def set_roughness(self, name, r):
+    def set_roughness(self, name, r) -> None:
         self.materials[name].set_roughness(r)
         self._check_instance_material_update(name, 'roughnesses')
 
-    def set_metallic(self, name, m):
+    def set_metallic(self, name, m) -> None:
         self.materials[name].set_metallic(m)
         self._check_instance_material_update(name, 'metallicnesses')
 
-    def set_light_color(self, name, r, g, b):
+    def set_light_color(self, name, r, g, b) -> None:
         if name in self.lights:
             self.light_colors[self.lights[name] * 3 + 0] = r
             self.light_colors[self.lights[name] * 3 + 1] = g
@@ -766,13 +766,13 @@ class RendererManager(metaclass=Singleton):
         else:
             print_error(f"Light '{name}' not found")
 
-    def set_light_strength(self, name, s):
+    def set_light_strength(self, name, s) -> None:
         if name in self.lights:
             self.light_strengths[self.lights[name]] = s
         else:
             print_error(f"Light '{name}' not found")
 
-    def _check_instance_material_update(self, name, component):
+    def _check_instance_material_update(self, name, component) -> None:
         for model in self.materials[name].models:
             if model.in_instance != '':
                 self.instances[model.in_instance].to_update[component] = True
@@ -835,7 +835,7 @@ class RendererManager(metaclass=Singleton):
     # ------------------------------ Updaters ---------------------------------------
 
     # method to update the dimensions of the screen
-    def update_dimensions(self, width, height):
+    def update_dimensions(self, width, height) -> None:
         # update the internal dimensions
         self.width = int(width)
         self.height = int(height)
@@ -876,7 +876,7 @@ class RendererManager(metaclass=Singleton):
         self._setup_bloom(self.bloom_size)
 
     # update method to update components of the rendering manager
-    def update(self):
+    def update(self) -> None:
         for model in self.changed_models:
             self._calculate_model_matrix(model)
             self._check_instance_update(model)
@@ -942,7 +942,7 @@ class RendererManager(metaclass=Singleton):
 
         self.changed_models = {}
 
-    def update_instances(self):
+    def update_instances(self) -> None:
         # update the instances
         for name, instance in self.instances.items():
             instance.previous_models_to_render = instance.models_to_render
@@ -954,14 +954,14 @@ class RendererManager(metaclass=Singleton):
 
             instance.update()
 
-    def recompile_shaders(self):
+    def recompile_shaders(self) -> None:
         for _, shader in self.shaders.items():
             glDeleteProgram(shader.program)
             shader.compile()
 
     # ------------------------------ Misc --------------------------------------------
 
-    def add_post_processing_shader(self, name):
+    def add_post_processing_shader(self, name) -> None:
         self.post_processing_shaders.append(self.shaders[name])
 
     def _create_framebuffer(self, width=0, height=0):
@@ -1100,7 +1100,7 @@ class RendererManager(metaclass=Singleton):
 
         return (framebuffer, depth_cubemap)
 
-    def _create_cubemap_framebuffer(self, size=512, mipmap=False):
+    def _create_cubemap_framebuffer(self, size: int =512, mipmap: bool=False) -> tuple[int, int, int]:
         framebuffer = glGenFramebuffers(1)
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
 
@@ -1145,7 +1145,7 @@ class RendererManager(metaclass=Singleton):
 
         return (framebuffer, cubemap, renderbuffer)
 
-    def _check_framebuffer_status(self):
+    def _check_framebuffer_status(self) -> None:
         if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
             error = glCheckFramebufferStatus(GL_FRAMEBUFFER)
             print_error('Framebuffer error:')
@@ -1169,44 +1169,29 @@ class RendererManager(metaclass=Singleton):
 
     # glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
 
-    def get_front_framebuffer(self):
-        if self.back_framebuffer:
-            return self.tmp_framebuffer
-        else:
-            return self.solved_framebuffer
+    def get_front_framebuffer(self) -> int:
+        return self.tmp_framebuffer if self.back_framebuffer else self.solved_framebuffer
 
-    def get_back_framebuffer(self):
-        if not self.back_framebuffer:
-            return self.tmp_framebuffer
-        else:
-            return self.solved_framebuffer
+    def get_back_framebuffer(self) -> int:
+        return self.solved_framebuffer if self.back_framebuffer else self.tmp_framebuffer
 
-    def get_back_texture(self):
-        if self.back_framebuffer:
-            return self.solved_texture
-        else:
-            return self.tmp_texture
+    def get_back_texture(self) -> int:
+        return self.solved_texture if self.back_framebuffer else self.tmp_texture
 
-    def get_front_texture(self):
-        if self.back_framebuffer:
-            return self.tmp_texture
-        else:
-            return self.solved_texture
+    def get_front_texture(self) -> int:
+        return self.tmp_texture if self.back_framebuffer else self.solved_texture
 
-    def swap_back_framebuffer(self):
-        if self.back_framebuffer:
-            self.back_framebuffer = False
-        else:
-            self.back_framebuffer = True
+    def swap_back_framebuffer(self) -> None:
+        self.back_framebuffer = not self.back_framebuffer
 
-    def set_samples(self, samples):
+    def set_samples(self, samples: int) -> None:
         if self.samples == samples:
             return ()
 
         self.samples = samples
 
     # method for doing frustum culling
-    def check_visibility(self, model):
+    def check_visibility(self, model: str) -> bool:
         # get the model's bounding sphere's center and radius
         center = self.model_bounding_sphere_center[model]
         radius = self.model_bounding_sphere_radius[model]
@@ -1228,5 +1213,5 @@ class RendererManager(metaclass=Singleton):
 
         return True
 
-    def is_on_forward_plane(self, plane, center, radius):
+    def is_on_forward_plane(self, plane: any, center: any, radius: float) -> any:
         return glm.dot(plane.normal, center) - plane.distance > -radius

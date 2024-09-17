@@ -4,7 +4,7 @@ from renderer.model.model import Model
 from utils.messages import print_error
 
 
-def new_model(self, name, mesh, shader, texture, material, count):
+def new_model(self, name, mesh, shader, texture, material, count) -> None:
     if mesh is None:
         mesh = 'default'
     if shader is None:
@@ -45,7 +45,7 @@ def new_model(self, name, mesh, shader, texture, material, count):
 
 
 # method to place the mesh in a specific spot
-def place(self, name, x, y, z):
+def place(self, name, x, y, z) -> None:
     self.positions[name] = glm.vec3(x, y, z)
     self.changed_models[name] = True
     # self._calculate_model_matrix(name)
@@ -53,7 +53,7 @@ def place(self, name, x, y, z):
 
 
 # method to move a mesh by a certain vector
-def move(self, name, x, y, z):
+def move(self, name, x, y, z) -> None:
     self.positions[name] += glm.vec3(x, y, z)
     self.changed_models[name] = True
     # self._calculate_model_matrix(name)
@@ -61,7 +61,7 @@ def move(self, name, x, y, z):
 
 
 # method to rotate the mesh
-def rotate(self, name, x, y, z):
+def rotate(self, name, x, y, z) -> None:
     self.rotations[name] = glm.vec3(x, y, z)
     self.changed_models[name] = True
     # self._calculate_model_matrix(name)
@@ -69,14 +69,14 @@ def rotate(self, name, x, y, z):
 
 
 # method to scale the mesh
-def scale(self, name, x, y, z):
+def scale(self, name, x, y, z) -> None:
     self.scales[name] = glm.vec3(x, y, z)
     self.changed_models[name] = True
     # self._calculate_model_matrix(name)
     # self._check_instance_update(name)
 
 
-def place_light(self, name, x, y, z):
+def place_light(self, name, x, y, z) -> None:
     if name in self.lights:
         if (
             x != self.light_positions[self.lights[name] * 3 + 0]
@@ -92,7 +92,7 @@ def place_light(self, name, x, y, z):
 
 
 # method to calculate the model matrix after a transformation
-def calculate_model_matrix(self, name):
+def calculate_model_matrix(self, name) -> None:
     # reset the model matrix
     self.model_matrices[name] = glm.mat4(1)
     # calculate the translation
@@ -125,7 +125,7 @@ def calculate_model_matrix(self, name):
 
 
 # method to check if an instance should be updated after a transformation
-def check_instance_update(self, name):
+def check_instance_update(self, name) -> None:
     if self.models[name].in_instance == '':
         return
 

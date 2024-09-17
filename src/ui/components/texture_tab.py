@@ -4,10 +4,10 @@ from renderer.renderer_manager.renderer_manager import RendererManager
 
 
 class TextureTab:
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def draw(self):
+    def draw(self) -> None:
         rm = RendererManager()
         style = imgui.get_style()
 

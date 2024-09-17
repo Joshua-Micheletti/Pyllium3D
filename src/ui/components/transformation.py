@@ -1,14 +1,14 @@
 import imgui
 
 from renderer.renderer_manager import RendererManager
-from utils import gui_colors
+from utils import GuiColors
 
 
 class Transformation:
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def draw(self, states, selected_model):
+    def draw(self, states: dict[str, bool], selected_model: str) -> dict[str, bool]:
         rm = RendererManager()
         style = imgui.get_style()
 
@@ -40,7 +40,7 @@ class Transformation:
 
             imgui.align_text_to_frame_padding()
             imgui.push_style_var(imgui.STYLE_ITEM_SPACING, (item_spacing, 8.0))
-            imgui.push_style_color(imgui.COLOR_TEXT, *gui_colors.red)
+            imgui.push_style_color(imgui.COLOR_TEXT, *GuiColors.red)
             imgui.text('X')
             imgui.pop_style_color()
             imgui.same_line()
@@ -50,7 +50,7 @@ class Transformation:
 
             imgui.align_text_to_frame_padding()
             imgui.push_style_var(imgui.STYLE_ITEM_SPACING, (item_spacing, 8.0))
-            imgui.push_style_color(imgui.COLOR_TEXT, *gui_colors.green)
+            imgui.push_style_color(imgui.COLOR_TEXT, *GuiColors.green)
             imgui.text('Y')
             imgui.pop_style_color()
             imgui.same_line()
@@ -60,7 +60,7 @@ class Transformation:
 
             imgui.align_text_to_frame_padding()
             imgui.push_style_var(imgui.STYLE_ITEM_SPACING, (item_spacing, 8.0))
-            imgui.push_style_color(imgui.COLOR_TEXT, *gui_colors.blue)
+            imgui.push_style_color(imgui.COLOR_TEXT, *GuiColors.blue)
             imgui.text('Z')
             imgui.pop_style_color()
             imgui.same_line()
@@ -75,7 +75,7 @@ class Transformation:
 
             imgui.align_text_to_frame_padding()
             imgui.push_style_var(imgui.STYLE_ITEM_SPACING, (item_spacing, 8.0))
-            imgui.push_style_color(imgui.COLOR_TEXT, *gui_colors.red)
+            imgui.push_style_color(imgui.COLOR_TEXT, *GuiColors.red)
             imgui.text('X')
             imgui.pop_style_color()
             imgui.same_line()
@@ -85,7 +85,7 @@ class Transformation:
             # imgui.same_line()
             imgui.align_text_to_frame_padding()
             imgui.push_style_var(imgui.STYLE_ITEM_SPACING, (item_spacing, 8.0))
-            imgui.push_style_color(imgui.COLOR_TEXT, *gui_colors.green)
+            imgui.push_style_color(imgui.COLOR_TEXT, *GuiColors.green)
             imgui.text('Y')
             imgui.pop_style_color()
             imgui.same_line()
@@ -95,7 +95,7 @@ class Transformation:
             # imgui.same_line()
             imgui.align_text_to_frame_padding()
             imgui.push_style_var(imgui.STYLE_ITEM_SPACING, (item_spacing, 8.0))
-            imgui.push_style_color(imgui.COLOR_TEXT, *gui_colors.blue)
+            imgui.push_style_color(imgui.COLOR_TEXT, *GuiColors.blue)
             imgui.text('Z')
             imgui.pop_style_color()
             imgui.same_line()
@@ -110,7 +110,7 @@ class Transformation:
 
             imgui.align_text_to_frame_padding()
             imgui.push_style_var(imgui.STYLE_ITEM_SPACING, (item_spacing, 8.0))
-            imgui.push_style_color(imgui.COLOR_TEXT, *gui_colors.red)
+            imgui.push_style_color(imgui.COLOR_TEXT, *GuiColors.red)
             imgui.text('X')
             imgui.pop_style_color()
             imgui.same_line()
@@ -120,7 +120,7 @@ class Transformation:
             # imgui.same_line()
             imgui.align_text_to_frame_padding()
             imgui.push_style_var(imgui.STYLE_ITEM_SPACING, (item_spacing, 8.0))
-            imgui.push_style_color(imgui.COLOR_TEXT, *gui_colors.green)
+            imgui.push_style_color(imgui.COLOR_TEXT, *GuiColors.green)
             imgui.text('Y')
             imgui.pop_style_color()
             imgui.same_line()
@@ -130,7 +130,7 @@ class Transformation:
             # imgui.same_line()
             imgui.align_text_to_frame_padding()
             imgui.push_style_var(imgui.STYLE_ITEM_SPACING, (item_spacing, 8.0))
-            imgui.push_style_color(imgui.COLOR_TEXT, *gui_colors.blue)
+            imgui.push_style_color(imgui.COLOR_TEXT, *GuiColors.blue)
             imgui.text('Z')
             imgui.pop_style_color()
             imgui.same_line()

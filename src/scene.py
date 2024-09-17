@@ -8,7 +8,7 @@ from utils.config import Config
 
 
 @timeit()
-def setup():
+def setup() -> None:
     """Set up the scene."""
     scene = Config().scene
 

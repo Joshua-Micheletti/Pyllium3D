@@ -7,7 +7,7 @@ from renderer.instance import Instance
 from utils.messages import *
 
 
-def new_instance(self, name, mesh, shader):
+def new_instance(self, name, mesh, shader) -> None:
     # check if the mesh and shader fields have been provided
     if mesh == '':
         print_error("Couldn't create the instance, Mesh not set")
@@ -31,7 +31,7 @@ def new_instance(self, name, mesh, shader):
 
 
 # method to add a model to an instance
-def add_model_to_instance(self, model, instance):
+def add_model_to_instance(self, model, instance) -> None:
     model_name = model
     instance_name = instance
     model = self.models[model]
@@ -62,7 +62,7 @@ def add_model_to_instance(self, model, instance):
     instance.to_update['shininesses'] = True
 
 
-def set_models_in_instance(self, models, instance_name):
+def set_models_in_instance(self, models, instance_name) -> None:
     instance = self.instances[instance_name]
     instance.models = {}
 
@@ -74,7 +74,7 @@ def set_models_in_instance(self, models, instance_name):
     self._initialize_instance(instance_name)
 
 
-def remove_model_from_instance(self, model, instance):
+def remove_model_from_instance(self, model, instance) -> None:
     model = self.models[model]
     instance = self.instances[instance]
 
@@ -87,24 +87,24 @@ def remove_model_from_instance(self, model, instance):
     instance.to_update['model_matrices'] = True
 
 
-def set_instance_mesh(self, instance, mesh):
+def set_instance_mesh(self, instance, mesh) -> None:
     if mesh != self.instances[instance].mesh:
         self.instances[instance].set_mesh(mesh, self.vertex_vbos[mesh], self.normal_vbos[mesh], self.uv_vbo[mesh])
     # self.instances[instance].mesh = mesh
     # self.instances[instance].to_update = True
 
 
-def set_instance_shader(self, instance, shader):
+def set_instance_shader(self, instance, shader) -> None:
     self.instances[instance].shader = shader
     # self.instances[instance].to_update = True
 
 
-def set_model_to_render_in_instance(self, model, instance):
+def set_model_to_render_in_instance(self, model, instance) -> None:
     self.instances[instance].models_to_render[model] = self.models[model]
 
 
 # method to initialize an instance, might move this inside the instance object
-def initialize_instance(self, name):
+def initialize_instance(self, name) -> None:
     instance = self.instances[name]
 
     # temporary list of model matrices

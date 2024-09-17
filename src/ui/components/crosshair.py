@@ -65,7 +65,7 @@ class Crosshair:
             outline_thickness=outline_thickness,
         )
 
-    def draw(self):
+    def draw(self) -> None:
         wsize = imgui.get_window_size()
         wpos = imgui.get_window_position()
 

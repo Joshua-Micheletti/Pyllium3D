@@ -4,11 +4,11 @@ from renderer.renderer_manager.renderer_manager import RendererManager
 
 
 class MeshTab:
-    def __init__(self):
+    def __init__(self) -> None:
         self.selection_meshes = {}
         self.selected_mesh = ''
 
-    def draw(self):
+    def draw(self) -> None:
         rm = RendererManager()
 
         wsize = imgui.get_window_size()

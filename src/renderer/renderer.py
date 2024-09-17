@@ -28,10 +28,10 @@ class Renderer(metaclass=Singleton):
         # timer to keep track of the rendering time
         self.timer: Timer = Timer()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'Renderer'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'Renderer obj'
 
     def _setup_opengl(self) -> None:
@@ -375,7 +375,7 @@ class Renderer(metaclass=Singleton):
             glEndQuery(GL_TIME_ELAPSED)
 
     # method to render the skybox
-    def _render_skybox(self):
+    def _render_skybox(self) -> None:
         # get a reference to the renderer manager
 
         rm: RendererManager = RendererManager()
@@ -603,7 +603,7 @@ class Renderer(metaclass=Singleton):
         if rm.render_states['profile']:
             glEndQuery(GL_TIME_ELAPSED)
 
-    def _render_hdr(self):
+    def _render_hdr(self) -> None:
         rm = RendererManager()
 
         if rm.render_states['profile']:
@@ -625,7 +625,7 @@ class Renderer(metaclass=Singleton):
             glEndQuery(GL_TIME_ELAPSED)
 
     # method to render the screen texture to the main framebuffer
-    def _render_screen(self):
+    def _render_screen(self) -> None:
         # bind the screen framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
@@ -721,7 +721,7 @@ class Renderer(metaclass=Singleton):
             glEndQuery(GL_TIME_ELAPSED)
 
     # method to render the irradiance cubemap of the skybox
-    def _render_irradiance_map(self):
+    def _render_irradiance_map(self) -> None:
         # reference to the renderer manager
         rm = RendererManager()
 
@@ -843,7 +843,7 @@ class Renderer(metaclass=Singleton):
         glViewport(0, 0, rm.width, rm.height)
 
     # method to render the brdf integration texture
-    def _render_brdf_integration_map(self):
+    def _render_brdf_integration_map(self) -> None:
         # reference to the renderer manager
         rm = RendererManager()
 
@@ -868,7 +868,7 @@ class Renderer(metaclass=Singleton):
         glViewport(0, 0, rm.width, rm.height)
 
     # method to render the reflection cubemap with its mipmap levels
-    def _render_reflection_map(self):
+    def _render_reflection_map(self) -> None:
         # reference to the renderer manager
         rm = RendererManager()
 
@@ -947,7 +947,7 @@ class Renderer(metaclass=Singleton):
 
     # ---------------------------- Link methods ----------------------------
     # method to link static uniforms to the shader (static meaning they don't change between meshes)
-    def _link_shader_uniforms(self, shader):
+    def _link_shader_uniforms(self, shader) -> None:
         # get a reference to the renderer manager
         rm = RendererManager()
 
@@ -1063,13 +1063,13 @@ class Renderer(metaclass=Singleton):
         #     glUniformMatrix4fv(shader.uniforms["cube_matrices[0]"], rm.)
 
     # method to link dynamic uniforms to the shader (dynamic meaning they change between meshes)
-    def _link_model_uniforms(self, shader, name):
+    def _link_model_uniforms(self, shader, name) -> None:
         rm = RendererManager()
 
         if 'model' in shader.uniforms:
             glUniformMatrix4fv(shader.uniforms['model'], 1, GL_FALSE, rm.get_ogl_matrix(name))
 
-    def _link_material_uniforms(self, shader, name):
+    def _link_material_uniforms(self, shader, name) -> None:
         rm = RendererManager()
         model = rm.models[name]
 
@@ -1108,11 +1108,11 @@ class Renderer(metaclass=Singleton):
         if 'metallic' in shader.uniforms:
             glUniform1f(shader.uniforms['metallic'], rm.materials[model.material].metallic)
 
-    def _link_post_processing_uniforms(self, shader):
+    def _link_post_processing_uniforms(self, shader) -> None:
         if 'time' in shader.uniforms:
             glUniform1f(shader.uniforms['time'], glfw.get_time() * 10)
 
-    def _link_user_uniforms(self, shader):
+    def _link_user_uniforms(self, shader) -> None:
         if 'user_distance' in shader.uniforms:
             glUniform1f(shader.uniforms['user_distance'], shader.user_uniforms['user_distance'])
         if 'user_range' in shader.uniforms:
@@ -1138,7 +1138,7 @@ class Renderer(metaclass=Singleton):
                 shader.user_uniforms['user_parameter_3'],
             )
 
-    def _calculate_render_times(self):
+    def _calculate_render_times(self) -> None:
         for _name, query in self.queries.items():
             if not query.get('active'):
                 query['value'] = 0

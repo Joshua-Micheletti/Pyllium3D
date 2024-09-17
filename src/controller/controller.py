@@ -7,7 +7,7 @@ from utils import Singleton
 # class to handle inputs from the user and update the program logic accordingly (singleton)
 class Controller(metaclass=Singleton):
     # constructor method
-    def __init__(self):
+    def __init__(self) -> None:
         # store all the states in a dictionary and update them depending on the user inputs
         # then use the states to update the program logic accordingly
         self.states = {}
@@ -28,7 +28,7 @@ class Controller(metaclass=Singleton):
         self.last_y = 0
 
     # function called by the window when a key is pressed
-    def handle_key_press(self, key, mods):
+    def handle_key_press(self, key, mods) -> None:
         if key == glfw.KEY_W:
             self.states['forward'] = True
         if key == glfw.KEY_S:
@@ -54,7 +54,7 @@ class Controller(metaclass=Singleton):
             self.states['cursor'] = False
 
     # function called by the window when a key is released
-    def handle_key_release(self, key, mods):
+    def handle_key_release(self, key, mods) -> None:
         if key == glfw.KEY_W:
             self.states['forward'] = False
         if key == glfw.KEY_S:
@@ -69,7 +69,7 @@ class Controller(metaclass=Singleton):
             self.states['down'] = False
 
     # function called by the window when the cursor is moved
-    def handle_mouse_movement(self, window, xpos, ypos):
+    def handle_mouse_movement(self, window, xpos, ypos) -> None:
         if self.states['cursor']:
             self.first_mouse = True
             return
@@ -102,7 +102,7 @@ class Controller(metaclass=Singleton):
         RendererManager().camera.turn(xoffset, yoffset)
 
     # method called on every frame to update the entities depending on the states
-    def update(self, window, dt):
+    def update(self, window, dt) -> None:
         rm = RendererManager()
         # get a reference to the camera
         camera = rm.camera

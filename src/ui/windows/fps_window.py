@@ -38,7 +38,17 @@ class FpsWindow(ResizableWindow):
         self.update_graph = Graph('Update:    ')
         self.rm_update_graph = Graph('RM Update: ')
 
-    def draw(self, states, dimensions, dt, ui_time, swaptime, controltime, updatetime, rmupdatetime):
+    def draw(
+        self,
+        states: dict[str, bool],
+        dimensions: dict[str, float],
+        dt: float,
+        ui_time: float,
+        swaptime: float,
+        controltime: float,
+        updatetime: float,
+        rmupdatetime: float,
+    ) -> tuple[dict[str, bool], dict[str, float]]:
         if not states['fps_window']:
             return (states, dimensions)
 

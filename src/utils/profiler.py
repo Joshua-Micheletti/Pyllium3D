@@ -3,10 +3,10 @@ import io
 import pstats
 
 
-def profile(fnc):
+def profile(fnc: callable) -> None:
     """A decorator that uses cProfile to profile a function"""
 
-    def inner(*args, **kwargs):
+    def inner(*args: any, **kwargs: any) -> any:
         pr = cProfile.Profile()
         pr.enable()
         retval = fnc(*args, **kwargs)

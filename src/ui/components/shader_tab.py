@@ -4,11 +4,11 @@ from renderer.renderer_manager.renderer_manager import RendererManager
 
 
 class ShaderTab:
-    def __init__(self):
+    def __init__(self) -> None:
         self.selection_shaders = {}
         self.selected_shader = ''
 
-    def draw(self):
+    def draw(self) -> None:
         rm = RendererManager()
         wsize = imgui.get_window_size()
         list_box_size = (wsize.x / 3, wsize.y - 30)
@@ -57,7 +57,7 @@ class ShaderTab:
 
             imgui.end_child()
 
-    def _get_uniform_type(self, uniform):
+    def _get_uniform_type(self, uniform: str) -> str:
         if uniform == 'model' or uniform == 'view' or uniform == 'projection':
             return 'mat4 '
 

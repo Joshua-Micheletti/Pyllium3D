@@ -4,14 +4,14 @@ import imgui
 
 
 class Graph:
-    def __init__(self, name, samples=90, scale_min=0, scale_max=60):
+    def __init__(self, name: str, samples: int = 90, scale_min: float = 0, scale_max: float = 60) -> None:
         self.name = name
         self.samples = samples
         self.graph_values = []
         self.scale_min = scale_min
         self.scale_max = scale_max
 
-    def draw(self, dt):
+    def draw(self, dt: float) -> None:
         if len(self.graph_values) == 90:
             self.graph_values.pop(0)
 

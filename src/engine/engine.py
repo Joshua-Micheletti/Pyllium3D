@@ -4,13 +4,13 @@ from utils import Singleton
 
 
 class Engine(metaclass=Singleton):
-    def __init__(self):
+    def __init__(self) -> None:
         self.links = {}
 
-    def create_link(self, physics_body, model):
+    def create_link(self, physics_body, model) -> None:
         self.links[physics_body] = model
 
-    def update(self):
+    def update(self) -> None:
         rm = RendererManager()
         pw = PhysicsWorld()
 

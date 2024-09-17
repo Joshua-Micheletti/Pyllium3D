@@ -6,7 +6,7 @@ import glm
 # class to implement a 3D virtual camera
 class Camera:
     # constructor method
-    def __init__(self):
+    def __init__(self) -> None:
         # postion vector
         self.position = glm.vec3(0.0, 0.0, 3.0)
         # direction vector
@@ -28,21 +28,21 @@ class Camera:
         # calculate the view matrix
         self.view_matrix = glm.lookAt(self.position, self.position + self.front, self.world_up)
 
-    def set_frustum_params(self, aspect, fov_y, z_near, z_far):
+    def set_frustum_params(self, aspect, fov_y, z_near, z_far) -> None:
         self.aspect = aspect
         self.fov_y = fov_y
         self.z_near = z_near
         self.z_far = z_far
 
     # method to recalculate the vertices and view matrix
-    def _calculate_vectors(self):
+    def _calculate_vectors(self) -> None:
         self.right = glm.normalize(glm.cross(self.world_up, self.front))
         self.up = glm.cross(self.front, self.right)
         self.view_matrix = glm.lookAt(self.position, self.position + self.front, self.world_up)
 
         self._calculate_frustum()
 
-    def _calculate_frustum(self):
+    def _calculate_frustum(self) -> None:
         half_v_side = self.z_far * math.tan(self.fov_y * 0.5)
         # print(half_v_side)
         # half_v_side = self.z_far * float(math.tan(self.fov_y * 0.5))
@@ -65,26 +65,26 @@ class Camera:
         self.frustum.bottom = Plane(self.position, glm.cross(front_mult_far - self.up * half_v_side, self.right))
 
     # method to move the camera forwards and backwards
-    def move(self, amount):
+    def move(self, amount) -> None:
         self.position += amount * self.front
         self._calculate_vectors()
 
-    def place(self, x, y, z):
+    def place(self, x, y, z) -> None:
         self.position = glm.vec3(x, y, z)
         self._calculate_vectors()
 
     # method to strafe the camera left and right
-    def strafe(self, amount):
+    def strafe(self, amount) -> None:
         self.position += amount * self.right
         self._calculate_vectors()
 
     # method to lift the camera up and down
-    def lift(self, amount):
+    def lift(self, amount) -> None:
         self.position += amount * self.world_up
         self._calculate_vectors()
 
     # method to turn the camera depending on the angle
-    def turn(self, yaw, pitch):
+    def turn(self, yaw, pitch) -> None:
         # add up the new orientation
         self.yaw += yaw
         self.pitch += pitch
@@ -119,7 +119,7 @@ class Camera:
 
 
 class Plane:
-    def __init__(self, p1, normal):
+    def __init__(self, p1, normal) -> None:
         self.normal = glm.normalize(normal)
 
         if isinstance(p1, glm.vec3):
@@ -139,7 +139,7 @@ class Plane:
 
 
 class Frustum:
-    def __init__(self):
+    def __init__(self) -> None:
         self.top = None
         self.bottom = None
         self.right = None
@@ -147,7 +147,7 @@ class Frustum:
         self.far = None
         self.near = None
 
-    def __str__(self):
+    def __str__(self) -> str:
         string = ''
 
         if self.near is not None:

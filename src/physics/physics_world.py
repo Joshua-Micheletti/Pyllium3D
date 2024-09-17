@@ -5,7 +5,7 @@ from utils import Singleton, print_success
 
 
 class PhysicsWorld(metaclass=Singleton):
-    def __init__(self):
+    def __init__(self) -> None:
         self.physics_client = pb.connect(pb.DIRECT)
 
         self.shapes = {}
@@ -19,7 +19,7 @@ class PhysicsWorld(metaclass=Singleton):
 
         print_success('initialized physics world')
 
-    def _setup_scene(self):
+    def _setup_scene(self) -> None:
         self.shapes['sphere'] = pb.createCollisionShape(pb.GEOM_SPHERE, radius=1)
         self.shapes['plane'] = pb.createCollisionShape(pb.GEOM_PLANE, planeNormal=[0, 0, 1])
         self.shapes['box'] = pb.createCollisionShape(pb.GEOM_BOX, halfExtents=[1, 1, 1])
@@ -27,15 +27,15 @@ class PhysicsWorld(metaclass=Singleton):
         # self.rigid_bodies["sphere"] = pb.createMultiBody(baseMass=1.0, baseCollisionShapeIndex=self.shapes["sphere"])
         # self.rigid_bodies["plane"] = pb.createMultiBody(baseMass=0.0, baseCollisionShapeIndex=self.shapes["plane"])
 
-    def create_sphere_shape(self, name, radius=0.5):
+    def create_sphere_shape(self, name, radius=0.5) -> None:
         self.shapes[name] = pb.createCollisionShape(pb.GEOM_SPHERE, radius=radius)
 
-    def create_plane_shape(self, name, planeNormal=None):
+    def create_plane_shape(self, name, planeNormal=None) -> None:
         if planeNormal is None:
             planeNormal = [0, 1, 0]
         self.shapes[name] = pb.createCollisionShape(pb.GEOM_PLANE, planeNormal=planeNormal)
 
-    def create_box_shape(self, name, dimensions=None):
+    def create_box_shape(self, name, dimensions=None) -> None:
         if dimensions is None:
             dimensions = [0.25, 0.25, 0.25]
         self.shapes[name] = pb.createCollisionShape(pb.GEOM_BOX, halfExtents=dimensions)
@@ -47,7 +47,7 @@ class PhysicsWorld(metaclass=Singleton):
         mass=1,
         position=None,
         orientation=None,
-    ):
+    ) -> None:
         if orientation is None:
             orientation = [1.0, 0.0, 0.0, 0.0]
         if position is None:
@@ -66,7 +66,7 @@ class PhysicsWorld(metaclass=Singleton):
             baseOrientation=orientation,
         )
 
-    def update(self):
+    def update(self) -> None:
         pb.stepSimulation(self.physics_client)
 
     def get_position_rotation(self, physics_body):

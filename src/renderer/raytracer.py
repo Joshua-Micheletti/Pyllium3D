@@ -13,7 +13,7 @@ from utils import Singleton
 class RayTracer(metaclass=Singleton):
     """RayTracer engine"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         # set the color to clear the screen with
         glClearColor(0.1, 0.1, 0.1, 1.0)
         # enable alpha blending
@@ -168,7 +168,7 @@ class RayTracer(metaclass=Singleton):
         self.update_spheres(np.array([1, 1, 1, 1, 0]))
         self.update_planes(np.array([0, 0, 0, 0, 1, 0, 0]))
 
-    def render(self):
+    def render(self) -> None:
         rm = RendererManager()
         # set the active texture slot to 0
         glActiveTexture(GL_TEXTURE0)
@@ -238,7 +238,7 @@ class RayTracer(metaclass=Singleton):
             glBindTexture(GL_TEXTURE_2D, self.last_frame)
             glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, self.render_x, self.render_y)
 
-    def update_mesh_material_indices(self, mesh_mat_i):
+    def update_mesh_material_indices(self, mesh_mat_i) -> None:
         data = (GLfloat * len(mesh_mat_i))(*mesh_mat_i)
 
         glBindBuffer(GL_UNIFORM_BUFFER, self.mesh_material_indices)
@@ -246,7 +246,7 @@ class RayTracer(metaclass=Singleton):
         glBindBufferBase(GL_UNIFORM_BUFFER, 10, self.mesh_material_indices)
         glBindBuffer(GL_UNIFORM_BUFFER, 0)
 
-    def update_vertices(self, vertices):
+    def update_vertices(self, vertices) -> None:
         data = (GLfloat * len(vertices))(*vertices)
 
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, self.vertices)
@@ -254,7 +254,7 @@ class RayTracer(metaclass=Singleton):
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, self.vertices)
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0)
 
-    def update_indices(self, indices):
+    def update_indices(self, indices) -> None:
         data = (GLfloat * len(indices))(*indices)
 
         glBindBuffer(GL_UNIFORM_BUFFER, self.indices)
@@ -262,7 +262,7 @@ class RayTracer(metaclass=Singleton):
         glBindBufferBase(GL_UNIFORM_BUFFER, 3, self.indices)
         glBindBuffer(GL_UNIFORM_BUFFER, 0)
 
-    def update_model_mats(self, model_mats):
+    def update_model_mats(self, model_mats) -> None:
         data = (GLfloat * len(model_mats))(*model_mats)
 
         glBindBuffer(GL_UNIFORM_BUFFER, self.model_mats)
@@ -270,7 +270,7 @@ class RayTracer(metaclass=Singleton):
         glBindBufferBase(GL_UNIFORM_BUFFER, 2, self.model_mats)
         glBindBuffer(GL_UNIFORM_BUFFER, 0)
 
-    def update_normals(self, normals):
+    def update_normals(self, normals) -> None:
         data = (GLfloat * len(normals))(*normals)
 
         glBindBuffer(GL_UNIFORM_BUFFER, self.normals)
@@ -278,7 +278,7 @@ class RayTracer(metaclass=Singleton):
         glBindBufferBase(GL_UNIFORM_BUFFER, 4, self.normals)
         glBindBuffer(GL_UNIFORM_BUFFER, 0)
 
-    def update_spheres(self, spheres):
+    def update_spheres(self, spheres) -> None:
         data = (GLfloat * len(spheres))(*spheres)
 
         glBindBuffer(GL_UNIFORM_BUFFER, self.spheres)
@@ -286,7 +286,7 @@ class RayTracer(metaclass=Singleton):
         glBindBufferBase(GL_UNIFORM_BUFFER, 5, self.spheres)
         glBindBuffer(GL_UNIFORM_BUFFER, 0)
 
-    def update_planes(self, planes):
+    def update_planes(self, planes) -> None:
         data = (GLfloat * len(planes))(*planes)
 
         glBindBuffer(GL_UNIFORM_BUFFER, self.planes)
@@ -294,7 +294,7 @@ class RayTracer(metaclass=Singleton):
         glBindBufferBase(GL_UNIFORM_BUFFER, 6, self.planes)
         glBindBuffer(GL_UNIFORM_BUFFER, 0)
 
-    def update_boxes(self, boxes):
+    def update_boxes(self, boxes) -> None:
         data = (GLfloat * len(boxes))(*boxes)
 
         glBindBuffer(GL_UNIFORM_BUFFER, self.boxes)
@@ -302,7 +302,7 @@ class RayTracer(metaclass=Singleton):
         glBindBufferBase(GL_UNIFORM_BUFFER, 7, self.boxes)
         glBindBuffer(GL_UNIFORM_BUFFER, 0)
 
-    def update_bounding_boxes(self, bounding_boxes):
+    def update_bounding_boxes(self, bounding_boxes) -> None:
         # print(bounding_boxes)
         data = (GLfloat * len(bounding_boxes))(*bounding_boxes)
 
@@ -311,7 +311,7 @@ class RayTracer(metaclass=Singleton):
         glBindBufferBase(GL_UNIFORM_BUFFER, 8, self.bounding_boxes)
         glBindBuffer(GL_UNIFORM_BUFFER, 0)
 
-    def update_materials(self, materials):
+    def update_materials(self, materials) -> None:
         data = (GLfloat * len(materials))(*materials)
 
         glBindBuffer(GL_UNIFORM_BUFFER, self.materials)

@@ -8,7 +8,7 @@ from utils import print_info, print_success, timeit
 class Shader:
     # constructor method, takes the path of the vertex and fragment shaders
     @timeit()
-    def __init__(self, vert_path, frag_path, geom_path='') -> None:
+    def __init__(self, vert_path: str, frag_path: str, geom_path: str = '') -> None:
         self.vertex_path = vert_path
         self.frag_path = frag_path
         self.geom_path = geom_path
@@ -59,7 +59,7 @@ class Shader:
     def __repr__(self) -> str:
         return 'Shader obj'
 
-    def compile(self):
+    def compile(self) -> None:
         path_components = self.vertex_path.split('/')
         shader_name_components = path_components[-1].split('.')
         print_info(f'Compiling shader: {shader_name_components[0]}')
@@ -99,11 +99,11 @@ class Shader:
         print_success(f'Compiled shader:  {shader_name_components[0]}')
 
     # function to use this program for rendering
-    def use(self):
+    def use(self) -> None:
         glUseProgram(self.program)
 
     # function to check the presence of specific uniforms
-    def _check_uniforms(self):
+    def _check_uniforms(self) -> None:
         # model matrix uniform (mat4)
         if glGetUniformLocation(self.program, 'model') != -1:
             self.uniforms['model'] = glGetUniformLocation(self.program, 'model')

@@ -4,7 +4,7 @@ from renderer.renderer_manager.renderer_manager import RendererManager
 
 
 class Components:
-    def draw(self, states, dimensions, selected_model):
+    def draw(self, states: dict[str, bool], dimensions: dict[str, float], selected_model: str) -> dict[str, bool]:
         rm = RendererManager()
 
         states['right_window/components_header'], _ = imgui.collapsing_header('Components')

@@ -7,7 +7,7 @@ from utils import Singleton, Timer
 
 
 class Printer(metaclass=Singleton):
-    def __init__(self, interval=2000):
+    def __init__(self, interval: int = 2000) -> None:
         self.interval = interval
         self.frames_count = 3
 
@@ -16,18 +16,16 @@ class Printer(metaclass=Singleton):
         self._render_times = []
         self._other_times = []
 
-        if platform.system() == 'Linux':
-            self._clear_command = 'clear'
-        elif platform.system() == 'Window':
-            self._clear_command = 'cls'
-
         self._print_string = ''
 
-    def write(self, verbose=False, frametime=0.0):
+    def write(self, verbose: bool = False, frametime: float = 0.0) -> None:
         if self._timer.elapsed() > self.interval:
             self._prepare_data(frametime)
 
-            os.system(self._clear_command)
+            if platform.system() == 'Linux':
+                os.system('clear')  # noqa: S605
+            elif platform.system() == 'Window':
+                os.system('cls')  # noqa: S605
 
             self._separator()
             self._write_vertices(verbose)
@@ -43,7 +41,7 @@ class Printer(metaclass=Singleton):
 
             self._timer.reset()
 
-    def _prepare_data(self, frametime):
+    def _prepare_data(self, frametime: float) -> None:
         if len(self._frametimes) == self.frames_count:
             self._frametimes.pop(0)
             self._render_times.pop(0)
@@ -53,7 +51,7 @@ class Printer(metaclass=Singleton):
         self._render_times.append(round(sum(Renderer().timer.laps) / len(Renderer().timer.laps), 2))
         self._other_times.append(round(self._frametimes[-1] - self._render_times[-1], 2))
 
-    def _write_frametime(self, verbose):
+    def _write_frametime(self, verbose: bool) -> None:
         frametime_text = 'Ft'
         render_time_text = 'Rt'
         other_time_text = 'Ot'
@@ -100,7 +98,7 @@ class Printer(metaclass=Singleton):
             if i < len(self._frametimes) - 1:
                 self._print_string += '\n'
 
-    def _write_vertices(self, verbose):
+    def _write_vertices(self, verbose: bool) -> None:
         vertices_text = 'V'
         triangles_text = 'T'
         meshes_text = 'M'
@@ -125,10 +123,10 @@ class Printer(metaclass=Singleton):
         self._print_string += ' ' + triangles_text + ': ' + str(int(vertices_count / 3)) + ' |'
         self._print_string += ' ' + meshes_text + ': ' + str(meshes) + ' |'
 
-    def _separator(self):
+    def _separator(self) -> None:
         self._print_string += 'separator'
 
-    def _fill_separators(self):
+    def _fill_separators(self) -> None:
         components = self._print_string.split('separator')
         self._print_string = ''
 

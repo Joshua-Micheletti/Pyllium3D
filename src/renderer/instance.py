@@ -7,7 +7,7 @@ from OpenGL.GL import *
 # class to implement an instance for rendering
 class Instance:
     # constructor method
-    def __init__(self, mesh='', shader=''):
+    def __init__(self, mesh='', shader='') -> None:
         # mesh name for the models in the instance
         self.mesh = mesh
         # shader models in the instance
@@ -66,7 +66,7 @@ class Instance:
         self.changed_models = set()
 
     # method to set the mesh in the instance
-    def set_mesh(self, mesh, vertex_vbo, normal_vbo, uv_vbo):
+    def set_mesh(self, mesh, vertex_vbo, normal_vbo, uv_vbo) -> None:
         # keep track of the new mesh in the instance
         self.mesh = mesh
         self.vertex_vbo = vertex_vbo
@@ -97,7 +97,7 @@ class Instance:
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
 
     # method to change the model matrix of a model in the instance
-    def change_model_matrix(self, model, model_matrix):
+    def change_model_matrix(self, model, model_matrix) -> None:
         # get the index of the model selected
         # model_index = self.models.index(model)
 
@@ -118,7 +118,7 @@ class Instance:
         self.changed_models.add(model.name)
 
     # method to change the ambient value in an instance
-    def change_ambient(self, material):
+    def change_ambient(self, material) -> None:
         # get the list of models in this instance that use the changed material
         models_changed = list(set(material.models).intersection(set(self.models.values())))
 
@@ -133,7 +133,7 @@ class Instance:
             self.changed_models.add(model.name)
 
     # method to change the diffuse value in an instance
-    def change_diffuse(self, material):
+    def change_diffuse(self, material) -> None:
         # get the list of models in this instance that use the changed material
         models_changed = list(set(material.models).intersection(set(self.models.values())))
 
@@ -150,7 +150,7 @@ class Instance:
             self.changed_models.add(model.name)
 
     # method to change the specular value in an instance
-    def change_specular(self, material):
+    def change_specular(self, material) -> None:
         # get the list of models in this instance that use the changed material
         models_changed = list(set(material.models).intersection(set(self.models.values())))
 
@@ -166,7 +166,7 @@ class Instance:
             self.changed_models.add(model.name)
 
     # method to change the shininess value in an instance
-    def change_shininess(self, material):
+    def change_shininess(self, material) -> None:
         # get the list of models in this instance that use the changed material
         models_changed = list(set(material.models).intersection(set(self.models.values())))
 
@@ -179,7 +179,7 @@ class Instance:
             self.shininesses[model.name] = material.shininess
             self.changed_models.add(model.name)
 
-    def change_roughness(self, material):
+    def change_roughness(self, material) -> None:
         # get the list of models in this instance that use the changed material
         models_changed = list(set(material.models).intersection(set(self.models.values())))
 
@@ -192,7 +192,7 @@ class Instance:
             self.roughnesses[model.name] = material.roughness
             self.changed_models.add(model.name)
 
-    def change_metallic(self, material):
+    def change_metallic(self, material) -> None:
         # get the list of models in this instance that use the changed material
         models_changed = list(set(material.models).intersection(set(self.models.values())))
 
@@ -206,7 +206,7 @@ class Instance:
             self.changed_models.add(model.name)
 
     # method to update the properties of the instance
-    def update(self):
+    def update(self) -> None:
         # check for each property and update it accordingly
         # if self.to_update["model_matrices"]:
         #     self.update_model_matrices()
@@ -232,7 +232,7 @@ class Instance:
         self.setup_buffers()
 
     # method to update the model matrices vbo
-    def update_model_matrices(self):
+    def update_model_matrices(self) -> None:
         # convert the array into a numpy array of float 32bit
         self.model_matrices = np.array(list(self.model_matrices.values()), dtype=np.float32).flatten()
         # bind the model matrices vbo
@@ -244,7 +244,7 @@ class Instance:
         # glBindBuffer(GL_ARRAY_BUFFER, 0)
 
     # method to update the ambients vbo
-    def update_ambients(self):
+    def update_ambients(self) -> None:
         # convert the array into a numpy array of float 32bit
         # new_ambients = np.array(list(self.ambients.values()), dtype=np.float32).flatten()
         # bind the ambient vbo
@@ -255,7 +255,7 @@ class Instance:
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
     # method to update the ambients vbo
-    def update_diffuses(self):
+    def update_diffuses(self) -> None:
         # convert the array into a numpy array of float 32bit
         self.diffuses = np.array(list(self.diffuses.values()), dtype=np.float32).flatten()
         # bind the diffuse vbo
@@ -266,7 +266,7 @@ class Instance:
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
     # method to update the ambients vbo
-    def update_speculars(self):
+    def update_speculars(self) -> None:
         # convert the array into a numpy array of float 32bit
         self.speculars = np.array(list(self.speculars.values()), dtype=np.float32).flatten()
         # bind the specular vbo
@@ -277,7 +277,7 @@ class Instance:
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
     # method to update the ambients vbo
-    def update_shininesses(self):
+    def update_shininesses(self) -> None:
         # convert the array into a numpy array of float 32bit
         self.shininesses = np.array(list(self.shininesses.values()), dtype=np.float32)
         # bind the shininess vbo
@@ -288,7 +288,7 @@ class Instance:
         glBindBuffer(GL_ARRAY_BUFFER, 0)
 
     # method to update the ambients vbo
-    def update_roughnesses(self):
+    def update_roughnesses(self) -> None:
         # convert the array into a numpy array of float 32bit
         self.roughnesses = np.array(list(self.roughnesses.values()), dtype=np.float32)
         # bind the shininess vbo
@@ -300,7 +300,7 @@ class Instance:
         # print("updated roughnesses")
 
     # method to update the ambients vbo
-    def update_metallicnesses(self):
+    def update_metallicnesses(self) -> None:
         # convert the array into a numpy array of float 32bit
         self.metallicnesses = np.array(list(self.metallicnesses.values()), dtype=np.float32)
         # bind the shininess vbo

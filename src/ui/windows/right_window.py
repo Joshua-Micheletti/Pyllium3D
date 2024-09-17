@@ -4,12 +4,12 @@ from physics.physics_world import PhysicsWorld
 from renderer.renderer_manager.renderer_manager import RendererManager
 from ui.components import Components, Transformation
 from ui.windows.resizable_window import ResizableWindow
-from utils.colors import gui_colors
+from utils import GuiColors
 from window import Window
 
 
 class RightWindow(ResizableWindow):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__('left')
 
         self.selected_model_index: int = 0
@@ -24,7 +24,7 @@ class RightWindow(ResizableWindow):
         self.transformation = Transformation()
         self.components = Components()
 
-    def draw(self, states, dimensions):
+    def draw(self, states: dict[str, bool], dimensions: dict[str, float]) -> tuple[dict[str, bool], dict[str, float]]:
         if not states['right_window']:
             dimensions['right_window_width'] = 0
             return (states, dimensions)
@@ -152,7 +152,7 @@ class RightWindow(ResizableWindow):
 
             imgui.align_text_to_frame_padding()
             imgui.push_style_var(imgui.STYLE_ITEM_SPACING, (item_spacing, 8.0))
-            imgui.push_style_color(imgui.COLOR_TEXT, *gui_colors.red)
+            imgui.push_style_color(imgui.COLOR_TEXT, *GuiColors.red)
             imgui.text('X')
             imgui.pop_style_color()
             imgui.same_line()
@@ -162,7 +162,7 @@ class RightWindow(ResizableWindow):
 
             imgui.align_text_to_frame_padding()
             imgui.push_style_var(imgui.STYLE_ITEM_SPACING, (item_spacing, 8.0))
-            imgui.push_style_color(imgui.COLOR_TEXT, *gui_colors.green)
+            imgui.push_style_color(imgui.COLOR_TEXT, *GuiColors.green)
             imgui.text('Y')
             imgui.pop_style_color()
             imgui.same_line()
@@ -172,7 +172,7 @@ class RightWindow(ResizableWindow):
 
             imgui.align_text_to_frame_padding()
             imgui.push_style_var(imgui.STYLE_ITEM_SPACING, (item_spacing, 8.0))
-            imgui.push_style_color(imgui.COLOR_TEXT, *gui_colors.blue)
+            imgui.push_style_color(imgui.COLOR_TEXT, *GuiColors.blue)
             imgui.text('Z')
             imgui.pop_style_color()
             imgui.same_line()

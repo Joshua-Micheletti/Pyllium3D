@@ -8,14 +8,14 @@ from window import Window
 
 
 class LeftWindow(ResizableWindow):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__('right')
 
         self.active_pp_shaders = []
         self.selected_pp_shader_index = 0
         self.selected_active_pp_shader = -1
 
-    def draw(self, states, dimensions):
+    def draw(self, states: dict[str, bool], dimensions: dict[str, float]) -> tuple[dict[str, bool], dict[str, float]]:
         if not states['left_window']:
             dimensions['left_window_width'] = 0
             return (states, dimensions)

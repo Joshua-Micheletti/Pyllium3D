@@ -6,7 +6,7 @@ from window import Window
 
 
 class BottomWindow(ResizableWindow):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__('up')
 
         self.width = 0
@@ -19,7 +19,7 @@ class BottomWindow(ResizableWindow):
         self.shader_tab = ShaderTab()
         self.texture_tab = TextureTab()
 
-    def draw(self, states, dimensions):
+    def draw(self, states: dict[str, bool], dimensions: dict[str, float]) -> tuple[dict[str, bool], dict[str, float]]:
         if not states['bottom_window']:
             dimensions['bottom_window_height'] = 0
             return (states, dimensions)

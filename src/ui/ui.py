@@ -16,7 +16,7 @@ from window import Window
 # class to implement UI
 class UI(metaclass=Singleton):
     # constructor method
-    def __init__(self):
+    def __init__(self) -> None:
         window = Window()
 
         # create an OpenGL context for imgui
@@ -67,7 +67,7 @@ class UI(metaclass=Singleton):
         self.timer.record()
 
     @timeit(print=False)
-    def draw(self, dt, swaptime, controltime, updatetime, rmupdatetime):
+    def draw(self, dt: float, swaptime: float, controltime: float, updatetime: float, rmupdatetime: float) -> None:
         self.implementation.process_inputs()
 
         imgui.new_frame()
@@ -99,7 +99,7 @@ class UI(metaclass=Singleton):
         imgui.render()
         self.implementation.render(imgui.get_draw_data())
 
-    def _setup_style(self):
+    def _setup_style(self) -> None:
         style = imgui.get_style()
         style.colors[imgui.COLOR_TEXT] = (1.00, 1.00, 1.00, 1.00)
         style.colors[imgui.COLOR_TEXT_DISABLED] = (0.50, 0.50, 0.50, 1.00)
@@ -159,7 +159,7 @@ class UI(metaclass=Singleton):
         style.window_border_size = 0.0
         style.indent_spacing = self.dimensions['indent_size']
 
-    def _setup_font(self):
+    def _setup_font(self) -> None:
         io = imgui.get_io()
 
         self.font = io.fonts.add_font_from_file_ttf('./assets/fonts/DroidSansMono/DroidSansMNerdFont-Regular.ttf', 14)

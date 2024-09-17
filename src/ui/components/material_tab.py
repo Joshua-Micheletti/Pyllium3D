@@ -4,11 +4,11 @@ from renderer.renderer_manager.renderer_manager import RendererManager
 
 
 class MaterialTab:
-    def __init__(self):
+    def __init__(self) -> None:
         self.selection_materials = {}
         self.selected_material = ''
 
-    def draw(self):
+    def draw(self) -> None:
         rm = RendererManager()
         wsize = imgui.get_window_size()
         list_box_size = (wsize.x / 3, wsize.y - 30)

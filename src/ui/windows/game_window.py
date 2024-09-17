@@ -7,12 +7,12 @@ from window import Window
 
 
 class GameWindow:
-    def __init__(self):
+    def __init__(self) -> None:
         self.width = 0
         self.height = 0
         self.crosshair = Crosshair()
 
-    def draw(self, states, dimensions):
+    def draw(self, states: dict[str, bool], dimensions: dict[str, float]) -> tuple[dict[str, bool], dict[str, float]]:
         if not states['game_window']:
             return (states, dimensions)
 
@@ -51,7 +51,7 @@ class GameWindow:
 
         return states
 
-    def _game_window_resize(self, width, height):
+    def _game_window_resize(self, width: int, height: int) -> None:
         int_width = int(width)
         int_height = int(height)
 

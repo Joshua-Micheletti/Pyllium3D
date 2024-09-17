@@ -1,5 +1,5 @@
 from utils.argument_parser import parse_arguments
-from utils.colors import colors, gui_colors
+from utils.colors import Colors, GuiColors
 
 # from utils.config import *
 from utils.messages import (
@@ -23,8 +23,8 @@ from utils.vbo_indexer import (
 
 __all__ = [
     'parse_arguments',
-    'colors',
-    'gui_colors',
+    'Colors',
+    'GuiColors',
     'print_error',
     'print_info',
     'print_success',

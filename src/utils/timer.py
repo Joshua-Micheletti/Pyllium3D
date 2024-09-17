@@ -4,7 +4,7 @@ from typing import Callable
 
 import glfw
 
-from utils.colors import colors
+from utils import Colors
 from utils.messages import print_time
 
 
@@ -64,7 +64,7 @@ def timeit(*_wrap_args: list[any], **wrap_kwargs: dict[any]) -> None:
 
             if wrap_kwargs.get('info', False):
                 if len(info_to_print) == 0:
-                    info_to_print += f'{colors.GREY}Info{colors.ENDC}: '
+                    info_to_print += f'{Colors.GREY}Info{Colors.ENDC}: '
 
                 info_to_print += ref.__str__()
 
@@ -89,13 +89,13 @@ def timeit(*_wrap_args: list[any], **wrap_kwargs: dict[any]) -> None:
 
                 print_time(
                     (
-                        f'{colors.GREY}Class{colors.ENDC}: {ref.__class__.__name__} '
+                        f'{Colors.GREY}Class{Colors.ENDC}: {ref.__class__.__name__} '
                         if ref.__class__.__name__ != 'NoneType'
                         else ''
                     )
-                    + f'{colors.GREY}Function{colors.ENDC}: {func.__name__}({args}, {kwargs}) '
-                    + f'{colors.GREY}Time{colors.ENDC}: {total_time:.4f}s '
-                    # (f'{colors.GREY}Info{colors.ENDC}: {ref.__str__()}' if should_print_info else '')
+                    + f'{Colors.GREY}Function{Colors.ENDC}: {func.__name__}({args}, {kwargs}) '
+                    + f'{Colors.GREY}Time{Colors.ENDC}: {total_time:.4f}s '
+                    # (f'{Colors.GREY}Info{Colors.ENDC}: {ref.__str__()}' if should_print_info else '')
                 )
 
             return result

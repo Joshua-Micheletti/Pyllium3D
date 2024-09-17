@@ -4,11 +4,11 @@ from renderer.renderer_manager.renderer_manager import RendererManager
 
 
 class MainMenu:
-    def __init__(self):
+    def __init__(self) -> None:
         self.height = 0
         self.width = 0
 
-    def draw(self, states, dimensions):
+    def draw(self, states: dict[str, bool], dimensions: dict[str, float]) -> tuple[dict[str, bool], dict[str, float]]:
         if imgui.begin_main_menu_bar():
             rm = RendererManager()
             wsize = imgui.get_window_size()

@@ -10,7 +10,7 @@ from OpenGL.GL import *
 from utils import *
 
 
-def new_mesh(self, name, file_path):
+def new_mesh(self, name, file_path) -> None:
     # empty lists to contain the vertices data taken from the file
     formatted_vertices = []
     formatted_normals = []
@@ -103,7 +103,7 @@ def new_mesh(self, name, file_path):
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
 
 
-def new_json_mesh(self, name, file_path):
+def new_json_mesh(self, name, file_path) -> None:
     # open the json model
     with open(file_path) as f:
         data = json.load(f)
