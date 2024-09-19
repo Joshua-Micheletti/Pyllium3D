@@ -13,7 +13,7 @@ from engine.engine import Engine
 from physics.physics_world import PhysicsWorld
 
 # renderer
-from renderer.renderer import Renderer
+from renderer.raster_renderer.raster_renderer import RasterRenderer
 
 # renderer manager
 from renderer.renderer_manager.renderer_manager import RendererManager
@@ -44,7 +44,7 @@ def main() -> None:
 
     engine: Engine = Engine()
     # renderer object
-    renderer: Renderer = Renderer()
+    renderer: RasterRenderer = RasterRenderer()
 
     # raytracer: RayTracer = RayTracer()
     # controller object

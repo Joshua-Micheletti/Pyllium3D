@@ -125,7 +125,7 @@ def calculate_model_matrix(self, name) -> None:
 
 
 # method to check if an instance should be updated after a transformation
-def check_instance_update(self, name) -> None:
+def check_instance_update(self, name: str) -> None:
     if self.models[name].in_instance == '':
         return
 

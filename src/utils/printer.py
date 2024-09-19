@@ -1,7 +1,7 @@
 import os
 import platform
 
-from renderer.renderer import Renderer
+from renderer.raster_renderer.raster_renderer import RasterRenderer
 from renderer.renderer_manager.renderer_manager import RendererManager
 from utils import Singleton, Timer
 
@@ -48,7 +48,7 @@ class Printer(metaclass=Singleton):
             self._other_times.pop(0)
 
         self._frametimes.append(round(frametime, 2))
-        self._render_times.append(round(sum(Renderer().timer.laps) / len(Renderer().timer.laps), 2))
+        self._render_times.append(round(sum(RasterRenderer().timer.laps) / len(RasterRenderer().timer.laps), 2))
         self._other_times.append(round(self._frametimes[-1] - self._render_times[-1], 2))
 
     def _write_frametime(self, verbose: bool) -> None:

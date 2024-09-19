@@ -1,6 +1,6 @@
 import imgui
 
-from renderer.renderer import Renderer
+from renderer.raster_renderer.raster_renderer import RasterRenderer
 from renderer.renderer_manager.renderer_manager import RendererManager
 from ui.components import Graph
 from ui.windows.resizable_window import ResizableWindow
@@ -53,7 +53,7 @@ class FpsWindow(ResizableWindow):
             return (states, dimensions)
 
         window = Window()
-        renderer = Renderer()
+        renderer = RasterRenderer()
 
         imgui.set_next_window_position(
             window.width - dimensions['right_window_width'], dimensions['main_menu_height'], pivot_x=1.0

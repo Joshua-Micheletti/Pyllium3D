@@ -1,3 +1,5 @@
+# ruff: noqa: F403, F405
+
 # main libraries imports
 import os
 
@@ -6,74 +8,7 @@ import numpy as np
 import OpenGL
 import pyrr
 from icecream import ic
-from OpenGL.GL import (
-    GL_CLAMP_TO_BORDER,
-    GL_CLAMP_TO_EDGE,
-    GL_COLOR_ATTACHMENT0,
-    GL_DEPTH_ATTACHMENT,
-    GL_DEPTH_COMPONENT,
-    GL_DEPTH_COMPONENT24,
-    GL_FALSE,
-    GL_FLOAT,
-    GL_FRAMEBUFFER,
-    GL_FRAMEBUFFER_COMPLETE,
-    GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT,
-    GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER,
-    GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS,
-    GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT,
-    GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE,
-    GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER,
-    GL_FRAMEBUFFER_UNDEFINED,
-    GL_FRAMEBUFFER_UNSUPPORTED,
-    GL_LINEAR,
-    GL_LINEAR_MIPMAP_LINEAR,
-    GL_MAX_COLOR_TEXTURE_SAMPLES,
-    GL_NEAREST,
-    GL_NONE,
-    GL_R11F_G11F_B10F,
-    GL_RENDERBUFFER,
-    GL_REPEAT,
-    GL_RGB,
-    GL_RGB32F,
-    GL_RGBA,
-    GL_RGBA8,
-    GL_TEXTURE_2D,
-    GL_TEXTURE_2D_MULTISAMPLE,
-    GL_TEXTURE_BORDER_COLOR,
-    GL_TEXTURE_CUBE_MAP,
-    GL_TEXTURE_CUBE_MAP_POSITIVE_X,
-    GL_TEXTURE_MAG_FILTER,
-    GL_TEXTURE_MIN_FILTER,
-    GL_TEXTURE_WRAP_R,
-    GL_TEXTURE_WRAP_S,
-    GL_TEXTURE_WRAP_T,
-    GL_UNPACK_ALIGNMENT,
-    GL_UNSIGNED_BYTE,
-    glBindFramebuffer,
-    glBindRenderbuffer,
-    glBindTexture,
-    glCheckFramebufferStatus,
-    glDeleteFramebuffers,
-    glDeleteProgram,
-    glDeleteTextures,
-    glDrawBuffer,
-    glFramebufferRenderbuffer,
-    glFramebufferTexture,
-    glFramebufferTexture2D,
-    glGenerateMipmap,
-    glGenFramebuffers,
-    glGenRenderbuffers,
-    glGenTextures,
-    glGetIntegerv,
-    glPixelStorei,
-    glReadBuffer,
-    glRenderbufferStorage,
-    glTexImage2D,
-    glTexImage2DMultisample,
-    glTexParameterf,
-    glTexParameterfv,
-    glTexParameteri,
-)
+from OpenGL.GL import *  # noqa: F403
 from PIL import Image
 
 from renderer.camera.camera import Camera
@@ -82,7 +17,7 @@ from renderer.renderer_manager.managers import instance_manager, light_manager, 
 from renderer.shader.shader import Shader
 
 # custom modules imports
-from utils import Singleton, print_error, timeit
+from utils import Singleton, check_framebuffer_status, print_error, timeit
 
 OpenGL.ERROR_CHECKING = False
 
@@ -349,7 +284,7 @@ class RendererManager(metaclass=Singleton):
         )
 
     # method for setting up the skybox
-    def _setup_skybox(self, filepath) -> None:
+    def _setup_skybox(self, filepath: str) -> None:
         components = filepath.split('/')
 
         equirect = '.' in components[-1]
@@ -436,7 +371,8 @@ class RendererManager(metaclass=Singleton):
         # # load the skybox rendering shader
         # self.shaders["skybox"] = Shader("assets/shaders/skybox/skybox.vert", "assets/shaders/skybox/skybox.frag")
 
-    def _setup_bloom(self, length) -> None:
+    # method for
+    def _setup_bloom(self, length: int) -> None:
         self.bloom_framebuffer = glGenFramebuffers(1)
         glBindFramebuffer(GL_FRAMEBUFFER, self.bloom_framebuffer)
 
@@ -471,7 +407,7 @@ class RendererManager(metaclass=Singleton):
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.bloom_mips[0], 0)
 
-        self._check_framebuffer_status()
+        check_framebuffer_status()
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
@@ -501,7 +437,7 @@ class RendererManager(metaclass=Singleton):
         mesh_manager.new_json_mesh(self, name, file_path)
 
     # method to create a new shader
-    def new_shader(self, name, vert_path, frag_path) -> None:
+    def new_shader(self, name: str, vert_path: str, frag_path: str) -> None:
         self.shaders[name] = Shader(vert_path, frag_path)
 
     # method to create a new light
@@ -515,7 +451,7 @@ class RendererManager(metaclass=Singleton):
         light_manager.new_light(self, name, light_position, light_color, light_strength)
 
     # method to generate a new texture (needs double checking if it's correct)
-    def new_texture(self, name, filepath) -> None:
+    def new_texture(self, name: str, filepath: str) -> None:
         # generate a new OpenGL texture
         self.textures[name] = glGenTextures(1)
         # bind the newly created texture
@@ -557,19 +493,19 @@ class RendererManager(metaclass=Singleton):
     # method to create a new material, composed of ambient, diffuse, specular colors and shininess value
     def new_material(
         self,
-        name,
-        ambient_r=1.0,
-        ambient_g=1.0,
-        ambient_b=1.0,
-        diffuse_r=1.0,
-        diffuse_g=1.0,
-        diffuse_b=1.0,
-        specular_r=1.0,
-        specular_g=1.0,
-        specular_b=1.0,
-        shininess=1.0,
-        roughness=0.5,
-        metallic=0.5,
+        name: str,
+        ambient_r: float = 1.0,
+        ambient_g: float = 1.0,
+        ambient_b: float = 1.0,
+        diffuse_r: float = 1.0,
+        diffuse_g: float = 1.0,
+        diffuse_b: float = 1.0,
+        specular_r: float = 1.0,
+        specular_g: float = 1.0,
+        specular_b: float = 1.0,
+        shininess: float = 1.0,
+        roughness: float = 0.5,
+        metallic: float = 0.5,
     ) -> None:
         if ambient_r is None:
             ambient_r = 1.0
@@ -706,59 +642,59 @@ class RendererManager(metaclass=Singleton):
     # ---------------------------- Modify Models -------------------------------------
 
     # method to place the mesh in a specific spot
-    def place(self, name, x, y, z) -> None:
+    def place(self, name: str, x: float, y: float, z: float) -> None:
         model_manager.place(self, name, x, y, z)
 
     # method to move a mesh by a certain vector
-    def move(self, name, x, y, z) -> None:
+    def move(self, name: str, x: float, y: float, z: float) -> None:
         model_manager.move(self, name, x, y, z)
 
     # method to rotate the mesh
-    def rotate(self, name, x, y, z) -> None:
+    def rotate(self, name: str, x: float, y: float, z: float) -> None:
         model_manager.rotate(self, name, x, y, z)
 
     # method to scale the mesh
-    def scale(self, name, x, y, z) -> None:
+    def scale(self, name: str, x: float, y: float, z: float) -> None:
         model_manager.scale(self, name, x, y, z)
 
-    def place_light(self, name, x, y, z) -> None:
+    def place_light(self, name: str, x: float, y: float, z: float) -> None:
         model_manager.place_light(self, name, x, y, z)
 
     # method to calculate the model matrix after a transformation
-    def _calculate_model_matrix(self, name) -> None:
+    def _calculate_model_matrix(self, name: str) -> None:
         model_manager.calculate_model_matrix(self, name)
 
     # method to check if an instance should be updated after a transformation
-    def _check_instance_update(self, name) -> None:
+    def _check_instance_update(self, name: str) -> None:
         model_manager.check_instance_update(self, name)
 
     # ----------------------------- Modify Materials ---------------------------------
 
-    def set_ambient(self, name, r, g, b) -> None:
+    def set_ambient(self, name: str, r: int, g: int, b: int) -> None:
         self.materials[name].set_ambient(r, g, b)
         self._check_instance_material_update(name, 'ambients')
 
-    def set_diffuse(self, name, r, g, b) -> None:
+    def set_diffuse(self, name: str, r: int, g: int, b: int) -> None:
         self.materials[name].set_diffuse(r, g, b)
         self._check_instance_material_update(name, 'diffuses')
 
-    def set_specular(self, name, r, g, b) -> None:
+    def set_specular(self, name: str, r: int, g: int, b: int) -> None:
         self.materials[name].set_specular(r, g, b)
         self._check_instance_material_update(name, 'speculars')
 
-    def set_shininess(self, name, s) -> None:
-        self.materials[name].set_shininess(s)
+    def set_shininess(self, name: str, shininess: float) -> None:
+        self.materials[name].set_shininess(shininess)
         self._check_instance_material_update(name, 'shininesses')
 
-    def set_roughness(self, name, r) -> None:
-        self.materials[name].set_roughness(r)
+    def set_roughness(self, name: str, roughness: float) -> None:
+        self.materials[name].set_roughness(roughness)
         self._check_instance_material_update(name, 'roughnesses')
 
-    def set_metallic(self, name, m) -> None:
-        self.materials[name].set_metallic(m)
+    def set_metallic(self, name: str, metallicness: float) -> None:
+        self.materials[name].set_metallic(metallicness)
         self._check_instance_material_update(name, 'metallicnesses')
 
-    def set_light_color(self, name, r, g, b) -> None:
+    def set_light_color(self, name: str, r: int, g: int, b: int) -> None:
         if name in self.lights:
             self.light_colors[self.lights[name] * 3 + 0] = r
             self.light_colors[self.lights[name] * 3 + 1] = g
@@ -766,13 +702,13 @@ class RendererManager(metaclass=Singleton):
         else:
             print_error(f"Light '{name}' not found")
 
-    def set_light_strength(self, name, s) -> None:
+    def set_light_strength(self, name: str, strength: float) -> None:
         if name in self.lights:
-            self.light_strengths[self.lights[name]] = s
+            self.light_strengths[self.lights[name]] = strength
         else:
             print_error(f"Light '{name}' not found")
 
-    def _check_instance_material_update(self, name, component) -> None:
+    def _check_instance_material_update(self, name: str, component: str) -> None:
         for model in self.materials[name].models:
             if model.in_instance != '':
                 self.instances[model.in_instance].to_update[component] = True
@@ -792,24 +728,24 @@ class RendererManager(metaclass=Singleton):
 
     # ---------------------------- Getters ------------------------------------------
 
-    def light_material(self):
+    def light_material(self) -> Material:
         return self.materials['light_color']
 
     # method to obtain an OpenGL ready matrix
-    def get_ogl_matrix(self, name):
+    def get_ogl_matrix(self, name: str) -> any:
         return glm.value_ptr(self.model_matrices[name])
 
-    def get_ogl_projection_matrix(self):
+    def get_ogl_projection_matrix(self) -> any:
         return glm.value_ptr(self.projection_matrix)
 
-    def get_ogl_shadow_matrices(self):
+    def get_ogl_shadow_matrices(self) -> None:
         shadow_mats = []
         for i in range(len(self.shadow_transforms)):
             shadow_mats.append(glm.value_ptr(self.shadow_transforms[i]))
 
         return shadow_mats
 
-    def get_ogl_inv_view_proj_matrix(self):
+    def get_ogl_inv_view_proj_matrix(self) -> 'pyrr.Matrix44':
         proj_view_matrix = self.projection_matrix * self.camera.view_matrix
         array = np.array(proj_view_matrix.to_list())
 
@@ -835,7 +771,7 @@ class RendererManager(metaclass=Singleton):
     # ------------------------------ Updaters ---------------------------------------
 
     # method to update the dimensions of the screen
-    def update_dimensions(self, width, height) -> None:
+    def update_dimensions(self, width: int, height: int) -> None:
         # update the internal dimensions
         self.width = int(width)
         self.height = int(height)
@@ -961,10 +897,10 @@ class RendererManager(metaclass=Singleton):
 
     # ------------------------------ Misc --------------------------------------------
 
-    def add_post_processing_shader(self, name) -> None:
+    def add_post_processing_shader(self, name: str) -> None:
         self.post_processing_shaders.append(self.shaders[name])
 
-    def _create_framebuffer(self, width=0, height=0):
+    def _create_framebuffer(self, width: int = 0, height: int = 0) -> tuple[int, int, int]:
         if width == 0:
             width = self.width
         if height == 0:
@@ -1001,13 +937,13 @@ class RendererManager(metaclass=Singleton):
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth, 0)
 
         # check that the framebuffer was correctly initialized
-        self._check_framebuffer_status()
+        check_framebuffer_status()
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
         return (framebuffer, color, depth)
 
-    def _create_multisample_framebuffer(self):
+    def _create_multisample_framebuffer(self) -> tuple[int, int, int]:
         # generate the framebuffer
         framebuffer = glGenFramebuffers(1)
         # bind it as the current framebuffer
@@ -1052,13 +988,13 @@ class RendererManager(metaclass=Singleton):
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, depth, 0)
 
         # check that the framebuffer was correctly initialized
-        self._check_framebuffer_status()
+        check_framebuffer_status()
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
         return (framebuffer, color, depth)
 
-    def _create_depth_cubemap_framebuffer(self):
+    def _create_depth_cubemap_framebuffer(self) -> tuple[int, int]:
         framebuffer = glGenFramebuffers(1)
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
 
@@ -1094,13 +1030,13 @@ class RendererManager(metaclass=Singleton):
         glReadBuffer(GL_NONE)
 
         # check that the framebuffer was correctly initialized
-        self._check_framebuffer_status()
+        check_framebuffer_status()
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
         return (framebuffer, depth_cubemap)
 
-    def _create_cubemap_framebuffer(self, size: int =512, mipmap: bool=False) -> tuple[int, int, int]:
+    def _create_cubemap_framebuffer(self, size: int = 512, mipmap: bool = False) -> tuple[int, int, int]:
         framebuffer = glGenFramebuffers(1)
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
 
@@ -1139,33 +1075,11 @@ class RendererManager(metaclass=Singleton):
         # glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X, cubemap, 0)
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer)
 
-        self._check_framebuffer_status()
+        check_framebuffer_status()
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
         return (framebuffer, cubemap, renderbuffer)
-
-    def _check_framebuffer_status(self) -> None:
-        if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
-            error = glCheckFramebufferStatus(GL_FRAMEBUFFER)
-            print_error('Framebuffer error:')
-
-            if error == GL_FRAMEBUFFER_UNDEFINED:
-                print_error('GL_FRAMEBUFFER_UNDEFINED')
-            if error == GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-                print_error('GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT')
-            if error == GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-                print_error('GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT')
-            if error == GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-                print_error('GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER')
-            if error == GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-                print_error('GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER')
-            if error == GL_FRAMEBUFFER_UNSUPPORTED:
-                print_error('GL_FRAMEBUFFER_UNSUPPORTED')
-            if error == GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-                print_error('GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE')
-            if error == GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
-                print_error('GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS')
 
     # glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
 
