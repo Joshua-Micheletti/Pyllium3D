@@ -5,7 +5,7 @@ import glm
 from glm import vec3
 from OpenGL.GL import *
 
-from renderer.raster_renderer.raster_renderer_modules.raster_bloom_renderer import RasterBloomRenderer
+from renderer.raster_renderer.raster_renderer_modules import RasterBloomRenderer
 from renderer.renderer_manager.renderer_manager import RendererManager
 from utils import Singleton, Timer, timeit
 
@@ -219,6 +219,8 @@ class RasterRenderer(metaclass=Singleton):
 
         # bind back to the main framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+        self.update_size()
 
         # if we're profiling the performance, get the opengl time queries
         # if rm.render_states["profile"]:
@@ -546,84 +548,24 @@ class RasterRenderer(metaclass=Singleton):
     def _render_bloom(self):
         rm = RendererManager()
 
+        # set the source texture and the destination framebuffer
         self._bloom_renderer.source_texture = rm.get_back_texture()
         self._bloom_renderer.destination_framebuffer = rm.get_front_framebuffer()
 
+        if not rm.render_states['bloom']:
+            self.queries.get('bloom')['active'] = False
+            self._render_hdr()
+            return ()
+
+        self.queries.get('bloom')['active'] = True
+
+        if rm.render_states['profile']:
+            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('bloom').get('ogl_id'))
+
         self._bloom_renderer.render()
 
-        # if not rm.render_states['bloom']:
-        #     self.queries.get('bloom')['active'] = False
-        #     self._render_hdr()
-        #     return ()
-
-        # self.queries.get('bloom')['active'] = True
-
-        # if rm.render_states['profile']:
-        #     glBeginQuery(GL_TIME_ELAPSED, self.queries.get('bloom').get('ogl_id'))
-
-        # glBindFramebuffer(GL_FRAMEBUFFER, rm.bloom_framebuffer)
-
-        # # DOWNSAMPLE
-        # glBindTexture(GL_TEXTURE_2D, rm.get_back_texture())
-
-        # shader = rm.shaders['bloom_downsample']
-        # shader.use()
-        # glUniform2f(shader.uniforms['src_resolution'], rm.width, rm.height)
-
-        # for i in range(len(rm.bloom_mips)):
-        #     glViewport(0, 0, rm.bloom_mips_sizes[i][0], rm.bloom_mips_sizes[i][1])
-        #     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rm.bloom_mips[i], 0)
-
-        #     glUniform1f(shader.uniforms['mip_level'], i)
-
-        #     glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
-
-        #     glUniform2f(
-        #         shader.uniforms['src_resolution'],
-        #         rm.bloom_mips_sizes[i][0],
-        #         rm.bloom_mips_sizes[i][1],
-        #     )
-        #     glBindTexture(GL_TEXTURE_2D, rm.bloom_mips[i])
-
-        # # UPSAMPLE
-        # shader = rm.shaders['bloom_upsample']
-        # shader.use()
-
-        # glEnable(GL_BLEND)
-
-        # for i in range(len(rm.bloom_mips) - 1, 0, -1):
-        #     current_mip = rm.bloom_mips[i]
-        #     next_mip = rm.bloom_mips[i - 1]
-        #     next_mip_size = rm.bloom_mips_sizes[i - 1]
-
-        #     glBindTexture(GL_TEXTURE_2D, current_mip)
-
-        #     glViewport(0, 0, next_mip_size[0], next_mip_size[1])
-        #     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, next_mip, 0)
-
-        #     glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
-
-        # glViewport(0, 0, rm.width, rm.height)
-        # glDisable(GL_BLEND)
-
-        # # BLENDING
-        # glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
-
-        # shader = rm.shaders['bloom']
-        # shader.use()
-
-        # glBindTexture(GL_TEXTURE_2D, rm.get_back_texture())
-        # glActiveTexture(GL_TEXTURE0 + 1)
-        # glBindTexture(GL_TEXTURE_2D, rm.bloom_mips[0])
-
-        # glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
-
-        # # rm.swap_back_framebuffer()
-        # # glBindFramebuffer(GL_FRAMEBUFFER, 0)
-        # glActiveTexture(GL_TEXTURE0)
-
-        # if rm.render_states['profile']:
-        #     glEndQuery(GL_TIME_ELAPSED)
+        if rm.render_states['profile']:
+            glEndQuery(GL_TIME_ELAPSED)
 
     def _render_hdr(self) -> None:
         rm = RendererManager()

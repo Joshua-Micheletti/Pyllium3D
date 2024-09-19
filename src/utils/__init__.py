@@ -2,7 +2,7 @@
 
 from utils.argument_parser import parse_arguments
 from utils.colors import Colors, GuiColors
-from utils.framebuffer import check_framebuffer_status
+from utils.framebuffer import check_framebuffer_status, create_framebuffer
 
 # from utils.config import *
 from utils.messages import (
@@ -42,4 +42,5 @@ __all__ = [
     'index_vertices_multi_thread',
     'index_vertices_st_worker',
     'check_framebuffer_status',
+    'create_framebuffer',
 ]

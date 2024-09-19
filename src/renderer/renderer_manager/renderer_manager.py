@@ -17,7 +17,7 @@ from renderer.renderer_manager.managers import instance_manager, light_manager, 
 from renderer.shader.shader import Shader
 
 # custom modules imports
-from utils import Singleton, check_framebuffer_status, print_error, timeit
+from utils import Singleton, check_framebuffer_status, print_error, timeit, create_framebuffer
 
 OpenGL.ERROR_CHECKING = False
 
@@ -146,8 +146,6 @@ class RendererManager(metaclass=Singleton):
         self._setup_entities()
         # setup the rendering framebuffer
         self._setup_framebuffers()
-        self.bloom_size = 5
-        self._setup_bloom(self.bloom_size)
 
         skybox_path = 'assets/textures/skybox/'
         # method to setup the skybox data
@@ -255,11 +253,11 @@ class RendererManager(metaclass=Singleton):
             self._create_multisample_framebuffer()
         )
         # framebuffer to solve the multisample textures into a single sample texture through anti aliasing
-        self.solved_framebuffer, self.solved_texture, self.solved_depth_texture = self._create_framebuffer()
+        self.solved_framebuffer, self.solved_texture, self.solved_depth_texture = create_framebuffer(self.width, self.height)
         # framebuffer to render a blurred version of the normal render for depth of field effects
-        self.blurred_framebuffer, self.blurred_texture, self.blurred_depth_texture = self._create_framebuffer()
+        self.blurred_framebuffer, self.blurred_texture, self.blurred_depth_texture = create_framebuffer(self.width, self.height)
         # temporary framebuffer to switch between for post processing
-        self.tmp_framebuffer, self.tmp_texture, self.tmp_depth_texture = self._create_framebuffer()
+        self.tmp_framebuffer, self.tmp_texture, self.tmp_depth_texture = create_framebuffer(self.width, self.height)
         # depth only cubemap framebuffer for rendering a point light shadow map
         self.cubemap_shadow_framebuffer, self.depth_cubemap = self._create_depth_cubemap_framebuffer()
 
@@ -277,7 +275,7 @@ class RendererManager(metaclass=Singleton):
             self.brdf_integration_framebuffer,
             self.brdf_integration_LUT,
             self.brdf_integration_depth,
-        ) = self._create_framebuffer(width=512, height=512)
+        ) = create_framebuffer(width=512, height=512)
 
         self.reflection_framebuffer, self.reflection_map, self.reflection_depth = self._create_cubemap_framebuffer(
             self.reflection_resolution, mipmap=True
@@ -370,46 +368,6 @@ class RendererManager(metaclass=Singleton):
 
         # # load the skybox rendering shader
         # self.shaders["skybox"] = Shader("assets/shaders/skybox/skybox.vert", "assets/shaders/skybox/skybox.frag")
-
-    # method for
-    def _setup_bloom(self, length: int) -> None:
-        self.bloom_framebuffer = glGenFramebuffers(1)
-        glBindFramebuffer(GL_FRAMEBUFFER, self.bloom_framebuffer)
-
-        mip_size = (int(self.width), int(self.height))
-
-        self.bloom_mips = []
-        self.bloom_mips_sizes = []
-
-        for i in range(length):
-            mip_size = (int(mip_size[0] / 2), int(mip_size[1] / 2))
-
-            self.bloom_mips_sizes.append(mip_size)
-
-            self.bloom_mips.append(glGenTextures(1))
-            glBindTexture(GL_TEXTURE_2D, self.bloom_mips[i])
-            glTexImage2D(
-                GL_TEXTURE_2D,
-                0,
-                GL_R11F_G11F_B10F,
-                mip_size[0],
-                mip_size[1],
-                0,
-                GL_RGB,
-                GL_FLOAT,
-                None,
-            )
-
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.bloom_mips[0], 0)
-
-        check_framebuffer_status()
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
     # --------------------------- Creating Components ----------------------------------
     # method to create a new mesh, a count can be specified to generate more than 1 mesh with the same 3D model
@@ -805,11 +763,9 @@ class RendererManager(metaclass=Singleton):
         self.render_framebuffer, self.multisample_render_texture, self.depth_texture = (
             self._create_multisample_framebuffer()
         )
-        self.solved_framebuffer, self.solved_texture, self.solved_depth_texture = self._create_framebuffer()
-        self.blurred_framebuffer, self.blurred_texture, self.blurred_depth_texture = self._create_framebuffer()
-        self.tmp_framebuffer, self.tmp_texture, self.tmp_depth = self._create_framebuffer()
-
-        self._setup_bloom(self.bloom_size)
+        self.solved_framebuffer, self.solved_texture, self.solved_depth_texture = create_framebuffer(self.width, self.height)
+        self.blurred_framebuffer, self.blurred_texture, self.blurred_depth_texture = create_framebuffer(self.width, self.height)
+        self.tmp_framebuffer, self.tmp_texture, self.tmp_depth = create_framebuffer(self.width, self.height)
 
     # update method to update components of the rendering manager
     def update(self) -> None:
@@ -899,49 +855,6 @@ class RendererManager(metaclass=Singleton):
 
     def add_post_processing_shader(self, name: str) -> None:
         self.post_processing_shaders.append(self.shaders[name])
-
-    def _create_framebuffer(self, width: int = 0, height: int = 0) -> tuple[int, int, int]:
-        if width == 0:
-            width = self.width
-        if height == 0:
-            height = self.height
-
-        framebuffer = glGenFramebuffers(1)
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
-
-        color = glGenTextures(1)
-        glBindTexture(GL_TEXTURE_2D, color)
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, None)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-
-        depth = glGenTextures(1)
-        glBindTexture(GL_TEXTURE_2D, depth)
-        glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            GL_DEPTH_COMPONENT,
-            width,
-            height,
-            0,
-            GL_DEPTH_COMPONENT,
-            GL_FLOAT,
-            None,
-        )
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color, 0)
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth, 0)
-
-        # check that the framebuffer was correctly initialized
-        check_framebuffer_status()
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
-
-        return (framebuffer, color, depth)
 
     def _create_multisample_framebuffer(self) -> tuple[int, int, int]:
         # generate the framebuffer
