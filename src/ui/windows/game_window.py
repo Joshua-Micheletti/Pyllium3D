@@ -1,6 +1,7 @@
 import imgui
 from OpenGL.GL import glViewport
 
+from renderer.raster_renderer.raster_renderer import RasterRenderer
 from renderer.renderer_manager.renderer_manager import RendererManager
 from ui.components import Crosshair
 from window import Window
@@ -40,7 +41,7 @@ class GameWindow:
 
         # Because I use the texture from OpenGL, I need to invert the V from the UV.
 
-        imgui.image(RendererManager().get_front_texture(), wsize.x, wsize.y, (0, 1), (1, 0))
+        imgui.image(RasterRenderer().last_front_frame, wsize.x, wsize.y, (0, 1), (1, 0))
 
         self.crosshair.draw()
 

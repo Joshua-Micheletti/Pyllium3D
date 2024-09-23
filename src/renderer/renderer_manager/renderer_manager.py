@@ -17,7 +17,14 @@ from renderer.renderer_manager.managers import instance_manager, light_manager, 
 from renderer.shader.shader import Shader
 
 # custom modules imports
-from utils import Singleton, check_framebuffer_status, print_error, timeit, create_framebuffer
+from utils import (
+    Singleton,
+    check_framebuffer_status,
+    create_framebuffer,
+    create_multisample_framebuffer,
+    print_error,
+    timeit,
+)
 
 OpenGL.ERROR_CHECKING = False
 
@@ -249,13 +256,13 @@ class RendererManager(metaclass=Singleton):
     # method for setting up the render framebuffer
     def _setup_framebuffers(self) -> None:
         # create the multisample framebuffer to do the main rendering of meshes
-        self.render_framebuffer, self.multisample_render_texture, self.depth_texture = (
-            self._create_multisample_framebuffer()
+        self.render_framebuffer, self.multisample_render_texture, self.depth_texture = create_multisample_framebuffer(
+            self.width, self.height, self.max_samples
         )
         # framebuffer to solve the multisample textures into a single sample texture through anti aliasing
-        self.solved_framebuffer, self.solved_texture, self.solved_depth_texture = create_framebuffer(self.width, self.height)
-        # framebuffer to render a blurred version of the normal render for depth of field effects
-        self.blurred_framebuffer, self.blurred_texture, self.blurred_depth_texture = create_framebuffer(self.width, self.height)
+        self.solved_framebuffer, self.solved_texture, self.solved_depth_texture = create_framebuffer(
+            self.width, self.height
+        )
         # temporary framebuffer to switch between for post processing
         self.tmp_framebuffer, self.tmp_texture, self.tmp_depth_texture = create_framebuffer(self.width, self.height)
         # depth only cubemap framebuffer for rendering a point light shadow map
@@ -745,10 +752,8 @@ class RendererManager(metaclass=Singleton):
             [
                 self.multisample_render_texture,
                 self.solved_texture,
-                self.blurred_texture,
                 self.depth_texture,
                 self.solved_depth_texture,
-                self.blurred_depth_texture,
             ],
         )
         glDeleteFramebuffers(
@@ -756,15 +761,15 @@ class RendererManager(metaclass=Singleton):
             [
                 self.render_framebuffer,
                 self.solved_framebuffer,
-                self.blurred_framebuffer,
             ],
         )
 
-        self.render_framebuffer, self.multisample_render_texture, self.depth_texture = (
-            self._create_multisample_framebuffer()
+        self.render_framebuffer, self.multisample_render_texture, self.depth_texture = create_multisample_framebuffer(
+            self.width, self.height, self.max_samples
         )
-        self.solved_framebuffer, self.solved_texture, self.solved_depth_texture = create_framebuffer(self.width, self.height)
-        self.blurred_framebuffer, self.blurred_texture, self.blurred_depth_texture = create_framebuffer(self.width, self.height)
+        self.solved_framebuffer, self.solved_texture, self.solved_depth_texture = create_framebuffer(
+            self.width, self.height
+        )
         self.tmp_framebuffer, self.tmp_texture, self.tmp_depth = create_framebuffer(self.width, self.height)
 
     # update method to update components of the rendering manager
@@ -855,57 +860,6 @@ class RendererManager(metaclass=Singleton):
 
     def add_post_processing_shader(self, name: str) -> None:
         self.post_processing_shaders.append(self.shaders[name])
-
-    def _create_multisample_framebuffer(self) -> tuple[int, int, int]:
-        # generate the framebuffer
-        framebuffer = glGenFramebuffers(1)
-        # bind it as the current framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
-
-        # generate the texture to render the image to
-        color = glGenTextures(1)
-        # bind it to as the current texture
-        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, color)
-        # generate the texture with the screen dimensions
-        glTexImage2DMultisample(
-            GL_TEXTURE_2D_MULTISAMPLE,
-            self.max_samples,
-            GL_RGB32F,
-            self.width,
-            self.height,
-            GL_FALSE,
-        )
-        # glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        # glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        # glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-        # glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-
-        depth = glGenTextures(1)
-        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, depth)
-        # glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, self.width, self.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, None)
-        glTexImage2DMultisample(
-            GL_TEXTURE_2D_MULTISAMPLE,
-            self.max_samples,
-            GL_DEPTH_COMPONENT,
-            self.width,
-            self.height,
-            GL_FALSE,
-        )
-        # glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        # glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-
-        # bind the color texture and depth/stencil renderbuffer to the framebuffer
-        # glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self.color_render_texture, 0)
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, color, 0)
-        # glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, self.depth_stencil_render_renderbuffer)
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D_MULTISAMPLE, depth, 0)
-
-        # check that the framebuffer was correctly initialized
-        check_framebuffer_status()
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
-
-        return (framebuffer, color, depth)
 
     def _create_depth_cubemap_framebuffer(self) -> tuple[int, int]:
         framebuffer = glGenFramebuffers(1)

@@ -4,50 +4,45 @@
 
 from OpenGL.GL import *
 
+from renderer.raster_renderer.raster_renderer_modules import PostProcessingRenderer
 from renderer.shader.shader import Shader
 from utils import check_framebuffer_status
 
 
-class RasterBloomRenderer:
+class RasterBloomRenderer(PostProcessingRenderer):
     """Class to render the bloom effect. Takes a source texture to take the image from and a destination framebuffer to store the picture to."""
 
     def __init__(
-        self, width: int, height: int, source_texture: int, destination_framebuffer: int, length: int = 5
+        self,
+        width: int = 800,
+        height: int = 600,
+        source_texture: int = 0,
+        length: int = 5,
     ) -> None:
-        """Set the required parameters to render the bloom."""
-        self._width: int = width
-        self._height: int = height
+        """Set the object to render the bloom.
+
+        Args:
+            width (int, optional): Width of the renderer. Defaults to 800.
+            height (int, optional): Height of the renderer. Defaults to 600.
+            source_texture (int, optional): Texture to apply blur to. Defaults to 0.
+            destination_framebuffer (int, optional): Framebuffer to render the blurred image to. Defaults to 0.
+            length (int, optional): Passes of blur. Defaults to 5.
+
+        """
         self._length: int = length
+        super().__init__(width, height, source_texture)
 
-        self._source_texture: int = source_texture
-        self._destination_framebuffer: int = destination_framebuffer
+    def _setup_framebuffers(self) -> None:
+        super()._setup_framebuffers()
 
-        self._downsample_shader: Shader = Shader(
-            './assets/shaders/bloom_downsample/bloom_downsample.vert',
-            './assets/shaders/bloom_downsample/bloom_downsample.frag',
-        )
-
-        self._upsample_shader: Shader = Shader(
-            './assets/shaders/bloom_upsample/bloom_upsample.vert',
-            './assets/shaders/bloom_upsample/bloom_upsample.frag',
-        )
-
-        self._bloom_shader: Shader = Shader(
-            './assets/shaders/bloom/bloom.vert',
-            './assets/shaders/bloom/bloom.frag',
-        )
-
-        self._setup_framebuffer()
-
-    def _setup_framebuffer(self) -> None:
         # list of textures for the different mips levels
         self._bloom_mips: list[int] = []
         self._bloom_mips_sizes: list[tuple[int, int]] = []
 
         # create the framebuffer to render the bloom textures to
-        self._framebuffer: int = glGenFramebuffers(1)
+        self._bloom_framebuffer: int = glGenFramebuffers(1)
         # bind it as the main framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, self._framebuffer)
+        glBindFramebuffer(GL_FRAMEBUFFER, self._bloom_framebuffer)
 
         mip_size: tuple[int, int] = (int(self._width), int(self._height))
 
@@ -91,35 +86,27 @@ class RasterBloomRenderer:
         # bind back the screen framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
-    def update_size(self, width: int, height: int) -> None:
-        """Update the size of the bloom renderer."""
-        if self._width != width or self._height != height:
-            self._width = width
-            self._height = height
-            self._setup_framebuffer()
+    def _setup_shaders(self) -> None:
+        # compile the required shaders
+        self._downsample_shader: Shader = Shader(
+            './assets/shaders/bloom_downsample/bloom_downsample.vert',
+            './assets/shaders/bloom_downsample/bloom_downsample.frag',
+        )
 
-    @property
-    def source_texture(self) -> int:
-        """Get and set the source texture."""
-        return self._source_texture
+        self._upsample_shader: Shader = Shader(
+            './assets/shaders/bloom_upsample/bloom_upsample.vert',
+            './assets/shaders/bloom_upsample/bloom_upsample.frag',
+        )
 
-    @source_texture.setter
-    def source_texture(self, source_texture: int) -> None:
-        self._source_texture = source_texture
-
-    @property
-    def destination_framebuffer(self) -> int:
-        """Get and set the destination framebuffer."""
-        return self._destination_framebuffer
-
-    @destination_framebuffer.setter
-    def destination_framebuffer(self, destination_framebuffer: int) -> None:
-        self._destination_framebuffer = destination_framebuffer
+        self._bloom_shader: Shader = Shader(
+            './assets/shaders/bloom/bloom.vert',
+            './assets/shaders/bloom/bloom.frag',
+        )
 
     def render(self) -> None:
         """Render the bloom effect."""
         # bind the internal framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, self._framebuffer)
+        glBindFramebuffer(GL_FRAMEBUFFER, self._bloom_framebuffer)
 
         # DOWNSAMPLE
         # bind the source texture containing the image to blur
@@ -182,7 +169,7 @@ class RasterBloomRenderer:
 
         # BLENDING
         # bind the destination framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, self._destination_framebuffer)
+        glBindFramebuffer(GL_FRAMEBUFFER, self._output_framebuffer)
         # use the final bloom shader
         self._bloom_shader.use()
 

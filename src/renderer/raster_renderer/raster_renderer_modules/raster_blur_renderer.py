@@ -1,78 +1,62 @@
+"""Module implementing the Raster Blur Renderer object."""
+
 # ruff: noqa: F403, F405
 
 from OpenGL.GL import *
 
+from renderer.raster_renderer.raster_renderer_modules import PostProcessingRenderer
 from renderer.shader.shader import Shader
 from utils import create_framebuffer
 
 
-class RasterBlurRenderer:
+class RasterBlurRenderer(PostProcessingRenderer):
     """Render a blurred image."""
-    
-    def __init__(self, width: int, height: int, destination_framebuffer: int) -> None:
-        """Set the initial parameters."""
-        self._destination_framebuffer = destination_framebuffer
-        
-        self._width = 800
-        self._height = 600
 
+    def _setup_framebuffers(self) -> None:
+        super()._setup_framebuffers()
+        # create the horizontal and vertical blur framebuffers and textures
+        self._horizontal_blurred_framebuffer: int
+        self._horizontal_blurred_texture: int
+        self._horizontal_blurred_depth_texture: int
+
+        (
+            self._horizontal_blurred_framebuffer,
+            self._horizontal_blurred_texture,
+            self._horizontal_blurred_depth_texture,
+        ) = create_framebuffer(self._width, self._height)
+
+    def _setup_shaders(self) -> None:
+        # compile the horizontal blur shader
         self._horizontal_blur_shader: Shader = Shader(
             './assets/shaders/post_processing/horizontal_blur/horizontal_blur.vert',
             './assets/shaders/post_processing/horizontal_blur/horizontal_blur.frag',
         )
-
+        # compile the vertical blur shader
         self._vertical_blur_shader: Shader = Shader(
             './assets/shaders/post_processing/vertical_blur/vertical_blur.vert',
             './assets/shaders/post_processing/vertical_blur/vertical_blur.frag',
         )
 
-        # framebuffer to render a blurred version of the normal render for depth of field effects
-        self._blurred_framebuffer, self._blurred_texture, self._blurred_depth_texture = create_framebuffer(width, height)
-
-    @property
-    def destination_framebuffer(self) -> int:
-        """Get and set the destination framebuffer."""
-        return(self._destination_framebuffer)
-    
-    @destination_framebuffer.setter
-    def destination_framebuffer(self, destination_framebuffer: int) -> None:
-        self._destination_framebuffer = destination_framebuffer
-
-    def update_size(self, width: int, height: int) -> None:
-        """Update the size of the renderer and rebuild the framebuffers and textures."""
-        self._width = width
-        self._height = height
-        self._blurred_framebuffer, self._blurred_texture, self._blurred_depth_texture = create_framebuffer(width, height)
-
-    def render(self):
-        """Render the scene with a gaussian blur."""
-        # only render the blur texture if the depth of field or post processing effects are enabled
-        # if not rm.render_states['depth_of_field'] and not rm.render_states['post_processing']:
-        #     self.queries.get('blur')['active'] = False
-        #     return ()
-
-        # self.queries.get('blur')['active'] = True
-
-        # if rm.render_states['profile']:
-        #     glBeginQuery(GL_TIME_ELAPSED, self.queries.get('blur').get('ogl_id'))
-
-        # bind the blurred framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, self._destination_framebuffer)
-        # clear the blur texture
+    def render(self) -> None:
+        """Render the scene with a 2 pass gaussian blur."""
+        # --------- FIRST PASS (HORIZONTAL) ----------
+        # bind the framebuffer to render the horizontally blurred image to
+        glBindFramebuffer(GL_FRAMEBUFFER, self._horizontal_blurred_framebuffer)
+        # clear the previous texture
         glClear(GL_COLOR_BUFFER_BIT)
-
-        shader = rm.shaders['post_processing/horizontal_blur']
+        # use the horizontal blur shader
         self._horizontal_blur_shader.use()
-        # glUniform1fv(shader.uniforms["gaussian_kernel"], 10, rm.gaussian_kernel_weights)
-        glBindTexture(GL_TEXTURE_2D, rm.get_front_texture())
-        glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
+        # bind the source texture as input, containing the image to blur
+        glBindTexture(GL_TEXTURE_2D, self._source_texture)
+        # render the horizontally blurred image
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None)
 
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.blurred_framebuffer)
-        glBindTexture(GL_TEXTURE_2D, rm.get_back_texture())
-        shader = rm.shaders['post_processing/vertical_blur']
-        shader.use()
-
-        glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
-
-        if rm.render_states['profile']:
-            glEndQuery(GL_TIME_ELAPSED)
+        # --------- SECOND PASS (VERTICAL) ----------
+        # bind the framebuffer to render the vertically blurred image to
+        glBindFramebuffer(GL_FRAMEBUFFER, self._output_framebuffer)
+        # use the vertical blur shader
+        self._vertical_blur_shader.use()
+        # bind the horizontally blurred image as input
+        glBindTexture(GL_TEXTURE_2D, self._horizontal_blurred_texture)
+        # render the vertically blurred image
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None)

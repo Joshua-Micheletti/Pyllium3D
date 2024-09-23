@@ -1,5 +1,6 @@
 import imgui
 
+from renderer.raster_renderer.raster_renderer import RasterRenderer
 from renderer.renderer_manager.renderer_manager import RendererManager
 
 
@@ -9,6 +10,7 @@ class TextureTab:
 
     def draw(self) -> None:
         rm = RendererManager()
+        rr = RasterRenderer()
         style = imgui.get_style()
 
         wsize = imgui.get_content_region_available()
@@ -27,9 +29,9 @@ class TextureTab:
         # texture_width = max_size * texture_ratio
 
         # imgui.image(rm.solved_texture, texture_width, texture_height, (0, 1), (1, 0))
-        imgui.image(rm.blurred_texture, texture_width, texture_height, (0, 1), (1, 0))
+        imgui.image(rr._blur_renderer.output_texture, texture_width, texture_height, (0, 1), (1, 0))
         imgui.same_line()
         # imgui.image(rm.blurred_texture, texture_width, texture_height, (0, 1), (1, 0))
-        imgui.image(rm.bloom_mips[0], texture_width, texture_height, (0, 1), (1, 0))
+        imgui.image(rr._bloom_renderer._bloom_mips[0], texture_width, texture_height, (0, 1), (1, 0))
         imgui.same_line()
         imgui.image(rm.solved_depth_texture, texture_width, texture_height, (0, 1), (1, 0))

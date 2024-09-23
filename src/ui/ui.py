@@ -68,6 +68,7 @@ class UI(metaclass=Singleton):
 
     @timeit(print=False)
     def draw(self, dt: float, swaptime: float, controltime: float, updatetime: float, rmupdatetime: float) -> None:
+        """Render the UI."""
         self.implementation.process_inputs()
 
         imgui.new_frame()

@@ -1,3 +1,5 @@
+"""Raster Renderer module."""
+
 # ruff: noqa: F403, F405
 
 import glfw
@@ -5,7 +7,12 @@ import glm
 from glm import vec3
 from OpenGL.GL import *
 
-from renderer.raster_renderer.raster_renderer_modules import RasterBloomRenderer
+from renderer.raster_renderer.raster_renderer_modules import (
+    RasterBloomRenderer,
+    RasterBlurRenderer,
+    RasterDOFRenderer,
+    RasterMSAARenderer,
+)
 from renderer.renderer_manager.renderer_manager import RendererManager
 from utils import Singleton, Timer, timeit
 
@@ -21,14 +28,18 @@ class RasterRenderer(metaclass=Singleton):
 
     @timeit()
     def __init__(self) -> None:
-        rm = RendererManager()
         """Set the RasterRenderer."""
-        self._bloom_renderer: RasterBloomRenderer = RasterBloomRenderer(
-            rm.width, rm.height, rm.get_back_texture(), rm.get_front_framebuffer()
-        )
+        rm = RendererManager()
+        self._bloom_renderer: RasterBloomRenderer = RasterBloomRenderer(rm.width, rm.height)
+        self._blur_renderer: RasterBlurRenderer = RasterBlurRenderer(rm.width, rm.height)
+        self._dof_renderer: RasterDOFRenderer = RasterDOFRenderer(rm.width, rm.height)
+        self._msaa_renderer: RasterMSAARenderer = RasterMSAARenderer(rm.width, rm.height)
+
         self._setup_opengl()
         self._setup_textures()
         self._setup_opengl_timers()
+        self._last_front_frame: int = 0
+        self._depth_texture: int = 0
 
         # timer to keep track of the rendering time
         self.timer: Timer = Timer()
@@ -58,7 +69,7 @@ class RasterRenderer(metaclass=Singleton):
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS)
 
     def _setup_textures(self) -> None:
-        """Function to setup the necessary textures for rendering"""
+        """Set the necessary textures for rendering."""
         # get a reference to the RendererManager
         rm: RendererManager = RendererManager()
 
@@ -88,7 +99,7 @@ class RasterRenderer(metaclass=Singleton):
         glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
 
     def _setup_opengl_timers(self) -> None:
-        """Function to setup OpenGL queries to keep track of performance"""
+        """Set OpenGL queries to keep track of performance."""
         # setup the query objects to keep track of the rendering times
         opengl_queries: any = glGenQueries(10)
 
@@ -178,13 +189,13 @@ class RasterRenderer(metaclass=Singleton):
         # -------------------- Mesh rendering -------------------------
         # bind the render framebuffer
         # if we're doing multisampling
-        if rm.samples != 1:
-            # bind the multisample framebuffer
-            glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
-        # otherwise
-        else:
-            # bind the back framebuffer (?)
-            glBindFramebuffer(GL_FRAMEBUFFER, rm.get_back_framebuffer())
+        # if rm.samples != 1:
+        #     # bind the multisample framebuffer
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
+        # # otherwise
+        # else:
+        #     # bind the back framebuffer (?)
+        #     glBindFramebuffer(GL_FRAMEBUFFER, rm.get_back_framebuffer())
 
         # clear the depth buffer
         glClear(GL_DEPTH_BUFFER_BIT)
@@ -212,7 +223,7 @@ class RasterRenderer(metaclass=Singleton):
         # apply depth of field effect to the main texture
         self._render_depth_of_field()
         # apply the custom post processing effects
-        self._render_post_processing()
+        # self._render_post_processing()
 
         # re-enable depth testing
         glEnable(GL_DEPTH_TEST)
@@ -324,7 +335,7 @@ class RasterRenderer(metaclass=Singleton):
             glEndQuery(GL_TIME_ELAPSED)
 
     # method for rendering the shadow cubemap for point light
-    def _render_shadow_map(self):
+    def _render_shadow_map(self) -> None:
         # reference to the renderer manager
         rm: RendererManager = RendererManager()
 
@@ -426,7 +437,7 @@ class RasterRenderer(metaclass=Singleton):
             glEndQuery(GL_TIME_ELAPSED)
 
     # method to resolve the msaa render texture into a single sample texture
-    def _render_msaa(self):
+    def _render_msaa(self) -> None:
         # reference to the renderer manager
         rm: RendererManager = RendererManager()
 
@@ -437,42 +448,24 @@ class RasterRenderer(metaclass=Singleton):
         if rm.render_states['profile']:
             glBeginQuery(GL_TIME_ELAPSED, self.queries.get('msaa').get('ogl_id'))
 
-        # bind the solved framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
-        # bind the multisample texture to resolve
-        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, rm.multisample_render_texture)
+        self._msaa_renderer.source_texture = rm.multisample_render_texture
+        self._msaa_renderer.source_framebuffer = rm.render_framebuffer
 
-        # use the msaa shader
-        rm.shaders['msaa'].use()
-        self._link_shader_uniforms(rm.shaders['msaa'])
+        self._msaa_renderer.render()
 
-        glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
-
-        # resolve the depth buffer through nearest filtering
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, rm.render_framebuffer)
-        # glBindFramebuffer(GL_DRAW_FRAMEBUFFER, rm.get_front_framebuffer())
-        glBlitFramebuffer(
-            0,
-            0,
-            rm.width,
-            rm.height,
-            0,
-            0,
-            rm.width,
-            rm.height,
-            GL_DEPTH_BUFFER_BIT,
-            GL_NEAREST,
-        )
-
-        rm.swap_back_framebuffer()
+        self._last_front_frame = self._msaa_renderer.output_texture
+        self._depth_texture = self._msaa_renderer.output_depth_texture
 
         if rm.render_states['profile']:
             glEndQuery(GL_TIME_ELAPSED)
 
     # method to render the blur texture
-    def _render_blur(self):
+    def _render_blur(self) -> None:
         # reference to the renderer manager
         rm: RendererManager = RendererManager()
+
+        # set the source texture and the destination framebuffer
+        self._blur_renderer.source_texture = self._last_front_frame
 
         # only render the blur texture if the depth of field or post processing effects are enabled
         if not rm.render_states['depth_of_field'] and not rm.render_states['post_processing']:
@@ -484,29 +477,13 @@ class RasterRenderer(metaclass=Singleton):
         if rm.render_states['profile']:
             glBeginQuery(GL_TIME_ELAPSED, self.queries.get('blur').get('ogl_id'))
 
-        # bind the blurred framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.get_back_framebuffer())
-        # clear the blur texture
-        glClear(GL_COLOR_BUFFER_BIT)
-
-        shader = rm.shaders['post_processing/horizontal_blur']
-        shader.use()
-        # glUniform1fv(shader.uniforms["gaussian_kernel"], 10, rm.gaussian_kernel_weights)
-        glBindTexture(GL_TEXTURE_2D, rm.get_front_texture())
-        glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
-
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.blurred_framebuffer)
-        glBindTexture(GL_TEXTURE_2D, rm.get_back_texture())
-        shader = rm.shaders['post_processing/vertical_blur']
-        shader.use()
-
-        glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
+        self._blur_renderer.render()
 
         if rm.render_states['profile']:
             glEndQuery(GL_TIME_ELAPSED)
 
     # method to render the depth of field effect
-    def _render_depth_of_field(self):
+    def _render_depth_of_field(self) -> None:
         # reference to renderer manager
         rm: RendererManager = RendererManager()
 
@@ -520,37 +497,23 @@ class RasterRenderer(metaclass=Singleton):
         if rm.render_states['profile']:
             glBeginQuery(GL_TIME_ELAPSED, self.queries.get('depth_of_field').get('ogl_id'))
 
-        # bind the main render framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
+        self._dof_renderer.source_texture = self._last_front_frame
+        self._dof_renderer.blur_texture = self._blur_renderer.output_texture
+        self._dof_renderer.depth_texture = self._depth_texture
 
-        # use the depth of field shader
-        rm.shaders['depth_of_field'].use()
-        # link the shader specific uniforms
-        self._link_shader_uniforms(rm.shaders['depth_of_field'])
+        self._dof_renderer.render()
 
-        # bind the required textures to the correct texture slots
-        glBindTexture(GL_TEXTURE_2D, rm.get_front_texture())
-
-        glActiveTexture(GL_TEXTURE0 + 1)
-        glBindTexture(GL_TEXTURE_2D, rm.blurred_texture)
-        glActiveTexture(GL_TEXTURE0 + 2)
-        glBindTexture(GL_TEXTURE_2D, rm.solved_depth_texture)
-
-        # draw the scene with depth of field
-        glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
-
-        # set back the active texture slot to index 0
-        glActiveTexture(GL_TEXTURE0)
+        self._last_front_frame = self._dof_renderer.output_texture
 
         if rm.render_states['profile']:
             glEndQuery(GL_TIME_ELAPSED)
 
-    def _render_bloom(self):
+    def _render_bloom(self) -> None:
         rm = RendererManager()
 
         # set the source texture and the destination framebuffer
-        self._bloom_renderer.source_texture = rm.get_back_texture()
-        self._bloom_renderer.destination_framebuffer = rm.get_front_framebuffer()
+        self._bloom_renderer.source_texture = self._last_front_frame
+        # self._bloom_renderer.destination_framebuffer = rm.get_front_framebuffer()
 
         if not rm.render_states['bloom']:
             self.queries.get('bloom')['active'] = False
@@ -563,6 +526,8 @@ class RasterRenderer(metaclass=Singleton):
             glBeginQuery(GL_TIME_ELAPSED, self.queries.get('bloom').get('ogl_id'))
 
         self._bloom_renderer.render()
+
+        self._last_front_frame = self._bloom_renderer.output_texture
 
         if rm.render_states['profile']:
             glEndQuery(GL_TIME_ELAPSED)
@@ -614,7 +579,7 @@ class RasterRenderer(metaclass=Singleton):
         glEnable(GL_CULL_FACE)
 
     # method to render post processing effects
-    def _render_post_processing(self):
+    def _render_post_processing(self) -> None:
         # reference to the renderer manager
         rm = RendererManager()
 
@@ -744,7 +709,7 @@ class RasterRenderer(metaclass=Singleton):
         glViewport(0, 0, rm.width, rm.height)
 
     # method to render an equirect skybox into a cubemap
-    def _render_equirectangular_skybox(self):
+    def _render_equirectangular_skybox(self) -> None:
         # reference to the renderer manager
         rm = RendererManager()
 
@@ -1121,5 +1086,14 @@ class RasterRenderer(metaclass=Singleton):
             query['value'] = elapsed_time.value / 1000000
 
     def update_size(self) -> None:
+        """Update the dimensions of the renderers."""
         rm = RendererManager()
         self._bloom_renderer.update_size(rm.width, rm.height)
+        self._blur_renderer.update_size(rm.width, rm.height)
+        self._dof_renderer.update_size(rm.width, rm.height)
+        self._msaa_renderer.update_size(rm.width, rm.height)
+
+    @property
+    def last_front_frame(self) -> int:
+        """Get the last rendered frame."""
+        return self._last_front_frame
