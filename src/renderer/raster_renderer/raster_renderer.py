@@ -4,7 +4,6 @@
 
 import glfw
 import glm
-import numpy as np
 from OpenGL.GL import *
 
 from renderer.raster_renderer.raster_renderer_modules import (
@@ -15,7 +14,7 @@ from renderer.raster_renderer.raster_renderer_modules import (
     RasterSkyboxRenderer,
 )
 from renderer.renderer_manager.renderer_manager import RendererManager
-from utils import Singleton, Timer, create_projection_matrix, get_ogl_matrix, timeit
+from utils import Singleton, Timer, get_ogl_matrix, timeit
 
 
 # class to render 3D models
@@ -416,7 +415,7 @@ class RasterRenderer(metaclass=Singleton):
 
         # bind the default mesh vao (cube)
         glBindVertexArray(rm.vaos['default'])
-        
+
         # set the required matrices for rendering the skybox
         self._skybox_renderer.view_matrix = get_ogl_matrix(rm.camera.center_view_matrix)
 
