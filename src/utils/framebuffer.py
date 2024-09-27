@@ -72,6 +72,17 @@ def create_framebuffer(width: int, height: int) -> tuple[int, int, int]:
 
 
 def create_multisample_framebuffer(width: int, height: int, samples: int) -> tuple[int, int, int]:
+    """Create a multisample framebuffer.
+
+    Args:
+        width (int): Width of the framebuffer
+        height (int): Height of the framebuffer
+        samples (int): Number of samples of the framebuffer
+
+    Returns:
+        tuple[int, int, int]: Indices of the framebuffer, color texture and depth texture
+
+    """
     # generate the framebuffer
     framebuffer = glGenFramebuffers(1)
     # bind it as the current framebuffer
@@ -121,3 +132,59 @@ def create_multisample_framebuffer(width: int, height: int, samples: int) -> tup
     glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
     return (framebuffer, color, depth)
+
+
+def create_cubemap_framebuffer(size: int = 512, mipmap: bool = False) -> tuple[int, int, int]:
+    """Create a cubemap framebuffer.
+
+    Args:
+        size (int, optional): Size of the framebuffer (square). Defaults to 512.
+        mipmap (bool, optional): If the cubemap framebuffer should support mipmaps or not. Defaults to False.
+
+    Returns:
+        tuple[int, int, int]: Indices of the framebuffer, color texture and renderbuffer of the cubemap
+
+    """
+    framebuffer = glGenFramebuffers(1)
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
+
+    cubemap = glGenTextures(1)
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap)
+
+    for i in range(6):
+        glTexImage2D(
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+            0,
+            GL_RGB,
+            size,
+            size,
+            0,
+            GL_RGB,
+            GL_FLOAT,
+            None,
+        )
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
+
+    if mipmap:
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
+        glGenerateMipmap(GL_TEXTURE_CUBE_MAP)
+    else:
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+
+    renderbuffer = glGenRenderbuffers(1)
+    glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer)
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, size, size)
+
+    # glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X, cubemap, 0)
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer)
+
+    check_framebuffer_status()
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+    return (framebuffer, cubemap, renderbuffer)

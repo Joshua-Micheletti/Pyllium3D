@@ -2,6 +2,8 @@ import math
 
 import glm
 
+from utils import create_view_matrix
+
 
 # class to implement a 3D virtual camera
 class Camera:
@@ -26,7 +28,7 @@ class Camera:
         self.frustum = Frustum()
 
         # calculate the view matrix
-        self.view_matrix = glm.lookAt(self.position, self.position + self.front, self.world_up)
+        self.view_matrix = create_view_matrix(self.position, self.position + self.front, self.world_up)
 
     def set_frustum_params(self, aspect, fov_y, z_near, z_far) -> None:
         self.aspect = aspect
@@ -39,6 +41,7 @@ class Camera:
         self.right = glm.normalize(glm.cross(self.world_up, self.front))
         self.up = glm.cross(self.front, self.right)
         self.view_matrix = glm.lookAt(self.position, self.position + self.front, self.world_up)
+        self.center_view_matrix = glm.lookAt(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0) + self.front, self.world_up)
 
         self._calculate_frustum()
 
@@ -110,6 +113,9 @@ class Camera:
     # obtain a formatted version of the view matrix ready for opengl uniforms
     def get_ogl_matrix(self):
         return glm.value_ptr(self.view_matrix)
+
+    def get_ogl_center_matrix(self):
+        return glm.value_ptr(self.center_view_matrix)
 
     # def get_inv_view_proj_matrix(self):
     #     view_projection_matrix = self.projection_matrix * self.get_view_matrix()

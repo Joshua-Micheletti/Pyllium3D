@@ -4,7 +4,7 @@
 
 import glfw
 import glm
-from glm import vec3
+import numpy as np
 from OpenGL.GL import *
 
 from renderer.raster_renderer.raster_renderer_modules import (
@@ -12,14 +12,15 @@ from renderer.raster_renderer.raster_renderer_modules import (
     RasterBlurRenderer,
     RasterDOFRenderer,
     RasterMSAARenderer,
+    RasterSkyboxRenderer,
 )
 from renderer.renderer_manager.renderer_manager import RendererManager
-from utils import Singleton, Timer, timeit
+from utils import Singleton, Timer, create_projection_matrix, get_ogl_matrix, timeit
 
 
 # class to render 3D models
 class RasterRenderer(metaclass=Singleton):
-    """Class that implements the rendering pipeline.
+    """Class that implements the raster rendering pipeline.
 
     Args:
         metaclass (_type_, optional): _description_. Defaults to Singleton.
@@ -34,6 +35,7 @@ class RasterRenderer(metaclass=Singleton):
         self._blur_renderer: RasterBlurRenderer = RasterBlurRenderer(rm.width, rm.height)
         self._dof_renderer: RasterDOFRenderer = RasterDOFRenderer(rm.width, rm.height)
         self._msaa_renderer: RasterMSAARenderer = RasterMSAARenderer(rm.width, rm.height)
+        self._skybox_renderer: RasterSkyboxRenderer = RasterSkyboxRenderer()
 
         self._setup_opengl()
         self._setup_textures()
@@ -407,31 +409,19 @@ class RasterRenderer(metaclass=Singleton):
     # method to render the skybox
     def _render_skybox(self) -> None:
         # get a reference to the renderer manager
-
         rm: RendererManager = RendererManager()
 
         if rm.render_states['profile']:
             glBeginQuery(GL_TIME_ELAPSED, self.queries.get('skybox').get('ogl_id'))
 
-        # use the skybox shader
-        rm.shaders['skybox'].use()
-
-        # temporarily place the camera at the origin, to cancel camera movement from the skybox rendering
-        old_position: vec3 = rm.camera.position
-        rm.camera.place(0, 0, 0)
-        self._link_shader_uniforms(rm.shaders['skybox'])
-        rm.camera.place(old_position.x, old_position.y, old_position.z)
-
         # bind the default mesh vao (cube)
         glBindVertexArray(rm.vaos['default'])
+        
+        # set the required matrices for rendering the skybox
+        self._skybox_renderer.view_matrix = get_ogl_matrix(rm.camera.center_view_matrix)
 
-        # disable cull facing
-        glDisable(GL_CULL_FACE)
-
-        # render the cube
-        glDrawElements(GL_TRIANGLES, rm.indices_count['default'], GL_UNSIGNED_INT, None)
-        # re-enable face culling
-        glEnable(GL_CULL_FACE)
+        # render the skybox
+        self._skybox_renderer.render()
 
         if rm.render_states['profile']:
             glEndQuery(GL_TIME_ELAPSED)
@@ -881,7 +871,7 @@ class RasterRenderer(metaclass=Singleton):
         rm = RendererManager()
 
         if 'view' in shader.uniforms:
-            glUniformMatrix4fv(shader.uniforms['view'], 1, GL_FALSE, rm.camera.get_ogl_matrix())
+            glUniformMatrix4fv(shader.uniforms['view'], 1, GL_FALSE, get_ogl_matrix(rm.camera.view_matrix))
         if 'projection' in shader.uniforms:
             glUniformMatrix4fv(
                 shader.uniforms['projection'],
@@ -1092,6 +1082,7 @@ class RasterRenderer(metaclass=Singleton):
         self._blur_renderer.update_size(rm.width, rm.height)
         self._dof_renderer.update_size(rm.width, rm.height)
         self._msaa_renderer.update_size(rm.width, rm.height)
+        self._skybox_renderer.update_size(rm.width, rm.height)
 
     @property
     def last_front_frame(self) -> int:

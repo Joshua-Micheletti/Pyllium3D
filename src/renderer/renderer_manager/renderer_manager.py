@@ -20,8 +20,10 @@ from renderer.shader.shader import Shader
 from utils import (
     Singleton,
     check_framebuffer_status,
+    create_cubemap_framebuffer,
     create_framebuffer,
     create_multisample_framebuffer,
+    create_projection_matrix,
     print_error,
     timeit,
 )
@@ -49,9 +51,7 @@ class RendererManager(metaclass=Singleton):
 
         # create the projection matrix for rendering
         self.fov: float = 60.0
-        self.projection_matrix: glm.mat4 = glm.perspective(
-            self.fov, float(self.width) / float(self.height), 0.1, 10000.0
-        )
+        self.projection_matrix: glm.mat4 = create_projection_matrix(self.width, self.height, self.fov)
 
         # rendering states to modify the rendering pipeline
         self.render_states = {}
@@ -272,9 +272,9 @@ class RendererManager(metaclass=Singleton):
             self.irradiance_framebuffer,
             self.irradiance_cubemap,
             self.irradiance_renderbuffer,
-        ) = self._create_cubemap_framebuffer(self.irradiance_map_size)
+        ) = create_cubemap_framebuffer(self.irradiance_map_size)
 
-        self.skybox_framebuffer, self.skybox_texture, self.skybox_renderbuffer = self._create_cubemap_framebuffer(
+        self.skybox_framebuffer, self.skybox_texture, self.skybox_renderbuffer = create_cubemap_framebuffer(
             self.skybox_resolution
         )
 
@@ -284,7 +284,7 @@ class RendererManager(metaclass=Singleton):
             self.brdf_integration_depth,
         ) = create_framebuffer(width=512, height=512)
 
-        self.reflection_framebuffer, self.reflection_map, self.reflection_depth = self._create_cubemap_framebuffer(
+        self.reflection_framebuffer, self.reflection_map, self.reflection_depth = create_cubemap_framebuffer(
             self.reflection_resolution, mipmap=True
         )
 
@@ -741,9 +741,11 @@ class RendererManager(metaclass=Singleton):
         self.width = int(width)
         self.height = int(height)
 
-        self.projection_matrix = glm.perspective(
-            glm.radians(self.fov), float(self.width) / float(self.height), 0.1, 10000.0
-        )
+        # self.projection_matrix = glm.perspective(
+        #     glm.radians(self.fov), float(self.width) / float(self.height), 0.1, 10000.0
+        # )
+        self.projection_matrix = create_projection_matrix(self.width, self.height, self.fov)
+
         self.camera.set_frustum_params(float(self.width) / float(self.height), glm.radians(self.fov), 0.1, 10000.0)
 
         # delete the renderbuffer and the texture of the framebuffer
@@ -902,51 +904,6 @@ class RendererManager(metaclass=Singleton):
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
         return (framebuffer, depth_cubemap)
-
-    def _create_cubemap_framebuffer(self, size: int = 512, mipmap: bool = False) -> tuple[int, int, int]:
-        framebuffer = glGenFramebuffers(1)
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer)
-
-        cubemap = glGenTextures(1)
-        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap)
-
-        for i in range(6):
-            glTexImage2D(
-                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                0,
-                GL_RGB,
-                size,
-                size,
-                0,
-                GL_RGB,
-                GL_FLOAT,
-                None,
-            )
-
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
-
-        if mipmap:
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR)
-            glGenerateMipmap(GL_TEXTURE_CUBE_MAP)
-        else:
-            glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-
-        renderbuffer = glGenRenderbuffers(1)
-        glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer)
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, size, size)
-
-        # glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X, cubemap, 0)
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, renderbuffer)
-
-        check_framebuffer_status()
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0)
-
-        return (framebuffer, cubemap, renderbuffer)
 
     # glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
 

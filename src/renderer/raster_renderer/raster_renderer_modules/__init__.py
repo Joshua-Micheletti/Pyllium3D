@@ -5,6 +5,7 @@ from renderer.raster_renderer.raster_renderer_modules.raster_bloom_renderer impo
 from renderer.raster_renderer.raster_renderer_modules.raster_blur_renderer import RasterBlurRenderer
 from renderer.raster_renderer.raster_renderer_modules.raster_dof_renderer import RasterDOFRenderer
 from renderer.raster_renderer.raster_renderer_modules.raster_msaa_renderer import RasterMSAARenderer
+from renderer.raster_renderer.raster_renderer_modules.raster_skybox_renderer import RasterSkyboxRenderer
 
 __all__ = [
     'RasterBloomRenderer',
@@ -12,4 +13,5 @@ __all__ = [
     'PostProcessingRenderer',
     'RasterDOFRenderer',
     'RasterMSAARenderer',
+    'RasterSkyboxRenderer',
 ]
