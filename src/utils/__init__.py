@@ -8,7 +8,7 @@ from utils.framebuffer import (
     create_framebuffer,
     create_multisample_framebuffer,
 )
-from utils.matrix import create_projection_matrix, create_view_matrix, get_ogl_matrix
+from utils.matrix import create_projection_matrix, create_view_cubemap_matrices, create_view_matrix, get_ogl_matrix
 
 # from utils.config import *
 from utils.messages import (
@@ -54,4 +54,5 @@ __all__ = [
     'create_projection_matrix',
     'create_view_matrix',
     'get_ogl_matrix',
+    'create_view_cubemap_matrices',
 ]

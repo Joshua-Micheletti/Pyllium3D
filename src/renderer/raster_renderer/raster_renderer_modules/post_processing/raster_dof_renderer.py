@@ -4,7 +4,9 @@
 
 from OpenGL.GL import *
 
-from renderer.raster_renderer.raster_renderer_modules import PostProcessingRenderer
+from renderer.raster_renderer.raster_renderer_modules.post_processing.post_processing_renderer import (
+    PostProcessingRenderer,
+)
 from renderer.shader.shader import Shader
 
 
@@ -65,6 +67,7 @@ class RasterDOFRenderer(PostProcessingRenderer):
         # use the DOF shader
         self._depth_of_field_shader.use()
 
+        # setup the shader uniforms
         glUniform1i(self._depth_of_field_shader.uniforms['screen_texture'], 0)
         glUniform1i(self._depth_of_field_shader.uniforms['blurred_texture'], 1)
         glUniform1i(self._depth_of_field_shader.uniforms['depth_texture'], 2)
@@ -78,6 +81,5 @@ class RasterDOFRenderer(PostProcessingRenderer):
 
         # draw the scene with depth of field
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None)
-
         # set back the active texture slot to index 0
         glActiveTexture(GL_TEXTURE0)

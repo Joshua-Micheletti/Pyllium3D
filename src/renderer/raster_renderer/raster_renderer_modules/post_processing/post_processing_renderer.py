@@ -23,14 +23,14 @@ class PostProcessingRenderer:
         self._height: int = height
         self._source_texture: int = source_texture
 
-        self._setup_framebuffers()
-        self._setup_shaders()
-
-    def _setup_framebuffers(self) -> None:
         self._output_framebuffer: int
         self._output_texture: int
         self._output_depth_texture: int
 
+        self._setup_framebuffers()
+        self._setup_shaders()
+
+    def _setup_framebuffers(self) -> None:
         self._output_framebuffer, self._output_texture, self._output_depth_texture = create_framebuffer(
             self._width, self._height
         )

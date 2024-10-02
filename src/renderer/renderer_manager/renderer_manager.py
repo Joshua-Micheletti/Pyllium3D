@@ -20,7 +20,6 @@ from renderer.shader.shader import Shader
 from utils import (
     Singleton,
     check_framebuffer_status,
-    create_cubemap_framebuffer,
     create_framebuffer,
     create_multisample_framebuffer,
     create_projection_matrix,
@@ -37,7 +36,7 @@ class RendererManager(metaclass=Singleton):
     # constructor method
     @timeit()
     def __init__(self) -> None:
-        """Method to initialize the RendererManager object"""
+        """Method to initialize the RendererManager object."""
         # ============================= FIELDS SETUP =============================
         # ----------------------------- Rendering parameters -----------------------------
         # fields for screen dimensions
@@ -154,15 +153,6 @@ class RendererManager(metaclass=Singleton):
         # setup the rendering framebuffer
         self._setup_framebuffers()
 
-        skybox_path = 'assets/textures/skybox/'
-        # method to setup the skybox data
-        # self._setup_skybox("./assets/textures/skybox/Epic_BlueSunset/")
-        self._setup_skybox(skybox_path + '/hdri/alien.png')
-        # self._setup_skybox("assets/textures/skybox/test/")
-        # self._setup_skybox("assets/textures/skybox/hdri/milkyway.png")
-        # self._setup_skybox(skybox_path + "hdri/fairytail_garden.jpeg")
-        # self._setup_skybox(skybox_path + "hdri/autumn_forest.jpg")
-
         # self._expand_equirectangular_map_to_cubemap("assets/textures/alien/skybox.png")
 
     def __str__(self) -> str:
@@ -269,112 +259,10 @@ class RendererManager(metaclass=Singleton):
         self.cubemap_shadow_framebuffer, self.depth_cubemap = self._create_depth_cubemap_framebuffer()
 
         (
-            self.irradiance_framebuffer,
-            self.irradiance_cubemap,
-            self.irradiance_renderbuffer,
-        ) = create_cubemap_framebuffer(self.irradiance_map_size)
-
-        self.skybox_framebuffer, self.skybox_texture, self.skybox_renderbuffer = create_cubemap_framebuffer(
-            self.skybox_resolution
-        )
-
-        (
             self.brdf_integration_framebuffer,
             self.brdf_integration_LUT,
             self.brdf_integration_depth,
         ) = create_framebuffer(width=512, height=512)
-
-        self.reflection_framebuffer, self.reflection_map, self.reflection_depth = create_cubemap_framebuffer(
-            self.reflection_resolution, mipmap=True
-        )
-
-    # method for setting up the skybox
-    def _setup_skybox(self, filepath: str) -> None:
-        components = filepath.split('/')
-
-        equirect = '.' in components[-1]
-
-        if equirect:
-            self.equirect_skybox = glGenTextures(1)
-            glBindTexture(GL_TEXTURE_2D, self.equirect_skybox)
-
-            im = Image.open(filepath)  # .transpose(Image.FLIP_TOP_BOTTOM)
-            im = im.convert('RGB')
-            im = im.transpose(Image.FLIP_TOP_BOTTOM)
-            # get the data of the loaded face image
-            imdata = np.fromstring(im.tobytes(), np.uint8)
-
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-            # store the data of the image in the cubemap texture
-            glTexImage2D(
-                GL_TEXTURE_2D,
-                0,
-                GL_RGB,
-                im.size[0],
-                im.size[1],
-                0,
-                GL_RGB,
-                GL_UNSIGNED_BYTE,
-                imdata,
-            )
-
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-
-            glBindTexture(GL_TEXTURE_CUBE_MAP, self.skybox_texture)
-
-            # generate a cubemap texture
-            # self.skybox_texture = glGenTextures(1)
-            # glBindTexture(GL_TEXTURE_CUBE_MAP, self.skybox_texture)
-            # for i in range(6):
-            #     glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, self.skybox_resolution, self.skybox_resolution, 0, GL_RGB, GL_UNSIGNED_BYTE, None)
-
-        else:
-            # generate a cubemap texture
-            # self.skybox_texture = glGenTextures(1)
-            glBindTexture(GL_TEXTURE_CUBE_MAP, self.skybox_texture)
-
-            # list of faces
-            texture_faces = []
-            texture_faces.append(filepath + 'left.png')
-            texture_faces.append(filepath + 'right.png')
-            texture_faces.append(filepath + 'top.png')
-            texture_faces.append(filepath + 'bottom.png')
-            texture_faces.append(filepath + 'back.png')
-            texture_faces.append(filepath + 'front.png')
-
-            # iterate through the faces, load the image and store it in the right face of the cubemap
-            for i in range(len(texture_faces)):
-                im = Image.open(texture_faces[i])  # .transpose(Image.FLIP_TOP_BOTTOM)
-                im = im.convert('RGB')
-
-                # get the data of the loaded face image
-                imdata = np.fromstring(im.tobytes(), np.uint8)
-
-                # store the data of the image in the cubemap texture
-                glTexImage2D(
-                    GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                    0,
-                    GL_RGB,
-                    im.size[0],
-                    im.size[1],
-                    0,
-                    GL_RGB,
-                    GL_UNSIGNED_BYTE,
-                    imdata,
-                )
-
-        # set the texture behaviour
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-        # glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
-        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE)
-
-        # # load the skybox rendering shader
-        # self.shaders["skybox"] = Shader("assets/shaders/skybox/skybox.vert", "assets/shaders/skybox/skybox.frag")
 
     # --------------------------- Creating Components ----------------------------------
     # method to create a new mesh, a count can be specified to generate more than 1 mesh with the same 3D model

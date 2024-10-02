@@ -3,7 +3,6 @@
 # ruff: noqa: F403, F405
 
 import glfw
-import glm
 from OpenGL.GL import *
 
 from renderer.raster_renderer.raster_renderer_modules import (
@@ -22,7 +21,7 @@ class RasterRenderer(metaclass=Singleton):
     """Class that implements the raster rendering pipeline.
 
     Args:
-        metaclass (_type_, optional): _description_. Defaults to Singleton.
+        metaclass (Singleton, optional): Singleton class. Defaults to Singleton.
 
     """
 
@@ -30,11 +29,13 @@ class RasterRenderer(metaclass=Singleton):
     def __init__(self) -> None:
         """Set the RasterRenderer."""
         rm = RendererManager()
+
         self._bloom_renderer: RasterBloomRenderer = RasterBloomRenderer(rm.width, rm.height)
         self._blur_renderer: RasterBlurRenderer = RasterBlurRenderer(rm.width, rm.height)
         self._dof_renderer: RasterDOFRenderer = RasterDOFRenderer(rm.width, rm.height)
         self._msaa_renderer: RasterMSAARenderer = RasterMSAARenderer(rm.width, rm.height)
-        self._skybox_renderer: RasterSkyboxRenderer = RasterSkyboxRenderer()
+        glBindVertexArray(rm.vaos['default'])
+        self._skybox_renderer: RasterSkyboxRenderer = RasterSkyboxRenderer('assets/textures/skybox/hdri/alien.png')
 
         self._setup_opengl()
         self._setup_textures()
@@ -46,9 +47,21 @@ class RasterRenderer(metaclass=Singleton):
         self.timer: Timer = Timer()
 
     def __str__(self) -> str:
+        """Handle the object as a string.
+
+        Returns:
+            str: Raster Renderer
+
+        """
         return 'Raster Renderer'
 
     def __repr__(self) -> str:
+        """Handle the object when printing it.
+
+        Returns:
+            str: Raster Renderer obj
+
+        """
         return 'Raster Renderer obj'
 
     def _setup_opengl(self) -> None:
@@ -74,30 +87,21 @@ class RasterRenderer(metaclass=Singleton):
         # get a reference to the RendererManager
         rm: RendererManager = RendererManager()
 
-        # method to render the skybox from an equirect to a cubemap
-        self._render_equirectangular_skybox()
-        # method to render the irradiance cubemap for light calculation
-        self._render_irradiance_map()
         # method to render the brdf integration texture for light calculation
         self._render_brdf_integration_map()
-        # method to render the reflection cubemap
-        self._render_reflection_map()
 
         # assign texture slot 3 for the depth cubemap
         glActiveTexture(GL_TEXTURE0 + 3)
         glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
         # assign texture slot 4 for the irradiance cubemap
         glActiveTexture(GL_TEXTURE0 + 4)
-        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.irradiance_cubemap)
+        glBindTexture(GL_TEXTURE_CUBE_MAP, self._skybox_renderer.irradiance_cubemap)
         # assign texture slot 5 for the reflection cubemap
         glActiveTexture(GL_TEXTURE0 + 5)
-        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.reflection_map)
+        glBindTexture(GL_TEXTURE_CUBE_MAP, self._skybox_renderer.reflection_cubemap)
         # assign texture slot 6 for the brdf integration texture
         glActiveTexture(GL_TEXTURE0 + 6)
         glBindTexture(GL_TEXTURE_2D, rm.brdf_integration_LUT)
-        # assign the cubemap in slot 0 for the skybox texture
-        glActiveTexture(GL_TEXTURE0)
-        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
 
     def _setup_opengl_timers(self) -> None:
         """Set OpenGL queries to keep track of performance."""
@@ -638,128 +642,6 @@ class RasterRenderer(metaclass=Singleton):
         if rm.render_states['profile']:
             glEndQuery(GL_TIME_ELAPSED)
 
-    # method to render the irradiance cubemap of the skybox
-    def _render_irradiance_map(self) -> None:
-        # reference to the renderer manager
-        rm = RendererManager()
-
-        # set the viewport to the dimensions of the irradiance map size
-        glViewport(0, 0, rm.irradiance_map_size, rm.irradiance_map_size)
-        # bind the irradiance framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.irradiance_framebuffer)
-
-        # use the irradiance cubemap shader
-        shader = rm.shaders['irradiance_cube']
-        shader.use()
-
-        # bind the cubemap projection matrix to the projection uniform
-        glUniformMatrix4fv(
-            shader.uniforms['projection'],
-            1,
-            GL_FALSE,
-            glm.value_ptr(rm.cubemap_projection),
-        )
-
-        # bind the cube mesh VAO
-        glBindVertexArray(rm.vaos['default'])
-
-        # bind the skybox texture cubemap as source
-        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
-
-        # disable face culling
-        glDisable(GL_CULL_FACE)
-
-        # iterate through all the faces of the cubemap
-        for i in range(6):
-            # update the view matrix
-            glUniformMatrix4fv(
-                shader.uniforms['view'],
-                1,
-                GL_FALSE,
-                glm.value_ptr(rm.center_cubemap_views[i]),
-            )
-            # update the framebuffer color attachment texture with the correct cubemap texture
-            glFramebufferTexture2D(
-                GL_FRAMEBUFFER,
-                GL_COLOR_ATTACHMENT0,
-                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                rm.irradiance_cubemap,
-                0,
-            )
-            # clear the texture
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-            # draw the irradiance texture
-            glDrawElements(GL_TRIANGLES, rm.indices_count['default'], GL_UNSIGNED_INT, None)
-
-        # re-enable backface culling
-        glEnable(GL_CULL_FACE)
-
-        # restore the viewport to the render dimensions
-        glViewport(0, 0, rm.width, rm.height)
-
-    # method to render an equirect skybox into a cubemap
-    def _render_equirectangular_skybox(self) -> None:
-        # reference to the renderer manager
-        rm = RendererManager()
-
-        # if there isn't an equirect skybox set, return immediately
-        if rm.equirect_skybox is None:
-            return ()
-
-        # set the viewport to the skybox dimensions
-        glViewport(0, 0, rm.skybox_resolution, rm.skybox_resolution)
-        # bind the skybox framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.skybox_framebuffer)
-
-        # use the equirect skybox shader
-        shader = rm.shaders['equirect_skybox']
-        shader.use()
-
-        # set the projection uniform to the cubemap projection
-        glUniformMatrix4fv(
-            shader.uniforms['projection'],
-            1,
-            GL_FALSE,
-            glm.value_ptr(rm.cubemap_projection),
-        )
-
-        # bind the cube mesh VAO
-        glBindVertexArray(rm.vaos['default'])
-
-        # bind the source equirect skybox texture
-        glBindTexture(GL_TEXTURE_2D, rm.equirect_skybox)
-
-        # disable backface culling
-        glDisable(GL_CULL_FACE)
-
-        # iterate through every face
-        for i in range(6):
-            # update the view matrix accordingly
-            glUniformMatrix4fv(
-                shader.uniforms['view'],
-                1,
-                GL_FALSE,
-                glm.value_ptr(rm.center_cubemap_views[i]),
-            )
-            # bind the texture target of the framebuffer accordingly
-            glFramebufferTexture2D(
-                GL_FRAMEBUFFER,
-                GL_COLOR_ATTACHMENT0,
-                GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                rm.skybox_texture,
-                0,
-            )
-            # clear the previous texture
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
-            # draw the face to the cubemap
-            glDrawElements(GL_TRIANGLES, rm.indices_count['default'], GL_UNSIGNED_INT, None)
-
-        # re-enable backface culling
-        glEnable(GL_CULL_FACE)
-        # set the viewport back to the render size
-        glViewport(0, 0, rm.width, rm.height)
-
     # method to render the brdf integration texture
     def _render_brdf_integration_map(self) -> None:
         # reference to the renderer manager
@@ -783,84 +665,6 @@ class RasterRenderer(metaclass=Singleton):
         glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
 
         # set the viewport back to its original dimensions
-        glViewport(0, 0, rm.width, rm.height)
-
-    # method to render the reflection cubemap with its mipmap levels
-    def _render_reflection_map(self) -> None:
-        # reference to the renderer manager
-        rm = RendererManager()
-
-        # bind the reflection framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.reflection_framebuffer)
-
-        # use the reflection prefilter shader
-        shader = rm.shaders['reflection_prefilter']
-        shader.use()
-
-        # bind the projection matrix uniform to the cubemap projection matrix
-        glUniformMatrix4fv(
-            shader.uniforms['projection'],
-            1,
-            GL_FALSE,
-            glm.value_ptr(rm.cubemap_projection),
-        )
-
-        # bind the cube mesh VAO
-        glBindVertexArray(rm.vaos['default'])
-
-        # bind the skybox texture as source
-        glBindTexture(GL_TEXTURE_CUBE_MAP, rm.skybox_texture)
-
-        # disable backface culling
-        glDisable(GL_CULL_FACE)
-
-        # set the max level of mipmaps
-        max_mip_levels = 5
-
-        # iterate through every mipmap level
-        for mip in range(max_mip_levels):
-            # calculate the resolution of the mipmap level
-            mip_width = rm.reflection_resolution * pow(0.5, mip)
-            mip_height = rm.reflection_resolution * pow(0.5, mip)
-
-            # adapt the renderbuffer to accomodate the new resolution
-            glBindRenderbuffer(GL_RENDERBUFFER, rm.reflection_depth)
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, int(mip_width), int(mip_height))
-
-            # set the viewport to the dimensions of the mipmap size
-            glViewport(0, 0, int(mip_width), int(mip_height))
-
-            # calculate the attributed roughness value
-            roughness = float(mip) / float(max_mip_levels - 1)
-            # bind the roughness uniform
-            glUniform1f(shader.uniforms['roughness'], roughness)
-
-            # iterate through every face of the cube
-            for i in range(6):
-                # update the view matrix for the correct face
-                glUniformMatrix4fv(
-                    shader.uniforms['view'],
-                    1,
-                    GL_FALSE,
-                    glm.value_ptr(rm.center_cubemap_views[i]),
-                )
-                # bind the correct texture target in the framebuffer
-                glFramebufferTexture2D(
-                    GL_FRAMEBUFFER,
-                    GL_COLOR_ATTACHMENT0,
-                    GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                    rm.reflection_map,
-                    mip,
-                )
-                # clear the framebuffer texture
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
-                # draw the blurred reflection map
-                glDrawElements(GL_TRIANGLES, rm.indices_count['default'], GL_UNSIGNED_INT, None)
-
-        # re-enable backface culling
-        glEnable(GL_CULL_FACE)
-        # set the viewport back to the renderer dimensions
         glViewport(0, 0, rm.width, rm.height)
 
     # ---------------------------- Link methods ----------------------------

@@ -4,7 +4,9 @@
 
 from OpenGL.GL import *
 
-from renderer.raster_renderer.raster_renderer_modules import PostProcessingRenderer
+from renderer.raster_renderer.raster_renderer_modules.post_processing.post_processing_renderer import (
+    PostProcessingRenderer,
+)
 from renderer.shader.shader import Shader
 from utils import create_framebuffer
 

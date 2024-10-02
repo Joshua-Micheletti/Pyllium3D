@@ -4,7 +4,9 @@
 
 from OpenGL.GL import *
 
-from renderer.raster_renderer.raster_renderer_modules import PostProcessingRenderer
+from renderer.raster_renderer.raster_renderer_modules.post_processing.post_processing_renderer import (
+    PostProcessingRenderer,
+)
 from renderer.shader.shader import Shader
 from utils import check_framebuffer_status
 
@@ -30,17 +32,26 @@ class RasterBloomRenderer(PostProcessingRenderer):
 
         """
         self._length: int = length
+
+        self._bloom_mips: list[int]
+        self._bloom_mips_sizes: list[tuple[int, int]]
+        self._bloom_framebuffer: int
+
+        self._downsample_shader: Shader
+        self._upsample_shader: Shader
+        self._bloom_shader: Shader
+
         super().__init__(width, height, source_texture)
 
     def _setup_framebuffers(self) -> None:
         super()._setup_framebuffers()
 
         # list of textures for the different mips levels
-        self._bloom_mips: list[int] = []
-        self._bloom_mips_sizes: list[tuple[int, int]] = []
+        self._bloom_mips = []
+        self._bloom_mips_sizes = []
 
         # create the framebuffer to render the bloom textures to
-        self._bloom_framebuffer: int = glGenFramebuffers(1)
+        self._bloom_framebuffer = glGenFramebuffers(1)
         # bind it as the main framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, self._bloom_framebuffer)
 
@@ -88,17 +99,17 @@ class RasterBloomRenderer(PostProcessingRenderer):
 
     def _setup_shaders(self) -> None:
         # compile the required shaders
-        self._downsample_shader: Shader = Shader(
+        self._downsample_shader = Shader(
             './assets/shaders/bloom_downsample/bloom_downsample.vert',
             './assets/shaders/bloom_downsample/bloom_downsample.frag',
         )
 
-        self._upsample_shader: Shader = Shader(
+        self._upsample_shader = Shader(
             './assets/shaders/bloom_upsample/bloom_upsample.vert',
             './assets/shaders/bloom_upsample/bloom_upsample.frag',
         )
 
-        self._bloom_shader: Shader = Shader(
+        self._bloom_shader = Shader(
             './assets/shaders/bloom/bloom.vert',
             './assets/shaders/bloom/bloom.frag',
         )

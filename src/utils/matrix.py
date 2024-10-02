@@ -55,3 +55,37 @@ def get_ogl_matrix(matrix: glm.mat4) -> any:
 
     """
     return np.array(matrix.to_list(), dtype=np.float32)
+
+
+def create_view_cubemap_matrices(x: float = 0, y: float = 0, z: float = 0) -> list[any]:
+    """Create a list of matrices for all the views of a cubemap.
+
+    Args:
+        x (float, optional): X coordinate of the center of the view. Defaults to 0.
+        y (float, optional): Y coordinate of the center of the view. Defaults to 0.
+        z (float, optional): Z coordinate of the center of the view. Defaults to 0.
+
+    Returns:
+        list[any]: List of view matrices for each side of the cubemap
+
+    """
+    center_cubemap_views = []
+
+    center_cubemap_views.append(
+        glm.lookAt(glm.vec3(x, y, z), glm.vec3(x, y, z) + glm.vec3(1, 0, 0), glm.vec3(0, -1, 0))
+    )
+    center_cubemap_views.append(
+        glm.lookAt(glm.vec3(x, y, z), glm.vec3(x, y, z) + glm.vec3(-1, 0, 0), glm.vec3(0, -1, 0))
+    )
+    center_cubemap_views.append(glm.lookAt(glm.vec3(x, y, z), glm.vec3(x, y, z) + glm.vec3(0, 1, 0), glm.vec3(0, 0, 1)))
+    center_cubemap_views.append(
+        glm.lookAt(glm.vec3(x, y, z), glm.vec3(x, y, z) + glm.vec3(0, -1, 0), glm.vec3(0, 0, -1))
+    )
+    center_cubemap_views.append(
+        glm.lookAt(glm.vec3(x, y, z), glm.vec3(x, y, z) + glm.vec3(0, 0, 1), glm.vec3(0, -1, 0))
+    )
+    center_cubemap_views.append(
+        glm.lookAt(glm.vec3(x, y, z), glm.vec3(x, y, z) + glm.vec3(0, 0, -1), glm.vec3(0, -1, 0))
+    )
+
+    return center_cubemap_views
