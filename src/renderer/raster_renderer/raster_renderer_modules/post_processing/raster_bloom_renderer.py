@@ -126,7 +126,7 @@ class RasterBloomRenderer(PostProcessingRenderer):
         # use the downsampling shader
         self._downsample_shader.use()
         # pass the resolution to the shader
-        glUniform2f(self._downsample_shader.uniforms['src_resolution'], self._width, self._height)
+        self._downsample_shader.bind_uniform('src_resolution', [float(self._width), float(self._height)])
 
         # iterate through all the mipmaps
         for i in range(len(self._bloom_mips)):
@@ -135,15 +135,14 @@ class RasterBloomRenderer(PostProcessingRenderer):
             # bind the mipmap texture to the internal framebuffer
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self._bloom_mips[i], 0)
             # set the mipmap level in the shader
-            glUniform1f(self._downsample_shader.uniforms['mip_level'], i)
+            self._downsample_shader.bind_uniform('mip_level', float(i))
             # draw the screen
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None)
             # pass the sizes of the mipmaps to the shader
-            glUniform2f(
-                self._downsample_shader.uniforms['src_resolution'],
-                self._bloom_mips_sizes[i][0],
-                self._bloom_mips_sizes[i][1],
+            self._downsample_shader.bind_uniform(
+                'src_resolution', [float(self._bloom_mips_sizes[i][0]), float(self._bloom_mips_sizes[i][1])]
             )
+
             # bind the current mipmap texture for the next pass
             glBindTexture(GL_TEXTURE_2D, self._bloom_mips[i])
 

@@ -55,16 +55,16 @@ class RasterSkyboxRenderer:
         self._equirect_shader: Shader
         self._irradiance_shader: Shader
         self._reflection_shader: Shader
-        
+
         # framebuffers
         self._skybox_framebuffer: int
         self._skybox_cubemap: int
         self._skybox_renderbuffer: int
-        
+
         self._reflection_framebuffer: int
         self._reflection_cubemap: int
         self._reflection_renderbuffer: int
-        
+
         self._irradiance_framebuffer: int
         self._irradiance_cubemap: int
         self._irradiance_renderbuffer: int
@@ -87,6 +87,9 @@ class RasterSkyboxRenderer:
             './assets/shaders/skybox/skybox.vert',
             './assets/shaders/skybox/skybox.frag',
         )
+        # bind the already calculated projection matrix to the shader
+        self._skybox_shader.use()
+        self._skybox_shader.bind_uniform('projection', self._projection_matrix)
 
         self._equirect_shader = Shader(
             './assets/shaders/equirect_skybox/equirect_skybox.vert',
@@ -118,24 +121,27 @@ class RasterSkyboxRenderer:
         )
 
     def _load_skybox(self, filepath: str) -> None:
+        # set the equirect skybox texture to None
         self._equirect_skybox = None
 
-        components = filepath.split('/')
+        # analize the path and detect if it's an equirect skybox or a cubemap
+        components: list[str] = filepath.split('/')
+        equirect: bool = '.' in components[-1]
 
-        equirect = '.' in components[-1]
-
+        # if it's an equirect skybox
         if equirect:
+            # create a 2d texture to hold the equirect image
             self._equirect_skybox = glGenTextures(1)
             glBindTexture(GL_TEXTURE_2D, self._equirect_skybox)
 
-            im = Image.open(filepath)  # .transpose(Image.FLIP_TOP_BOTTOM)
+            # open the image and extract its data
+            im = Image.open(filepath)
             im = im.convert('RGB')
             im = im.transpose(Image.FLIP_TOP_BOTTOM)
-            # get the data of the loaded face image
             imdata = np.fromstring(im.tobytes(), np.uint8)
 
+            # store the pixel data into the OpenGL texture
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
-            # store the data of the image in the cubemap texture
             glTexImage2D(
                 GL_TEXTURE_2D,
                 0,
@@ -148,19 +154,18 @@ class RasterSkyboxRenderer:
                 imdata,
             )
 
+            # set the necessary texture parameters for the equirect 2d texture
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE)
 
-            glBindTexture(GL_TEXTURE_CUBE_MAP, self._skybox_cubemap)
-
         else:
-            # generate a cubemap texture
+            # bind the skybox cubemap directly
             glBindTexture(GL_TEXTURE_CUBE_MAP, self._skybox_cubemap)
 
             # list of faces
-            texture_faces = []
+            texture_faces: list[str] = []
             texture_faces.append(filepath + 'left.png')
             texture_faces.append(filepath + 'right.png')
             texture_faces.append(filepath + 'top.png')
@@ -170,9 +175,9 @@ class RasterSkyboxRenderer:
 
             # iterate through the faces, load the image and store it in the right face of the cubemap
             for i in range(len(texture_faces)):
-                im = Image.open(texture_faces[i])  # .transpose(Image.FLIP_TOP_BOTTOM)
+                # open the current image and get its pixel data
+                im = Image.open(texture_faces[i])
                 im = im.convert('RGB')
-
                 # get the data of the loaded face image
                 imdata = np.fromstring(im.tobytes(), np.uint8)
 
@@ -188,6 +193,9 @@ class RasterSkyboxRenderer:
                     GL_UNSIGNED_BYTE,
                     imdata,
                 )
+
+        # bind the skybox cubemap
+        glBindTexture(GL_TEXTURE_CUBE_MAP, self._skybox_cubemap)
 
         # set the texture behaviour
         glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
@@ -427,23 +435,21 @@ class RasterSkyboxRenderer:
         # create the projection matrix
         self._projection_matrix = get_ogl_matrix(create_projection_matrix(self._width, self._height))
 
+        # update the skybox uniform
+        self._skybox_shader.use()
+        self._skybox_shader.bind_uniform('projection', self._projection_matrix)
+
     def render(self) -> None:
         """Render the skybox."""
-        # get a reference to the renderer manager
-
+        # set the cubemap texture slot 0 with the skybox cubemap
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_CUBE_MAP, self._skybox_cubemap)
 
         # use the skybox shader
         self._skybox_shader.use()
 
-        glUniformMatrix4fv(self._skybox_shader.uniforms.get('view'), 1, GL_FALSE, self._view_matrix)
-        glUniformMatrix4fv(
-            self._skybox_shader.uniforms.get('projection'),
-            1,
-            GL_FALSE,
-            self._projection_matrix,
-        )
+        # pass the view matrix to the shader
+        self._skybox_shader.bind_uniform('view', self._view_matrix)
 
         # disable cull facing
         glDisable(GL_CULL_FACE)

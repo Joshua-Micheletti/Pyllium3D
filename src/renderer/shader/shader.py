@@ -1,4 +1,22 @@
-from OpenGL.GL import GL_FRAGMENT_SHADER, GL_GEOMETRY_SHADER, GL_VERTEX_SHADER, glGetUniformLocation, glUseProgram
+import glm
+import numpy as np
+from OpenGL.GL import (
+    GL_FALSE,
+    GL_FRAGMENT_SHADER,
+    GL_GEOMETRY_SHADER,
+    GL_VERTEX_SHADER,
+    glGetUniformLocation,
+    glUniform1f,
+    glUniform1i,
+    glUniform2f,
+    glUniform2fv,
+    glUniform2i,
+    glUniform3fv,
+    glUniform4fv,
+    glUniformMatrix3fv,
+    glUniformMatrix4fv,
+    glUseProgram,
+)
 from OpenGL.GL.shaders import compileProgram, compileShader
 
 from utils import print_info, print_success, timeit
@@ -101,6 +119,125 @@ class Shader:
     # function to use this program for rendering
     def use(self) -> None:
         glUseProgram(self.program)
+
+    def bind_uniform(self, uniform: str, value: any) -> None:
+        """Bind an OpenGL uniform value to its location in the shader.
+
+        Args:
+            uniform (str): String identifier of the uniform
+            value (any): Value to set to the uniform
+
+        Raises:
+            TypeError: In case the value is not any of the supported values
+
+        """
+        # get the uniform location id
+        uniform_location: int = self.uniforms.get(uniform)
+
+        # stop the execution if the specified uniform doesn't exist
+        if uniform_location is None:
+            return
+
+        if isinstance(value, int):
+            glUniform1i(uniform_location, value)
+
+        elif isinstance(value, float):
+            glUniform1f(uniform_location, value)
+
+        elif isinstance(value, np.ndarray):
+            if value.shape == (2,):
+                glUniform2fv(uniform_location, 1, value)
+            elif value.shape == (3,):
+                glUniform3fv(uniform_location, 1, value)
+            elif value.shape == (4,):
+                glUniform4fv(uniform_location, 1, value)
+            elif value.shape == (3, 3):
+                glUniformMatrix3fv(uniform_location, 1, GL_FALSE, value)
+            elif value.shape == (4, 4):
+                glUniformMatrix4fv(uniform_location, 1, GL_FALSE, value)
+            else:
+                raise TypeError('Unsupported ndarray shape')
+
+        elif isinstance(value, (list, tuple)) and len(value) == 2:
+            if isinstance(value[0], int):
+                glUniform2i(uniform_location, value[0], value[1])
+
+            elif isinstance(value[0], float):
+                glUniform2f(uniform_location, value[0], value[1])
+
+        elif isinstance(value, glm.vec2):
+            glUniform2fv(uniform_location, 1, glm.value_ptr(value))
+
+        elif isinstance(value, glm.vec3):
+            glUniform3fv(uniform_location, 1, glm.value_ptr(value))
+
+        elif isinstance(value, glm.vec4):
+            glUniform4fv(uniform_location, 1, glm.value_ptr(value))
+
+        elif isinstance(value, glm.mat3):
+            glUniformMatrix3fv(uniform_location, 1, GL_FALSE, glm.value_ptr(value))
+
+        elif isinstance(value, glm.mat4):
+            glUniformMatrix4fv(uniform_location, 1, GL_FALSE, glm.value_ptr(value))
+
+        else:
+            raise TypeError(f'Unsupported uniform type: {type(value)}')
+
+    def bind_uniform_float(self, uniform: str, value: any) -> None:
+        """Bind an OpenGL uniform value to its location in the shader.
+
+        Args:
+            uniform (str): String identifier of the uniform
+            value (any): Value to set to the uniform
+
+        Raises:
+            TypeError: In case the value is not any of the supported values
+
+        """
+        # get the uniform location id
+        uniform_location: int = self.uniforms.get(uniform)
+
+        # stop the execution if the specified uniform doesn't exist
+        if uniform_location is None:
+            return
+
+        if isinstance(value, (int, float)):
+            glUniform1f(uniform_location, value)
+
+        elif isinstance(value, np.ndarray):
+            if value.shape == (2,):
+                glUniform2fv(uniform_location, 1, value)
+            elif value.shape == (3,):
+                glUniform3fv(uniform_location, 1, value)
+            elif value.shape == (4,):
+                glUniform4fv(uniform_location, 1, value)
+            elif value.shape == (3, 3):
+                glUniformMatrix3fv(uniform_location, 1, GL_FALSE, value)
+            elif value.shape == (4, 4):
+                glUniformMatrix4fv(uniform_location, 1, GL_FALSE, value)
+            else:
+                raise TypeError('Unsupported ndarray shape')
+
+        elif isinstance(value, (list, tuple)) and len(value) == 2:
+            glUniform2f(uniform_location, value[0], value[1])
+
+        elif isinstance(value, glm.vec2):
+            glUniform2fv(uniform_location, 1, glm.value_ptr(value))
+
+        elif isinstance(value, glm.vec3):
+            glUniform3fv(uniform_location, 1, glm.value_ptr(value))
+
+        elif isinstance(value, glm.vec4):
+            glUniform4fv(uniform_location, 1, glm.value_ptr(value))
+
+        elif isinstance(value, glm.mat3):
+            glUniformMatrix3fv(uniform_location, 1, GL_FALSE, glm.value_ptr(value))
+
+        elif isinstance(value, glm.mat4):
+            glUniformMatrix4fv(uniform_location, 1, GL_FALSE, glm.value_ptr(value))
+
+        else:
+            raise TypeError(f'Unsupported uniform type: {type(value)}')
 
     # function to check the presence of specific uniforms
     def _check_uniforms(self) -> None:

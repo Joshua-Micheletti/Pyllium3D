@@ -17,7 +17,7 @@ class RasterMSAARenderer(PostProcessingRenderer):
         self,
         width: int = 800,
         height: int = 600,
-        samples: int = 8,
+        samples: int = 1,
         source_texture: int = 0,
         source_framebuffer: int = 0,
     ) -> None:
@@ -42,6 +42,9 @@ class RasterMSAARenderer(PostProcessingRenderer):
             './assets/shaders/msaa/msaa.frag',
         )
 
+        self._msaa_shader.use()
+        self._msaa_shader.bind_uniform('samples', self._samples)
+
     @property
     def source_framebuffer(self) -> int:
         """Get and set the source framebuffer."""
@@ -50,6 +53,17 @@ class RasterMSAARenderer(PostProcessingRenderer):
     @source_framebuffer.setter
     def source_framebuffer(self, source_framebuffer: int) -> None:
         self._source_framebuffer = source_framebuffer
+
+    @property
+    def samples(self) -> int:
+        """Get and set the number of samples."""
+        return self._samples
+
+    @samples.setter
+    def samples(self, samples: int) -> None:
+        self._samples = samples
+        self._msaa_shader.use()
+        self._msaa_shader.bind_uniform('samples', self._samples)
 
     def render(self) -> None:
         """Render the scene MSAA antialiasing."""

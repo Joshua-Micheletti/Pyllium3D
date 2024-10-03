@@ -35,7 +35,9 @@ class RasterRenderer(metaclass=Singleton):
         self._dof_renderer: RasterDOFRenderer = RasterDOFRenderer(rm.width, rm.height)
         self._msaa_renderer: RasterMSAARenderer = RasterMSAARenderer(rm.width, rm.height)
         glBindVertexArray(rm.vaos['default'])
-        self._skybox_renderer: RasterSkyboxRenderer = RasterSkyboxRenderer('assets/textures/skybox/hdri/alien.png')
+        self._skybox_renderer: RasterSkyboxRenderer = RasterSkyboxRenderer(
+            'assets/textures/skybox/hdri/autumn_forest.jpg'
+        )
 
         self._setup_opengl()
         self._setup_textures()
