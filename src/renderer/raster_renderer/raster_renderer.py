@@ -12,7 +12,8 @@ from renderer.raster_renderer.raster_renderer_modules import (
     RasterMSAARenderer,
     RasterSkyboxRenderer,
 )
-from renderer.renderer_manager.renderer_manager import RendererManager
+from renderer.renderer_manager.renderer_manager import MeshManager, RendererManager
+from renderer.shader.shader import Shader
 from utils import Singleton, Timer, get_ogl_matrix, timeit
 
 
@@ -34,7 +35,7 @@ class RasterRenderer(metaclass=Singleton):
         self._blur_renderer: RasterBlurRenderer = RasterBlurRenderer(rm.width, rm.height)
         self._dof_renderer: RasterDOFRenderer = RasterDOFRenderer(rm.width, rm.height)
         self._msaa_renderer: RasterMSAARenderer = RasterMSAARenderer(rm.width, rm.height)
-        glBindVertexArray(rm.vaos['default'])
+        glBindVertexArray(rm.mesh_manager._vaos['default'])
         self._skybox_renderer: RasterSkyboxRenderer = RasterSkyboxRenderer(
             'assets/textures/skybox/hdri/autumn_forest.jpg'
         )
@@ -196,13 +197,13 @@ class RasterRenderer(metaclass=Singleton):
         # -------------------- Mesh rendering -------------------------
         # bind the render framebuffer
         # if we're doing multisampling
-        # if rm.samples != 1:
-        #     # bind the multisample framebuffer
-        glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
-        # # otherwise
-        # else:
-        #     # bind the back framebuffer (?)
-        #     glBindFramebuffer(GL_FRAMEBUFFER, rm.get_back_framebuffer())
+        if rm.samples != 1:
+            # bind the multisample framebuffer
+            glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
+        # otherwise
+        else:
+            # bind the back framebuffer (?)
+            glBindFramebuffer(GL_FRAMEBUFFER, rm.get_back_framebuffer())
 
         # clear the depth buffer
         glClear(GL_DEPTH_BUFFER_BIT)
@@ -218,7 +219,7 @@ class RasterRenderer(metaclass=Singleton):
         # disable depth testing
         glDisable(GL_DEPTH_TEST)
         # bind the screen quad VAO
-        glBindVertexArray(rm.vaos['screen_quad'])
+        glBindVertexArray(rm.mesh_manager._vaos['screen_quad'])
         # these settings are common to all post processing passes
 
         # solve the multisample texture
@@ -248,6 +249,7 @@ class RasterRenderer(metaclass=Singleton):
     def _render_models(self) -> None:
         # get a reference to the renderer manager
         rm: RendererManager = RendererManager()
+        mm: MeshManager = MeshManager()
 
         if rm.render_states['profile']:
             glBeginQuery(GL_TIME_ELAPSED, self.queries.get('models').get('ogl_id'))
@@ -257,6 +259,7 @@ class RasterRenderer(metaclass=Singleton):
         last_mesh: str = ''
         last_material: str = ''
         last_texture: str = ''
+        last_mesh_indices_count: int = 0
         rendered_models: int = 0
 
         # THIS LOOP WILL CHANGE WHEN THE MODELS WILL BE GROUPED BY SHADER, SO THAT THERE ISN'T SO MUCH CONTEXT SWITCHING
@@ -290,15 +293,14 @@ class RasterRenderer(metaclass=Singleton):
 
             # check if the new model has a different mesh
             if last_mesh != model.mesh:
-                # if it does, bind the new VAO
-                glBindVertexArray(rm.vaos[model.mesh])
-                # and keep track of the last used mesh
+                # if it does, bind the new VAO               
                 last_mesh = model.mesh
+                last_mesh_indices_count = mm.bind_mesh(model.mesh)
 
             # draw the mesh
             # glDrawArrays(GL_TRIANGLES, 0, int(rm.vertices_count[model.mesh]))
             # glBindTexture(GL_TEXTURE_CUBE_MAP, rm.depth_cubemap)
-            glDrawElements(GL_TRIANGLES, int(rm.indices_count[model.mesh]), GL_UNSIGNED_INT, None)
+            glDrawElements(GL_TRIANGLES, last_mesh_indices_count, GL_UNSIGNED_INT, None)
             rendered_models += 1
 
         if rm.render_states['profile']:
@@ -371,6 +373,7 @@ class RasterRenderer(metaclass=Singleton):
         # keep track of the last bound mesh
         last_mesh: str = ''
 
+
         # iterate through all the models for single pass rendering
         for model in rm.single_render_models:
             # link the model specific uniforms
@@ -379,13 +382,13 @@ class RasterRenderer(metaclass=Singleton):
             # check if the new model has a different mesh
             if last_mesh != model.mesh:
                 # if it does, bind the new VAO
-                glBindVertexArray(rm.vaos[model.mesh])
+                glBindVertexArray(rm.mesh_manager._vaos[model.mesh])
 
                 # and keep track of the last used mesh
                 last_mesh = model.mesh
 
             # draw the mesh
-            glDrawElements(GL_TRIANGLES, rm.indices_count[model.mesh], GL_UNSIGNED_INT, None)
+            glDrawElements(GL_TRIANGLES, rm.mesh_manager._indices_count[model.mesh], GL_UNSIGNED_INT, None)
 
         # use the instance specific shader
         rm.shaders['depth_cube_instanced'].use()
@@ -420,7 +423,7 @@ class RasterRenderer(metaclass=Singleton):
             glBeginQuery(GL_TIME_ELAPSED, self.queries.get('skybox').get('ogl_id'))
 
         # bind the default mesh vao (cube)
-        glBindVertexArray(rm.vaos['default'])
+        glBindVertexArray(rm.mesh_manager._vaos['default'])
 
         # set the required matrices for rendering the skybox
         self._skybox_renderer.view_matrix = get_ogl_matrix(rm.camera.center_view_matrix)
@@ -663,15 +666,15 @@ class RasterRenderer(metaclass=Singleton):
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         # draw the quad
-        glBindVertexArray(rm.vaos['screen_quad'])
-        glDrawElements(GL_TRIANGLES, rm.indices_count['screen_quad'], GL_UNSIGNED_INT, None)
+        glBindVertexArray(rm.mesh_manager._vaos['screen_quad'])
+        glDrawElements(GL_TRIANGLES, rm.mesh_manager._indices_count['screen_quad'], GL_UNSIGNED_INT, None)
 
         # set the viewport back to its original dimensions
         glViewport(0, 0, rm.width, rm.height)
 
     # ---------------------------- Link methods ----------------------------
     # method to link static uniforms to the shader (static meaning they don't change between meshes)
-    def _link_shader_uniforms(self, shader) -> None:
+    def _link_shader_uniforms(self, shader: Shader) -> None:
         # get a reference to the renderer manager
         rm = RendererManager()
 

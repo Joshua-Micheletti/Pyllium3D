@@ -39,9 +39,9 @@ def new_model(self, name, mesh, shader, texture, material, count) -> None:
         self.model_matrices[name] = glm.mat4(1.0)
 
         self.model_bounding_sphere_center[name] = (
-            self.bounding_sphere_center[self.models[name].mesh] + self.positions[name]
+            self.mesh_manager._bounding_sphere_center[self.models[name].mesh] + self.positions[name]
         )
-        self.model_bounding_sphere_radius[name] = self.bounding_sphere_radius[self.models[name].mesh]
+        self.model_bounding_sphere_radius[name] = self.mesh_manager._bounding_sphere_radius[self.models[name].mesh]
 
 
 # method to place the mesh in a specific spot
@@ -120,8 +120,8 @@ def calculate_model_matrix(self, name) -> None:
 
     max_scale = max(max(scale.x, scale.y), scale.z)
 
-    self.model_bounding_sphere_center[name] = self.bounding_sphere_center[self.models[name].mesh] + self.positions[name]
-    self.model_bounding_sphere_radius[name] = self.bounding_sphere_radius[self.models[name].mesh] * max_scale
+    self.model_bounding_sphere_center[name] = self.mesh_manager._bounding_sphere_center[self.models[name].mesh] + self.positions[name]
+    self.model_bounding_sphere_radius[name] = self.mesh_manager._bounding_sphere_radius[self.models[name].mesh] * max_scale
 
 
 # method to check if an instance should be updated after a transformation

@@ -13,7 +13,7 @@ from PIL import Image
 
 from renderer.camera.camera import Camera
 from renderer.material.material import Material
-from renderer.renderer_manager.managers import instance_manager, light_manager, mesh_manager, model_manager
+from renderer.renderer_manager.managers import MeshManager, instance_manager, light_manager, model_manager
 from renderer.shader.shader import Shader
 
 # custom modules imports
@@ -81,27 +81,29 @@ class RendererManager(metaclass=Singleton):
         self.positions = {}
         self.rotations = {}
         self.scales = {}
+        
+        self.mesh_manager = MeshManager()
 
-        self.aabb_mins = {}
-        self.aabb_maxs = {}
-        self.bounding_sphere_radius = {}
-        self.bounding_sphere_center = {}
+        # self.aabb_mins = {}
+        # self.aabb_maxs = {}
+        # self.bounding_sphere_radius = {}
+        # self.bounding_sphere_center = {}
         self.model_bounding_sphere_center = {}
         self.model_bounding_sphere_radius = {}
 
-        # ----------------------------- Meshes -----------------------------
-        # dictionaries of OpenGL VBOs for vertex data (vertex, normal, uv)
-        self.vertex_vbos = {}
-        self.normal_vbos = {}
-        self.uv_vbos = {}
-        # dictionary of OpenGL EBOs for index data
-        self.ebos = {}
-        # dictionary of OpenGL VAO for vertex data
-        self.vaos = {}
-        # dictionary of number of vertices per mesh
-        self.vertices_count = {}
-        # dictionary of number of indices per mesh
-        self.indices_count = {}
+        # # ----------------------------- Meshes -----------------------------
+        # # dictionaries of OpenGL VBOs for vertex data (vertex, normal, uv)
+        # self.vertex_vbos = {}
+        # self.normal_vbos = {}
+        # self.uv_vbos = {}
+        # # dictionary of OpenGL EBOs for index data
+        # self.ebos = {}
+        # # dictionary of OpenGL VAO for vertex data
+        # self.vaos = {}
+        # # dictionary of number of vertices per mesh
+        # self.vertices_count = {}
+        # # dictionary of number of indices per mesh
+        # self.indices_count = {}
 
         # ----------------------------- Shaders -----------------------------
         # dictionary of shaders compiled for the engine
@@ -215,8 +217,8 @@ class RendererManager(metaclass=Singleton):
 
     # method to setup entities required for the rendering pipeline
     def _setup_entities(self) -> None:
-        self.new_json_mesh('screen_quad', 'assets/models/default/quad.json')
-        self.new_json_mesh('default', 'assets/models/default/box.json')
+        self.mesh_manager.new_json_mesh('screen_quad', 'assets/models/default/quad.json')
+        self.mesh_manager.new_json_mesh('default', 'assets/models/default/box.json')
 
         self.new_material('default', *(0.2, 0.2, 0.2), *(0.6, 0.6, 0.6), *(1.0, 1.0, 1.0), 1.0)
         self.new_material('light_color', *(0.2, 0.2, 0.2), *(1.0, 1.0, 1.0), *(1.0, 1.0, 1.0), 1.0)
@@ -266,28 +268,28 @@ class RendererManager(metaclass=Singleton):
 
     # --------------------------- Creating Components ----------------------------------
     # method to create a new mesh, a count can be specified to generate more than 1 mesh with the same 3D model
-    @timeit(info_position=2, info=True)
-    def new_mesh(self, name: str, file_path: str) -> None:
-        """Method to create a new mesh from an obj file
+    # @timeit(info_position=2, info=True)
+    # def new_mesh(self, name: str, file_path: str) -> None:
+        # """Method to create a new mesh from an obj file
 
-        Args:
-            name (str): name of the new mesh
-            file_path (str): directory of the .obj file
+        # Args:
+        #     name (str): name of the new mesh
+        #     file_path (str): directory of the .obj file
 
-        """
-        mesh_manager.new_mesh(self, name, file_path)
+        # """
+        # mesh_manager.new_mesh(self, name, file_path)
 
     # method to load json indiced meshes
-    @timeit()
-    def new_json_mesh(self, name: str, file_path: str) -> None:
-        """Method to create a new mesh from a JSON file
+    # @timeit()
+    # def new_json_mesh(self, name: str, file_path: str) -> None:
+    #     """Method to create a new mesh from a JSON file
 
-        Args:
-            name (str): name of the new mesh
-            file_path (str): directory of the .json file
+    #     Args:
+    #         name (str): name of the new mesh
+    #         file_path (str): directory of the .json file
 
-        """
-        mesh_manager.new_json_mesh(self, name, file_path)
+    #     """
+    #     mesh_manager.new_json_mesh(self, name, file_path)
 
     # method to create a new shader
     def new_shader(self, name: str, vert_path: str, frag_path: str) -> None:

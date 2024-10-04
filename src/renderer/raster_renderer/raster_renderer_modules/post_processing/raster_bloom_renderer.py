@@ -135,12 +135,12 @@ class RasterBloomRenderer(PostProcessingRenderer):
             # bind the mipmap texture to the internal framebuffer
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, self._bloom_mips[i], 0)
             # set the mipmap level in the shader
-            self._downsample_shader.bind_uniform('mip_level', float(i))
+            self._downsample_shader.bind_uniform_float('mip_level', i)
             # draw the screen
             glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None)
             # pass the sizes of the mipmaps to the shader
-            self._downsample_shader.bind_uniform(
-                'src_resolution', [float(self._bloom_mips_sizes[i][0]), float(self._bloom_mips_sizes[i][1])]
+            self._downsample_shader.bind_uniform_float(
+                'src_resolution', [self._bloom_mips_sizes[i][0], self._bloom_mips_sizes[i][1]]
             )
 
             # bind the current mipmap texture for the next pass

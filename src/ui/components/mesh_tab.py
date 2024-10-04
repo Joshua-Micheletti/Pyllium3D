@@ -16,7 +16,7 @@ class MeshTab:
         list_box_size = (wsize.x / 3, wsize.y - 30)
 
         if imgui.begin_list_box('###meshes_listbox', *list_box_size).opened:
-            for mesh in rm.vaos:
+            for mesh in rm.mesh_manager._vaos:
                 if mesh != self.selected_mesh:
                     self.selection_meshes[mesh] = False
                 else:

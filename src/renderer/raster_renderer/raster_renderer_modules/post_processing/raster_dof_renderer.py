@@ -41,6 +41,11 @@ class RasterDOFRenderer(PostProcessingRenderer):
             './assets/shaders/depth_of_field/depth_of_field.vert',
             './assets/shaders/depth_of_field/depth_of_field.frag',
         )
+        self._depth_of_field_shader.use()
+        # setup the shader uniforms
+        self._depth_of_field_shader.bind_uniform('screen_texture', 0)
+        self._depth_of_field_shader.bind_uniform('blurred_texture', 1)
+        self._depth_of_field_shader.bind_uniform('depth_texture', 2)
 
     @property
     def blur_texture(self) -> int:
@@ -66,11 +71,6 @@ class RasterDOFRenderer(PostProcessingRenderer):
         glBindFramebuffer(GL_FRAMEBUFFER, self._output_framebuffer)
         # use the DOF shader
         self._depth_of_field_shader.use()
-
-        # setup the shader uniforms
-        glUniform1i(self._depth_of_field_shader.uniforms['screen_texture'], 0)
-        glUniform1i(self._depth_of_field_shader.uniforms['blurred_texture'], 1)
-        glUniform1i(self._depth_of_field_shader.uniforms['depth_texture'], 2)
 
         # bind the required textures to the correct texture slots
         glBindTexture(GL_TEXTURE_2D, self._source_texture)

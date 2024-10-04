@@ -67,7 +67,7 @@ def _initialize_meshes(rm: RendererManager, meshes: dict) -> None:
 
     """
     for key, value in meshes.items():
-        rm.new_json_mesh(key, value)
+        rm.mesh_manager.new_json_mesh(key, value)
 
 
 def _initialize_textures(rm: RendererManager, textures: dict) -> None:

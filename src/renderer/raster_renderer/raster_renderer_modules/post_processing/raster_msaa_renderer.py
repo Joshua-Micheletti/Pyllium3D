@@ -17,7 +17,7 @@ class RasterMSAARenderer(PostProcessingRenderer):
         self,
         width: int = 800,
         height: int = 600,
-        samples: int = 1,
+        samples: int = 8,
         source_texture: int = 0,
         source_framebuffer: int = 0,
     ) -> None:
@@ -74,7 +74,7 @@ class RasterMSAARenderer(PostProcessingRenderer):
         # use the msaa shader
         self._msaa_shader.use()
         # bind the samples uniform
-        glUniform1i(self._msaa_shader.uniforms['samples'], self._samples)
+        self._msaa_shader.bind_uniform('samples', self._samples)
         # render the MSAA texture
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None)
 
