@@ -6,6 +6,8 @@ from renderer.raster_renderer.raster_renderer_modules.post_processing import (
     RasterDOFRenderer,
     RasterMSAARenderer,
 )
+from renderer.raster_renderer.raster_renderer_modules.raster_deferred_renderer import RasterDeferredRenderer
+from renderer.raster_renderer.raster_renderer_modules.raster_forward_model_renderer import RasterForwardModelRenderer
 from renderer.raster_renderer.raster_renderer_modules.raster_skybox_renderer import RasterSkyboxRenderer
 
 __all__ = [
@@ -14,4 +16,6 @@ __all__ = [
     'RasterDOFRenderer',
     'RasterMSAARenderer',
     'RasterSkyboxRenderer',
+    'RasterForwardModelRenderer',
+    'RasterDeferredRenderer',
 ]

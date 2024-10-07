@@ -11,11 +11,13 @@ from OpenGL.GL import (
     glUniform2f,
     glUniform2fv,
     glUniform2i,
+    glUniform3f,
     glUniform3fv,
     glUniform4fv,
     glUniformMatrix3fv,
     glUniformMatrix4fv,
     glUseProgram,
+    glUniform3i,
 )
 from OpenGL.GL.shaders import compileProgram, compileShader
 
@@ -120,17 +122,21 @@ class Shader:
     def use(self) -> None:
         glUseProgram(self.program)
 
-    def bind_uniform(self, uniform: str, value: any) -> None:
+    def bind_uniform(self, uniform: str, value: any, count: int = None) -> None:
         """Bind an OpenGL uniform value to its location in the shader.
 
         Args:
             uniform (str): String identifier of the uniform
             value (any): Value to set to the uniform
+            count (int, optional): Amount of vectors to load. Defaults to 1
 
         Raises:
             TypeError: In case the value is not any of the supported values
 
         """
+        print(uniform)
+        print(value)
+        print(type(value))
         # get the uniform location id
         uniform_location: int = self.uniforms.get(uniform)
 
@@ -165,30 +171,38 @@ class Shader:
             elif isinstance(value[0], float):
                 glUniform2f(uniform_location, value[0], value[1])
 
+        elif isinstance(value, (list, tuple)) and len(value) == 3:
+            if isinstance(value[0], int):
+                glUniform3i(uniform_location, value[0], value[1], value[2])
+
+            elif isinstance(value[0], float):
+                glUniform3f(uniform_location, value[0], value[1], value[2])
+
         elif isinstance(value, glm.vec2):
-            glUniform2fv(uniform_location, 1, glm.value_ptr(value))
+            glUniform2fv(uniform_location, count if count else 1, glm.value_ptr(value))
 
         elif isinstance(value, glm.vec3):
-            glUniform3fv(uniform_location, 1, glm.value_ptr(value))
+            glUniform3fv(uniform_location, count if count else 1, glm.value_ptr(value))
 
         elif isinstance(value, glm.vec4):
-            glUniform4fv(uniform_location, 1, glm.value_ptr(value))
+            glUniform4fv(uniform_location, count if count else 1, glm.value_ptr(value))
 
         elif isinstance(value, glm.mat3):
-            glUniformMatrix3fv(uniform_location, 1, GL_FALSE, glm.value_ptr(value))
+            glUniformMatrix3fv(uniform_location, count if count else 1, GL_FALSE, glm.value_ptr(value))
 
         elif isinstance(value, glm.mat4):
-            glUniformMatrix4fv(uniform_location, 1, GL_FALSE, glm.value_ptr(value))
+            glUniformMatrix4fv(uniform_location, count if count else 1, GL_FALSE, glm.value_ptr(value))
 
         else:
             raise TypeError(f'Unsupported uniform type: {type(value)}')
 
-    def bind_uniform_float(self, uniform: str, value: any) -> None:
+    def bind_uniform_float(self, uniform: str, value: any, count: int = None) -> None:
         """Bind an OpenGL uniform value to its location in the shader.
 
         Args:
             uniform (str): String identifier of the uniform
             value (any): Value to set to the uniform
+            count (int, optional): Amount of vectors to load. Defaults to 1.
 
         Raises:
             TypeError: In case the value is not any of the supported values
@@ -221,20 +235,23 @@ class Shader:
         elif isinstance(value, (list, tuple)) and len(value) == 2:
             glUniform2f(uniform_location, value[0], value[1])
 
+        elif isinstance(value, (list, tuple)) and len(value) == 3:
+            glUniform3f(uniform_location, value[0], value[1], value[2])
+
         elif isinstance(value, glm.vec2):
-            glUniform2fv(uniform_location, 1, glm.value_ptr(value))
+            glUniform2fv(uniform_location, count if count else 1, glm.value_ptr(value))
 
         elif isinstance(value, glm.vec3):
-            glUniform3fv(uniform_location, 1, glm.value_ptr(value))
+            glUniform3fv(uniform_location, count if count else 1, glm.value_ptr(value))
 
         elif isinstance(value, glm.vec4):
-            glUniform4fv(uniform_location, 1, glm.value_ptr(value))
+            glUniform4fv(uniform_location, count if count else 1, glm.value_ptr(value))
 
         elif isinstance(value, glm.mat3):
-            glUniformMatrix3fv(uniform_location, 1, GL_FALSE, glm.value_ptr(value))
+            glUniformMatrix3fv(uniform_location, count if count else 1, GL_FALSE, glm.value_ptr(value))
 
         elif isinstance(value, glm.mat4):
-            glUniformMatrix4fv(uniform_location, 1, GL_FALSE, glm.value_ptr(value))
+            glUniformMatrix4fv(uniform_location, count if count else 1, GL_FALSE, glm.value_ptr(value))
 
         else:
             raise TypeError(f'Unsupported uniform type: {type(value)}')

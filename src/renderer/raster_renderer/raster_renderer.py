@@ -12,6 +12,7 @@ from renderer.raster_renderer.raster_renderer_modules import (
     RasterMSAARenderer,
     RasterSkyboxRenderer,
 )
+from renderer.raster_renderer.raster_renderer_modules.raster_deferred_renderer import RasterDeferredRenderer
 from renderer.renderer_manager.renderer_manager import MeshManager, RendererManager
 from renderer.shader.shader import Shader
 from utils import Singleton, Timer, get_ogl_matrix, timeit
@@ -39,6 +40,7 @@ class RasterRenderer(metaclass=Singleton):
         self._skybox_renderer: RasterSkyboxRenderer = RasterSkyboxRenderer(
             'assets/textures/skybox/hdri/autumn_forest.jpg'
         )
+        self._deferred_renderer: RasterDeferredRenderer = RasterDeferredRenderer(rm.width, rm.height)
 
         self._setup_opengl()
         self._setup_textures()
@@ -70,7 +72,7 @@ class RasterRenderer(metaclass=Singleton):
     def _setup_opengl(self) -> None:
         """Set the OpenGL constants for rendering."""
         # set the clear color to a dark grey
-        glClearColor(0.1, 0.1, 0.1, 1.0)
+        glClearColor(0.0, 0.0, 0.0, 1.0)
         # enable depth testing (hide further away triangles if covered)
         glEnable(GL_DEPTH_TEST)
         glDepthFunc(GL_LEQUAL)
@@ -215,6 +217,23 @@ class RasterRenderer(metaclass=Singleton):
         # render the skybox
         self._render_skybox()
 
+        self._deferred_renderer.render(
+            rm.single_render_models,
+            rm.mesh_manager._vaos,
+            rm.mesh_manager._indices_count,
+            rm.materials,
+            rm.model_matrices,
+            rm.camera.view_matrix,
+            rm.projection_matrix,
+            rm.camera.position,
+            [rm.light_positions[0], rm.light_positions[1], rm.light_positions[2]],
+            rm.light_positions,
+            rm.light_colors,
+            rm.light_strengths,
+            rm.lights_count,
+            rm.shadow_far_plane,
+        )
+
         # --------------------- Post processing ----------------------
         # disable depth testing
         glDisable(GL_DEPTH_TEST)
@@ -293,7 +312,7 @@ class RasterRenderer(metaclass=Singleton):
 
             # check if the new model has a different mesh
             if last_mesh != model.mesh:
-                # if it does, bind the new VAO               
+                # if it does, bind the new VAO
                 last_mesh = model.mesh
                 last_mesh_indices_count = mm.bind_mesh(model.mesh)
 
@@ -372,7 +391,6 @@ class RasterRenderer(metaclass=Singleton):
 
         # keep track of the last bound mesh
         last_mesh: str = ''
-
 
         # iterate through all the models for single pass rendering
         for model in rm.single_render_models:
@@ -891,6 +909,7 @@ class RasterRenderer(metaclass=Singleton):
         self._dof_renderer.update_size(rm.width, rm.height)
         self._msaa_renderer.update_size(rm.width, rm.height)
         self._skybox_renderer.update_size(rm.width, rm.height)
+        self._deferred_renderer.update_size(rm.width, rm.height)
 
     @property
     def last_front_frame(self) -> int:

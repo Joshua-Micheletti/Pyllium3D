@@ -6,6 +6,7 @@ from utils.framebuffer import (
     check_framebuffer_status,
     create_cubemap_framebuffer,
     create_framebuffer,
+    create_g_buffer,
     create_multisample_framebuffer,
 )
 from utils.matrix import create_projection_matrix, create_view_cubemap_matrices, create_view_matrix, get_ogl_matrix
@@ -55,4 +56,5 @@ __all__ = [
     'create_view_matrix',
     'get_ogl_matrix',
     'create_view_cubemap_matrices',
+    'create_g_buffer',
 ]

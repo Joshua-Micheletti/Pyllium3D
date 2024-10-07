@@ -24,16 +24,18 @@ class MeshManager(metaclass=Singleton):
         self._vertices_count: dict[str, int] = {}
         # dictionary of number of indices per mesh
         self._indices_count: dict[str, int] = {}
-        
+
         # bounding box and sphere data
         self._aabb_mins: dict[str, glm.vec3] = {}
         self._aabb_maxs: dict[str, glm.vec3] = {}
-        
+
         self._bounding_sphere_radius: dict[str, float] = {}
         self._bounding_sphere_center: dict[str, glm.vec3] = {}
-        
+
         self._indices: dict[str, int] = {}
-        
+
+    def vao(self, name: str) -> int:
+        return self._vaos.get(name)
 
     def new_mesh(self, name: str, file_path: str) -> None:
         # empty lists to contain the vertices data taken from the file
@@ -192,5 +194,5 @@ class MeshManager(metaclass=Singleton):
         self._bounding_sphere_center[name] = center
 
     def bind_mesh(self, name: str) -> int:
-        glBindVertexArray(self._vaos[name])
-        return(self._indices_count[name])
+        glBindVertexArray(self._vaos.get(name))
+        return self._indices_count.get(name)

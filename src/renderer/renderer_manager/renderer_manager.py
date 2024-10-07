@@ -81,7 +81,7 @@ class RendererManager(metaclass=Singleton):
         self.positions = {}
         self.rotations = {}
         self.scales = {}
-        
+
         self.mesh_manager = MeshManager()
 
         # self.aabb_mins = {}
@@ -270,14 +270,14 @@ class RendererManager(metaclass=Singleton):
     # method to create a new mesh, a count can be specified to generate more than 1 mesh with the same 3D model
     # @timeit(info_position=2, info=True)
     # def new_mesh(self, name: str, file_path: str) -> None:
-        # """Method to create a new mesh from an obj file
+    # """Method to create a new mesh from an obj file
 
-        # Args:
-        #     name (str): name of the new mesh
-        #     file_path (str): directory of the .obj file
+    # Args:
+    #     name (str): name of the new mesh
+    #     file_path (str): directory of the .obj file
 
-        # """
-        # mesh_manager.new_mesh(self, name, file_path)
+    # """
+    # mesh_manager.new_mesh(self, name, file_path)
 
     # method to load json indiced meshes
     # @timeit()

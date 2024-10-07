@@ -188,3 +188,65 @@ def create_cubemap_framebuffer(size: int = 512, mipmap: bool = False) -> tuple[i
     glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
     return (framebuffer, cubemap, renderbuffer)
+
+
+def create_g_buffer(width: int, height: int) -> tuple[int, int, int, int, int, int]:
+    """Create a GBuffer for deferred rendering.
+
+    Args:
+        width (int): Width of the GBuffer
+        height (int): Height of the GBuffer
+
+    Returns:
+        tuple[int, int, int, int, int]: Framebuffer, position texture, normal texture, color texture, depth renderbuffer
+
+    """
+    g_buffer: int = glGenFramebuffers(1)
+    glBindFramebuffer(GL_FRAMEBUFFER, g_buffer)
+
+    # - position color buffer
+    position_texture: int = glGenTextures(1)
+    glBindTexture(GL_TEXTURE_2D, position_texture)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, None)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, position_texture, 0)
+
+    # - normal color buffer
+    normal_texture: int = glGenTextures(1)
+    glBindTexture(GL_TEXTURE_2D, normal_texture)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, None)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normal_texture, 0)
+
+    # - color + specular color buffer
+    color_texture: int = glGenTextures(1)
+    glBindTexture(GL_TEXTURE_2D, color_texture)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, None)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, color_texture, 0)
+
+    # - metallic + roughness buffer
+    pbr_texture: int = glGenTextures(1)
+    glBindTexture(GL_TEXTURE_2D, pbr_texture)
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, None)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, pbr_texture, 0)
+
+    # - tell OpenGL which color attachments we'll use (of this framebuffer) for rendering
+    attachments: list[int] = [GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3]
+    glDrawBuffers(4, attachments)
+
+    depth_renderbuffer: int = glGenRenderbuffers(1)
+    glBindRenderbuffer(GL_RENDERBUFFER, depth_renderbuffer)
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height)
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth_renderbuffer)
+
+    check_framebuffer_status()
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0)
+
+    return (g_buffer, position_texture, normal_texture, color_texture, pbr_texture, depth_renderbuffer)
