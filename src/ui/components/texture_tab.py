@@ -32,33 +32,33 @@ class TextureTab:
         # imgui.image(rm.solved_texture, texture_width, texture_height, (0, 1), (1, 0))
         # with imgui.begin("Blurred texture"):
         imgui.image(rr._blur_renderer.output_texture, texture_width, texture_height, (0, 1), (1, 0))
-        if imgui.is_item_hovered():
-            self._image_tooltip(rr._blur_renderer.output_texture, texture_width, texture_height)
+        # if imgui.is_item_hovered():
+        #     self._image_tooltip(rr._blur_renderer.output_texture, texture_width, texture_height)
         imgui.same_line()
         # imgui.image(rm.blurred_texture, texture_width, texture_height, (0, 1), (1, 0))
         imgui.image(rr._bloom_renderer._bloom_mips[0], texture_width, texture_height, (0, 1), (1, 0))
-        if imgui.is_item_hovered():
-            self._image_tooltip(rr._blur_renderer.output_texture, texture_width, texture_height)
+        # if imgui.is_item_hovered():
+        #     self._image_tooltip(rr._blur_renderer.output_texture, texture_width, texture_height)
         imgui.same_line()
         imgui.image(rr._deferred_renderer._output_depth, texture_width, texture_height, (0, 1), (1, 0))
-        if imgui.is_item_hovered():
-            self._image_tooltip(rr._blur_renderer.output_texture, texture_width, texture_height)
+        # if imgui.is_item_hovered():
+        #     self._image_tooltip(rr._blur_renderer.output_texture, texture_width, texture_height)
         
         imgui.image(rr._deferred_renderer._position_texture, texture_width, texture_height, (0, 1), (1, 0))
-        if imgui.is_item_hovered():
-            self._image_tooltip(rr._blur_renderer.output_texture, texture_width, texture_height)
+        # if imgui.is_item_hovered():
+        #     self._image_tooltip(rr._blur_renderer.output_texture, texture_width, texture_height)
         imgui.same_line()
         imgui.image(rr._deferred_renderer._normal_texture, texture_width, texture_height, (0, 1), (1, 0))
-        if imgui.is_item_hovered():
-            self._image_tooltip(rr._blur_renderer.output_texture, texture_width, texture_height)
+        # if imgui.is_item_hovered():
+        #     self._image_tooltip(rr._blur_renderer.output_texture, texture_width, texture_height)
         imgui.same_line()
         imgui.image(rr._deferred_renderer._color_texture, texture_width, texture_height, (0, 1), (1, 0))
-        if imgui.is_item_hovered():
-            self._image_tooltip(rr._blur_renderer.output_texture, texture_width, texture_height)
+        # if imgui.is_item_hovered():
+        #     self._image_tooltip(rr._blur_renderer.output_texture, texture_width, texture_height)
         
         imgui.image(rr._deferred_renderer._pbr_texture, texture_width, texture_height, (0, 1), (1, 0))
-        if imgui.is_item_hovered():
-            self._image_tooltip(rr._blur_renderer.output_texture, texture_width, texture_height)
+        # if imgui.is_item_hovered():
+        #     self._image_tooltip(rr._blur_renderer.output_texture, texture_width, texture_height)
         
     def _image_tooltip(self, texture_id, tex_w, tex_h):
         with imgui.begin_tooltip():
