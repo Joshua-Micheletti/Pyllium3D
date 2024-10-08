@@ -199,13 +199,13 @@ class RasterRenderer(metaclass=Singleton):
         # -------------------- Mesh rendering -------------------------
         # bind the render framebuffer
         # if we're doing multisampling
-        if rm.samples != 1:
-            # bind the multisample framebuffer
-            glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
-        # otherwise
-        else:
-            # bind the back framebuffer (?)
-            glBindFramebuffer(GL_FRAMEBUFFER, rm.get_back_framebuffer())
+        # if rm.samples != 1:
+        #     # bind the multisample framebuffer
+        # glBindFramebuffer(GL_FRAMEBUFFER, rm.render_framebuffer)
+        # # otherwise
+        # else:
+        # bind the back framebuffer (?)
+        glBindFramebuffer(GL_FRAMEBUFFER, rm.get_back_framebuffer())
 
         # clear the depth buffer
         glClear(GL_DEPTH_BUFFER_BIT)
@@ -214,8 +214,6 @@ class RasterRenderer(metaclass=Singleton):
         self._render_models()
         # and the instances
         self._render_instances()
-        # render the skybox
-        self._render_skybox()
 
         self._deferred_renderer.render(
             rm.single_render_models,
@@ -234,6 +232,18 @@ class RasterRenderer(metaclass=Singleton):
             rm.shadow_far_plane,
         )
 
+        # render the skybox
+        self._render_skybox()
+        
+        # self._last_front_frame = rm.tmp_texture
+        # self._depth_texture = rm.tmp_depth_texture
+        
+        # self._last_front_frame = self._deferred_renderer._output_texture
+
+        self._last_front_frame = self._deferred_renderer._output_texture
+        self._depth_texture = self._deferred_renderer._output_depth
+        
+
         # --------------------- Post processing ----------------------
         # disable depth testing
         glDisable(GL_DEPTH_TEST)
@@ -242,7 +252,7 @@ class RasterRenderer(metaclass=Singleton):
         # these settings are common to all post processing passes
 
         # solve the multisample texture
-        self._render_msaa()
+        # self._render_msaa()
         # render the bloom effect (includes HDR tonemapping)
         self._render_bloom()
         # render the blur texture

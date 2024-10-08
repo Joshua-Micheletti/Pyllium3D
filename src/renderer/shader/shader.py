@@ -13,11 +13,11 @@ from OpenGL.GL import (
     glUniform2i,
     glUniform3f,
     glUniform3fv,
+    glUniform3i,
     glUniform4fv,
     glUniformMatrix3fv,
     glUniformMatrix4fv,
     glUseProgram,
-    glUniform3i,
 )
 from OpenGL.GL.shaders import compileProgram, compileShader
 
@@ -134,9 +134,9 @@ class Shader:
             TypeError: In case the value is not any of the supported values
 
         """
-        print(uniform)
-        print(value)
-        print(type(value))
+        # print(uniform)
+        # print(value)
+        # print(type(value))
         # get the uniform location id
         uniform_location: int = self.uniforms.get(uniform)
 
