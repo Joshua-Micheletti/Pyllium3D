@@ -138,13 +138,21 @@ class RasterDeferredRenderer:
         # setup the gbuffer shader uniforms
         self._g_buffer_shader.bind_uniform('view', get_ogl_matrix(view_matrix))
         self._g_buffer_shader.bind_uniform('projection', get_ogl_matrix(projection_matrix))
+        
+        current_material_name: str = ''
+        current_material: Material = None
 
         # iterate through the models in the scene
         for model in models:
+            if model.material != current_material_name:
+                current_material_name = model.material
+                current_material = materials.get(current_material_name)
+                self._g_buffer_shader.bind_uniform_float('albedo', current_material.diffuse)
+                self._g_buffer_shader.bind_uniform_float('roughness', current_material.roughness)
+                self._g_buffer_shader.bind_uniform_float('metallic', current_material.metallic)
+                
+            
             # bind the model information to be processed and saved in the gbuffer
-            self._g_buffer_shader.bind_uniform_float('albedo', materials.get(model.material).diffuse)
-            self._g_buffer_shader.bind_uniform_float('roughness', materials.get(model.material).roughness)
-            self._g_buffer_shader.bind_uniform_float('metallic', materials.get(model.material).metallic)
             self._g_buffer_shader.bind_uniform('model', get_ogl_matrix(model_matrices.get(model.name)))
             # bind the mesh VAO
             glBindVertexArray(vaos.get(model.mesh))

@@ -31,6 +31,62 @@ materials:
     roughness: 0.9
     metallic: 0.1
 
+  rough_grey:
+    diffuse_r: 0.5
+    diffuse_g: 0.5
+    diffuse_b: 0.5
+    roughness: 0.9
+    metallic: 0.1
+
+  rough_purple:
+    diffuse_r: 1.0
+    diffuse_g: 0.0
+    diffuse_b: 1.0
+    roughness: 0.9
+    metallic: 0.1
+
+  rough_yellow:
+    diffuse_r: 1.0
+    diffuse_g: 1.0
+    diffuse_b: 0.0
+    roughness: 0.9
+    metallic: 0.1
+
+  rough_cyan:
+    diffuse_r: 0.0
+    diffuse_g: 1.0
+    diffuse_b: 1.0
+    roughness: 0.9
+    metallic: 0.1
+
+  rough_black:
+    diffuse_r: 0.0
+    diffuse_g: 0.0
+    diffuse_b: 0.0
+    roughness: 0.9
+    metallic: 0.1
+
+  rough_pastel_red:
+    diffuse_r: 1.0
+    diffuse_g: 0.4117647058823529
+    diffuse_b: 0.3803921568627451
+    roughness: 0.9
+    metallic: 0.1
+
+  rough_pastel_green:
+    diffuse_r: 0.5019607843137255
+    diffuse_g: 0.9372549019607843
+    diffuse_b: 0.5019607843137255
+    roughness: 0.9
+    metallic: 0.1
+
+  rough_pastel_blue:
+    diffuse_r: 0.6823529411764706
+    diffuse_g: 0.7764705882352941
+    diffuse_b: 0.8117647058823529
+    roughness: 0.9
+    metallic: 0.1
+
   white:
     diffuse_r: 1.0
     diffuse_g: 1.0
@@ -50,6 +106,46 @@ materials:
     diffuse_r: 0.0
     diffuse_g: 0.0
     diffuse_b: 1.0
+
+  grey:
+    diffuse_r: 0.5
+    diffuse_g: 0.5
+    diffuse_b: 0.5
+
+  purple:
+    diffuse_r: 1.0
+    diffuse_g: 0.0
+    diffuse_b: 1.0
+
+  yellow:
+    diffuse_r: 1.0
+    diffuse_g: 1.0
+    diffuse_b: 0.0
+
+  cyan:
+    diffuse_r: 0.0
+    diffuse_g: 1.0
+    diffuse_b: 1.0
+
+  black:
+    diffuse_r: 0.0
+    diffuse_g: 0.0
+    diffuse_b: 0.0
+
+  pastel_red:
+    diffuse_r: 1.0
+    diffuse_g: 0.4117647058823529
+    diffuse_b: 0.3803921568627451
+
+  pastel_green:
+    diffuse_r: 0.5019607843137255
+    diffuse_g: 0.9372549019607843
+    diffuse_b: 0.5019607843137255
+
+  pastel_blue:
+    diffuse_r: 0.6823529411764706
+    diffuse_g: 0.7764705882352941
+    diffuse_b: 0.8117647058823529
 
   shiny_white:
     diffuse_r: 1.0
@@ -76,6 +172,62 @@ materials:
     diffuse_r: 0.0
     diffuse_g: 0.0
     diffuse_b: 1.0
+    roughness: 0.1
+    metallic: 0.9
+
+  shiny_grey:
+    diffuse_r: 0.5
+    diffuse_g: 0.5
+    digguse_b: 0.5
+    roughness: 0.1
+    metallic: 0.9
+
+  shiny_purple:
+    diffuse_r: 1.0
+    diffuse_g: 0.0
+    diffuse_b: 1.0
+    roughness: 0.1
+    metallic: 0.9
+
+  shiny_yellow:
+    diffuse_r: 1.0
+    diffuse_g: 1.0
+    diffuse_b: 0.0
+    roughness: 0.1
+    metallic: 0.9
+
+  shiny_cyan:
+    diffuse_r: 0.0
+    diffuse_g: 1.0
+    diffuse_b: 1.0
+    roughness: 0.1
+    metallic: 0.9
+  
+  shiny_black:
+    diffuse_r: 0.0
+    diffuse_g: 0.0
+    diffuse_b: 0.0
+    roughness: 0.1
+    metallic: 0.9
+
+  shiny_pastel_red:
+    diffuse_r: 1.0
+    diffuse_g: 0.4117647058823529
+    diffuse_b: 0.3803921568627451
+    roughness: 0.1
+    metallic: 0.9
+
+  shiny_pastel_green:
+    diffuse_r: 0.5019607843137255
+    diffuse_g: 0.9372549019607843
+    diffuse_b: 0.5019607843137255
+    roughness: 0.1
+    metallic: 0.9
+
+  shiny_pastel_blue:
+    diffuse_r: 0.6823529411764706
+    diffuse_g: 0.7764705882352941
+    diffuse_b: 0.8117647058823529
     roughness: 0.1
     metallic: 0.9
 
@@ -196,114 +348,221 @@ models:
       y: 2
       z: 2
 
-  sphere_rough_white_2:
+  sphere_rough_grey:
     mesh: "sphere"
     shader: "pbr"
-    material: "rough_white"
+    material: "rough_grey"
     scale:
       x: 2
       y: 2
       z: 2
 
-  sphere_rough_red_2:
+  sphere_rough_purple:
     mesh: "sphere"
     shader: "pbr"
-    material: "rough_red"
+    material: "rough_purple"
     scale:
       x: 2
       y: 2
       z: 2
 
-  sphere_rough_green_2:
+  sphere_rough_yellow:
     mesh: "sphere"
     shader: "pbr"
-    material: "rough_green"
+    material: "rough_yellow"
     scale:
       x: 2
       y: 2
       z: 2
 
-  sphere_rough_blue_2:
+  sphere_rough_cyan:
     mesh: "sphere"
     shader: "pbr"
-    material: "rough_blue"
+    material: "rough_cyan"
     scale:
       x: 2
       y: 2
       z: 2
 
-  sphere_white_2:
+  sphere_rough_black:
     mesh: "sphere"
     shader: "pbr"
-    material: "white"
+    material: "rough_black"
     scale:
       x: 2
       y: 2
       z: 2
 
-  sphere_red_2:
+  sphere_rough_pastel_red:
     mesh: "sphere"
     shader: "pbr"
-    material: "red"
+    material: "rough_pastel_red"
     scale:
       x: 2
       y: 2
       z: 2
 
-  sphere_green_2:
+  sphere_rough_pastel_green:
     mesh: "sphere"
     shader: "pbr"
-    material: "green"
+    material: "rough_pastel_green"
     scale:
       x: 2
       y: 2
       z: 2
 
-  sphere_blue_2:
+  sphere_rough_pastel_blue:
     mesh: "sphere"
     shader: "pbr"
-    material: "blue"
+    material: "rough_pastel_blue"
     scale:
       x: 2
       y: 2
       z: 2
 
-  sphere_shiny_white_2:
+  sphere_grey:
     mesh: "sphere"
     shader: "pbr"
-    material: "shiny_white"
+    material: "grey"
     scale:
       x: 2
       y: 2
       z: 2
 
-  sphere_shiny_red_2:
+  sphere_purple:
     mesh: "sphere"
     shader: "pbr"
-    material: "shiny_red"
+    material: "purple"
     scale:
       x: 2
       y: 2
       z: 2
 
-  sphere_shiny_green_2:
+  sphere_yellow:
     mesh: "sphere"
     shader: "pbr"
-    material: "shiny_green"
+    material: "yellow"
     scale:
       x: 2
       y: 2
       z: 2
 
-  sphere_shiny_blue_2:
+  sphere_cyan:
     mesh: "sphere"
     shader: "pbr"
-    material: "shiny_blue"
+    material: "cyan"
     scale:
       x: 2
       y: 2
       z: 2
 
+  sphere_black:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "black"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_pastel_red:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "pastel_red"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_pastel_green:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "pastel_green"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_pastel_blue:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "pastel_blue"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_shiny_grey:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "shiny_grey"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_shiny_purple:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "shiny_purple"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_shiny_yellow:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "shiny_yellow"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_shiny_cyan:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "shiny_cyan"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_shiny_black:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "shiny_black"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_shiny_pastel_red:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "shiny_pastel_red"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_shiny_pastel_green:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "shiny_pastel_green"
+    scale:
+      x: 2
+      y: 2
+      z: 2
+
+  sphere_shiny_pastel_blue:
+    mesh: "sphere"
+    shader: "pbr"
+    material: "shiny_pastel_blue"
+    scale:
+      x: 2
+      y: 2
+      z: 2
 
   floor:
     mesh: "quad"
@@ -399,88 +658,172 @@ physics_bodies:
       y: 9
       z: -0.01
 
-  p_sphere_rough_white_2:
+  p_sphere_rough_grey:
     shape: "sphere"
     position:
       x: -4
       y: 11
       z: 0
 
-  p_sphere_rough_red_2:
+  p_sphere_rough_purple:
     shape: "sphere"
     position:
       x: -1.333
       y: 11
       z: 0
 
-  p_sphere_rough_green_2:
+  p_sphere_rough_yellow:
     shape: "sphere"
     position:
       x: 1.333
       y: 11
       z: 0
 
-  p_sphere_rough_blue_2:
+  p_sphere_rough_cyan:
     shape: "sphere"
     position:
       x: 4
       y: 11
       z: 0
 
-  p_sphere_white_2:
+  p_sphere_grey:
     shape: "sphere"
     position:
       x: -4.01
       y: 13
       z: 0.01
 
-  p_sphere_red_2:
+  p_sphere_purple:
     shape: "sphere"
     position:
       x: -1.334
       y: 13
       z: 0.01
 
-  p_sphere_green_2:
+  p_sphere_yellow:
     shape: "sphere"
     position:
       x: 1.334
       y: 13
       z: 0.01
 
-  p_sphere_blue_2:
+  p_sphere_cyan:
     shape: "sphere"
     position:
       x: 4.01
       y: 13
       z: 0.01
 
-  p_sphere_shiny_white_2:
+  p_sphere_shiny_grey:
     shape: "sphere"
     position:
       x: -4.02
       y: 15
       z: -0.01
 
-  p_sphere_shiny_red_2:
+  p_sphere_shiny_purple:
     shape: "sphere"
     position:
       x: -1.332
       y: 15
       z: -0.01
 
-  p_sphere_shiny_green_2:
+  p_sphere_shiny_yellow:
     shape: "sphere"
     position:
       x: 1.332
       y: 15
       z: -0.01
 
-  p_sphere_shiny_blue_2:
+  p_sphere_shiny_cyan:
     shape: "sphere"
     position:
       x: 4.02
       y: 15
+      z: -0.01
+
+  p_sphere_rough_black:
+    shape: "sphere"
+    position:
+      x: -4.02
+      y: 17
+      z: -0.01
+
+  p_sphere_rough_pastel_red:
+    shape: "sphere"
+    position:
+      x: -1.332
+      y: 17
+      z: -0.01
+
+  p_sphere_rough_pastel_green:
+    shape: "sphere"
+    position:
+      x: 1.332
+      y: 17
+      z: -0.01
+
+  p_sphere_rough_pastel_blue:
+    shape: "sphere"
+    position:
+      x: 4.02
+      y: 17
+      z: -0.01
+
+  p_sphere_black:
+    shape: "sphere"
+    position:
+      x: -4.02
+      y: 19
+      z: -0.01
+
+  p_sphere_pastel_red:
+    shape: "sphere"
+    position:
+      x: -1.332
+      y: 19
+      z: -0.01
+
+  p_sphere_pastel_green:
+    shape: "sphere"
+    position:
+      x: 1.332
+      y: 19
+      z: -0.01
+
+  p_sphere_pastel_blue:
+    shape: "sphere"
+    position:
+      x: 4.02
+      y: 19
+      z: -0.01
+
+  p_sphere_shiny_black:
+    shape: "sphere"
+    position:
+      x: -4.02
+      y: 21
+      z: -0.01
+
+  p_sphere_shiny_pastel_red:
+    shape: "sphere"
+    position:
+      x: -1.332
+      y: 21
+      z: -0.01
+
+  p_sphere_shiny_pastel_green:
+    shape: "sphere"
+    position:
+      x: 1.332
+      y: 21
+      z: -0.01
+
+  p_sphere_shiny_pastel_blue:
+    shape: "sphere"
+    position:
+      x: 4.02
+      y: 21
       z: -0.01
 
   p_floor:
@@ -557,16 +900,28 @@ links:
   p_sphere_shiny_red: "sphere_shiny_red"
   p_sphere_shiny_green: "sphere_shiny_green"
   p_sphere_shiny_blue: "sphere_shiny_blue"
-  p_sphere_rough_white_2: "sphere_rough_white_2"
-  p_sphere_rough_red_2: "sphere_rough_red_2"
-  p_sphere_rough_green_2: "sphere_rough_green_2"
-  p_sphere_rough_blue_2: "sphere_rough_blue_2"
-  p_sphere_white_2: "sphere_white_2"
-  p_sphere_red_2: "sphere_red_2"
-  p_sphere_green_2: "sphere_green_2"
-  p_sphere_blue_2: "sphere_blue_2"
-  p_sphere_shiny_white_2: "sphere_shiny_white_2"
-  p_sphere_shiny_red_2: "sphere_shiny_red_2"
-  p_sphere_shiny_green_2: "sphere_shiny_green_2"
-  p_sphere_shiny_blue_2: "sphere_shiny_blue_2"
+  p_sphere_rough_grey: "sphere_rough_grey"
+  p_sphere_rough_purple: "sphere_rough_purple"
+  p_sphere_rough_yellow: "sphere_rough_yellow"
+  p_sphere_rough_cyan: "sphere_rough_cyan"
+  p_sphere_grey: "sphere_grey"
+  p_sphere_purple: "sphere_purple"
+  p_sphere_yellow: "sphere_yellow"
+  p_sphere_cyan: "sphere_cyan"
+  p_sphere_shiny_grey: "sphere_shiny_grey"
+  p_sphere_shiny_purple: "sphere_shiny_purple"
+  p_sphere_shiny_yellow: "sphere_shiny_yellow"
+  p_sphere_shiny_cyan: "sphere_shiny_cyan"
+  p_sphere_rough_black: "sphere_rough_black"
+  p_sphere_rough_pastel_red: "sphere_rough_pastel_red"
+  p_sphere_rough_pastel_green: "sphere_rough_pastel_green"
+  p_sphere_rough_pastel_blue: "sphere_rough_pastel_blue"
+  p_sphere_black: "sphere_black"
+  p_sphere_pastel_red: "sphere_pastel_red"
+  p_sphere_pastel_green: "sphere_pastel_green"
+  p_sphere_pastel_blue: "sphere_pastel_blue"
+  p_sphere_shiny_black: "sphere_shiny_black"
+  p_sphere_shiny_pastel_red: "sphere_shiny_pastel_red"
+  p_sphere_shiny_pastel_green: "sphere_shiny_pastel_green"
+  p_sphere_shiny_pastel_blue: "sphere_shiny_pastel_blue"
   p_floor: "floor"

@@ -211,9 +211,9 @@ class RasterRenderer(metaclass=Singleton):
         glClear(GL_DEPTH_BUFFER_BIT)
 
         # draw the single models
-        self._render_models()
+        # self._render_models()
         # and the instances
-        self._render_instances()
+        # self._render_instances()
 
         self._deferred_renderer.render(
             rm.single_render_models,
