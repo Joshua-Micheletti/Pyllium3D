@@ -62,6 +62,7 @@ class RasterForwardModelRenderer:
                 # self._link_shader_uniforms(shaders[model.shader])
                 shader.bind_uniform('view', view_matrix)
                 shader.bind_uniform('projection', projection_matrix)
+
                 # keep track of the last set shader
                 last_shader = model.shader
 

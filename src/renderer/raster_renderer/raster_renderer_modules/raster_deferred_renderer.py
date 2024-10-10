@@ -2,8 +2,10 @@
 
 # ruff: noqa: F403, F405
 
+import glm
 from OpenGL.GL import *
 
+from renderer.camera.camera import Camera
 from renderer.material.material import Material
 from renderer.model.model import Model
 from renderer.shader.shader import Shader
@@ -13,14 +15,14 @@ from utils.framebuffer import create_framebuffer
 
 class RasterDeferredRenderer:
     """Deferred Raster Renderer."""
-    
+
     def __init__(self, width: int = 800, height: int = 600) -> None:
         """Set the deferred renderer.
 
         Args:
             width (int, optional): Width of the renderer. Defaults to 800
             height (int, optional): Height of the renderer. Defaults to 600
-            
+
         """
         # sizes of the renderer
         self._width: int = width
@@ -33,11 +35,11 @@ class RasterDeferredRenderer:
         self._color_texture: int
         self._pbr_texture: int
         self._depth_renderbuffer: int
-        
+
         self._output_framebuffer: int
         self._output_texture: int
         self._output_depth: int
-        
+
         # rendering shaders
         self._g_buffer_shader: Shader
 
@@ -80,7 +82,7 @@ class RasterDeferredRenderer:
         Args:
             width (int): New width
             height (int): New height
-            
+
         """
         # if the new dimensions are the same as the original ones, don't do anything
         if self._width == width and self._height == height:
@@ -109,6 +111,9 @@ class RasterDeferredRenderer:
         light_strengths: any,
         lights_count: any,
         far_plane: any,
+        camera: Camera,
+        bounding_sphere_centers: dict[str, glm.vec3],
+        bounding_sphere_radiuses: dict[str, float],
     ) -> None:
         """Render in deferred rendering.
 
@@ -127,7 +132,8 @@ class RasterDeferredRenderer:
             light_strengths (any): List of light strengths
             lights_count (any): Number of lights in the scene
             far_plane (any): Far plane of the shadow
-            
+            camera (Camera): Camera object
+
         """
         # bind the g buffer
         glBindFramebuffer(GL_FRAMEBUFFER, self._g_buffer)
@@ -138,20 +144,24 @@ class RasterDeferredRenderer:
         # setup the gbuffer shader uniforms
         self._g_buffer_shader.bind_uniform('view', get_ogl_matrix(view_matrix))
         self._g_buffer_shader.bind_uniform('projection', get_ogl_matrix(projection_matrix))
-        
+
         current_material_name: str = ''
         current_material: Material = None
 
         # iterate through the models in the scene
         for model in models:
+            if not camera.frustum.check_visibility(
+                bounding_sphere_centers.get(model.name), bounding_sphere_radiuses.get(model.name)
+            ):
+                continue
+
             if model.material != current_material_name:
                 current_material_name = model.material
                 current_material = materials.get(current_material_name)
                 self._g_buffer_shader.bind_uniform_float('albedo', current_material.diffuse)
                 self._g_buffer_shader.bind_uniform_float('roughness', current_material.roughness)
                 self._g_buffer_shader.bind_uniform_float('metallic', current_material.metallic)
-                
-            
+
             # bind the model information to be processed and saved in the gbuffer
             self._g_buffer_shader.bind_uniform('model', get_ogl_matrix(model_matrices.get(model.name)))
             # bind the mesh VAO
@@ -191,9 +201,11 @@ class RasterDeferredRenderer:
 
         # draw the screen quad
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None)
-        
+
         # blit the depth information from the gbuffer to the output framebuffer
         glBindFramebuffer(GL_READ_FRAMEBUFFER, self._g_buffer)
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, self._output_framebuffer)
-        glBlitFramebuffer(0, 0, self._width, self._height, 0, 0, self._width, self._height, GL_DEPTH_BUFFER_BIT, GL_NEAREST)
+        glBlitFramebuffer(
+            0, 0, self._width, self._height, 0, 0, self._width, self._height, GL_DEPTH_BUFFER_BIT, GL_NEAREST
+        )
         glBindFramebuffer(GL_FRAMEBUFFER, self._output_framebuffer)

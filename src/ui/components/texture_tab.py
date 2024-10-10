@@ -1,9 +1,8 @@
 import imgui
+from OpenGL.GL import *
 
 from renderer.raster_renderer.raster_renderer import RasterRenderer
 from renderer.renderer_manager.renderer_manager import RendererManager
-
-from OpenGL.GL import *
 
 
 class TextureTab:
@@ -43,7 +42,7 @@ class TextureTab:
         imgui.image(rr._deferred_renderer._output_depth, texture_width, texture_height, (0, 1), (1, 0))
         # if imgui.is_item_hovered():
         #     self._image_tooltip(rr._blur_renderer.output_texture, texture_width, texture_height)
-        
+
         imgui.image(rr._deferred_renderer._position_texture, texture_width, texture_height, (0, 1), (1, 0))
         # if imgui.is_item_hovered():
         #     self._image_tooltip(rr._blur_renderer.output_texture, texture_width, texture_height)
@@ -55,11 +54,11 @@ class TextureTab:
         imgui.image(rr._deferred_renderer._color_texture, texture_width, texture_height, (0, 1), (1, 0))
         # if imgui.is_item_hovered():
         #     self._image_tooltip(rr._blur_renderer.output_texture, texture_width, texture_height)
-        
+
         imgui.image(rr._deferred_renderer._pbr_texture, texture_width, texture_height, (0, 1), (1, 0))
         # if imgui.is_item_hovered():
         #     self._image_tooltip(rr._blur_renderer.output_texture, texture_width, texture_height)
-        
+
     def _image_tooltip(self, texture_id, tex_w, tex_h):
         with imgui.begin_tooltip():
             io = imgui.get_io()
@@ -78,10 +77,9 @@ class TextureTab:
                 region_y = 0.0
             elif region_y > tex_h - region_sz:
                 region_y = tex_h - region_sz
-                
-            imgui.text(f"Min: ({region_x}, {region_y})")
+
+            imgui.text(f'Min: ({region_x}, {region_y})')
             # imgui.text("Max: (%.2f, %.2f)", region_x + region_sz, region_y + region_sz);
             uv0: tuple[float, float] = ((region_x) / tex_w, (region_y) / tex_h)
             uv1: tuple[float, float] = ((region_x + region_sz) / tex_w, (region_y + region_sz) / tex_h)
             imgui.image(texture_id, region_sz * zoom, region_sz * zoom, uv0, uv1)
-            

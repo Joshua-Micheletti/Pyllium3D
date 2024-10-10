@@ -230,19 +230,21 @@ class RasterRenderer(metaclass=Singleton):
             rm.light_strengths,
             rm.lights_count,
             rm.shadow_far_plane,
+            rm.camera,
+            rm.model_bounding_sphere_center,
+            rm.model_bounding_sphere_radius,
         )
 
         # render the skybox
         self._render_skybox()
-        
+
         # self._last_front_frame = rm.tmp_texture
         # self._depth_texture = rm.tmp_depth_texture
-        
+
         # self._last_front_frame = self._deferred_renderer._output_texture
 
         self._last_front_frame = self._deferred_renderer._output_texture
         self._depth_texture = self._deferred_renderer._output_depth
-        
 
         # --------------------- Post processing ----------------------
         # disable depth testing

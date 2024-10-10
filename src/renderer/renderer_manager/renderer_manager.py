@@ -227,7 +227,10 @@ class RendererManager(metaclass=Singleton):
 
         # creation of a camera object
         self.camera = Camera()
-        self.camera.set_frustum_params(float(self.width) / float(self.height), glm.radians(self.fov), 0.1, 10000.0)
+        self.camera.frustum.aspect = float(self.width) / float(self.height)
+        self.camera.frustum.fov_y = glm.radians(self.fov)
+        self.camera.frustum.z_near = 0.1
+        self.camera.frustum.z_far = 10000.0
 
         self.camera.place(0, 2, 5)
         # self.camera.turn(-90, -45)
@@ -636,7 +639,9 @@ class RendererManager(metaclass=Singleton):
         # )
         self.projection_matrix = create_projection_matrix(self.width, self.height, self.fov)
 
-        self.camera.set_frustum_params(float(self.width) / float(self.height), glm.radians(self.fov), 0.1, 10000.0)
+        self.camera.frustum.aspect = float(self.width) / float(self.height)
+        self.camera.frustum.fov_y = glm.radians(self.fov)
+        self.camera.frustum.calculate_frustum()
 
         # delete the renderbuffer and the texture of the framebuffer
         glDeleteTextures(

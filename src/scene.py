@@ -1,5 +1,8 @@
 """Set up the scene."""
 
+from colorsys import hsv_to_rgb
+from random import random
+
 from engine.engine import Engine
 from physics.physics_world import PhysicsWorld
 from renderer.renderer_manager.renderer_manager import RendererManager
@@ -22,6 +25,19 @@ def setup() -> None:
     _initialize_models(rm, scene.get('models'))
     _initialize_physics(pw, scene.get('physics_bodies'))
     _initialize_links(engine, scene.get('links'))
+
+    for i in range(2000):
+        color = hsv_to_rgb(random(), 1, 1)
+        rm.new_material(
+            name=f'{i}_material',
+            diffuse_r=color[0],
+            diffuse_g=color[1],
+            diffuse_b=color[2],
+            roughness=random(),
+            metallic=random(),
+        )
+        rm.new_model(f'{i}', 'sphere', 'pbr', None, f'{i}_material')
+        rm.place(f'{i}', (random() - 0.5) * 40, (random() - 0.5) * 40 + 20, (random() - 0.5) * 40)
 
 
 def update(dt: float) -> None:
