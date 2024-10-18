@@ -65,8 +65,15 @@ class RasterDOFRenderer(PostProcessingRenderer):
     def depth_texture(self, depth_texture: int) -> None:
         self._depth_texture = depth_texture
 
-    def render(self) -> None:
-        """Render the scene."""
+    def render(self, time: bool = False) -> None:
+        """Render the scene.
+
+        Args:
+            time (bool, optional): Flag whether to time the execution or not. Defaults to False.
+            
+        """
+        if time:
+            glBeginQuery(GL_TIME_ELAPSED, self._ogl_timer)
         # bind the main render framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, self._output_framebuffer)
         # use the DOF shader
@@ -83,3 +90,6 @@ class RasterDOFRenderer(PostProcessingRenderer):
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None)
         # set back the active texture slot to index 0
         glActiveTexture(GL_TEXTURE0)
+        
+        if time:
+            glEndQuery(GL_TIME_ELAPSED)

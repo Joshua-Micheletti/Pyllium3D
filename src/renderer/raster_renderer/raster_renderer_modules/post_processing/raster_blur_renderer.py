@@ -39,8 +39,15 @@ class RasterBlurRenderer(PostProcessingRenderer):
             './assets/shaders/post_processing/vertical_blur/vertical_blur.frag',
         )
 
-    def render(self) -> None:
-        """Render the scene with a 2 pass gaussian blur."""
+    def render(self, time: bool = False) -> None:
+        """Render the scene with a 2 pass gaussian blur.
+
+        Args:
+            time (bool, optional): Flag whether to time the execution or not. Defaults to False.
+            
+        """
+        if time:
+            glBeginQuery(GL_TIME_ELAPSED, self._ogl_timer)
         # --------- FIRST PASS (HORIZONTAL) ----------
         # bind the framebuffer to render the horizontally blurred image to
         glBindFramebuffer(GL_FRAMEBUFFER, self._horizontal_blurred_framebuffer)
@@ -62,3 +69,6 @@ class RasterBlurRenderer(PostProcessingRenderer):
         glBindTexture(GL_TEXTURE_2D, self._horizontal_blurred_texture)
         # render the vertically blurred image
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None)
+        
+        if time:
+            glEndQuery(GL_TIME_ELAPSED)

@@ -5,7 +5,7 @@ import math
 import glm
 
 from renderer.camera.frustum import Frustum
-from utils import create_view_matrix
+from utils import create_view_matrix, get_ogl_matrix
 
 
 class Camera:
@@ -35,6 +35,8 @@ class Camera:
         # calculate the view matrix
         self._view_matrix = create_view_matrix(self._position, self._position + self._front, self._world_up)
         self._center_view_matrix = create_view_matrix(glm.vec3(0.0), self._front, self._world_up)
+        self._ogl_view_matrix = get_ogl_matrix(self._view_matrix)
+        self._ogl_center_view_matrix = get_ogl_matrix(self._center_view_matrix)
 
     # ---------------------------- Setters and Getters --------------------------- #
     @property
@@ -51,41 +53,21 @@ class Camera:
     def center_view_matrix(self) -> glm.mat4:
         """View matrix without the position factored in."""
         return self._center_view_matrix
+    
+    @property
+    def ogl_view_matrix(self) -> glm.mat4:
+        """OpenGL View matrix of the camera."""
+        return self._ogl_view_matrix
+
+    @property
+    def ogl_center_view_matrix(self) -> glm.mat4:
+        """OpenGL View matrix without the position factored in."""
+        return self._ogl_center_view_matrix
 
     @property
     def frustum(self) -> Frustum:
         """Camera Frustum."""
         return self._frustum
-
-    def set_frustum_params(self, aspect: float, fov_y: float, z_near: float, z_far: float) -> None:
-        """Set the frustum parameters.
-
-        Args:
-            aspect (float): Ratio between the width and the height of the view
-            fov_y (float): Vertical field of view
-            z_near (float): Near Z plane distance
-            z_far (float): Far Z plane distance
-
-        """
-        self._aspect = aspect
-        self._fov_y = fov_y
-        self._z_near = z_near
-        self._z_far = z_far
-
-    # method to recalculate the vertices and view matrix
-    def _calculate_vectors(self) -> None:
-        self._right = glm.normalize(glm.cross(self._world_up, self._front))
-        self._up = glm.cross(self._front, self._right)
-        self._view_matrix = glm.lookAt(self._position, self._position + self._front, self._world_up)
-        self._center_view_matrix = glm.lookAt(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0) + self._front, self._world_up)
-        # self.view_matrix = create_view_matrix(self.position, self.position + self.front, self.world_up)
-        # self.center_view_matrix = create_view_matrix(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0) + self.front, self.world_up)
-        self._frustum.front = self._front
-        self._frustum.up = self._up
-        self._frustum.right = self._right
-        self._frustum.position = self._position
-
-        self._frustum.calculate_frustum()
 
     # ------------------------------- Interactions ------------------------------- #
     def move(self, amount: float) -> None:
@@ -159,3 +141,21 @@ class Camera:
         self._front = glm.normalize(direction)
         # recalculate the rest of the vectors and view matrix
         self._calculate_vectors()
+
+    # ------------------------------ Private methods ----------------------------- #
+    # method to recalculate the vertices and view matrix
+    def _calculate_vectors(self) -> None:
+        self._right = glm.normalize(glm.cross(self._world_up, self._front))
+        self._up = glm.cross(self._front, self._right)
+        self._view_matrix = glm.lookAt(self._position, self._position + self._front, self._world_up)
+        self._center_view_matrix = glm.lookAt(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0) + self._front, self._world_up)
+        self._ogl_view_matrix = get_ogl_matrix(self._view_matrix)
+        self._ogl_center_view_matrix = get_ogl_matrix(self._center_view_matrix)
+        # self.view_matrix = create_view_matrix(self.position, self.position + self.front, self.world_up)
+        # self.center_view_matrix = create_view_matrix(glm.vec3(0, 0, 0), glm.vec3(0, 0, 0) + self.front, self.world_up)
+        self._frustum.front = self._front
+        self._frustum.up = self._up
+        self._frustum.right_vector = self._right
+        self._frustum.position = self._position
+
+        self._frustum.calculate_frustum()

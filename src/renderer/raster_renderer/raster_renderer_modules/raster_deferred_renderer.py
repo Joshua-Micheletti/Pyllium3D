@@ -9,13 +9,14 @@ from renderer.camera.camera import Camera
 from renderer.material.material import Material
 from renderer.model.model import Model
 from renderer.shader.shader import Shader
-from utils import create_g_buffer, get_ogl_matrix
+from utils import create_g_buffer, get_ogl_matrix, get_query_time, Timer
 from utils.framebuffer import create_framebuffer
 
 
 class RasterDeferredRenderer:
     """Deferred Raster Renderer."""
 
+    # ----------------------------------- Setup ---------------------------------- #
     def __init__(self, width: int = 800, height: int = 600) -> None:
         """Set the deferred renderer.
 
@@ -42,6 +43,11 @@ class RasterDeferredRenderer:
 
         # rendering shaders
         self._g_buffer_shader: Shader
+        self._render_shader: Shader
+
+        # track the rendering time
+        self._ogl_timer: int = glGenQueries(1)[0]
+        self._cpu_timer: Timer = Timer()
 
         self._setup_framebuffers()
         self._setup_shaders()
@@ -71,30 +77,100 @@ class RasterDeferredRenderer:
         )
 
         # shader for doing the lighting calculation
-        self._pbr_shader = Shader(
+        self._render_shader = Shader(
             './assets/shaders/deferred/pbr_deferred/pbr_deferred.vert',
             './assets/shaders/deferred/pbr_deferred/pbr_deferred.frag',
         )
 
-    def update_size(self, width: int, height: int) -> None:
-        """Update the size of the renderer and rebuild the framebuffers and textures.
+    # ---------------------------------- Getters --------------------------------- #
+    @property
+    def position_texture(self) -> int:
+        """Texture storing the position data.
 
-        Args:
-            width (int): New width
-            height (int): New height
+        Returns:
+            int: Texture OpenGL ID
 
         """
-        # if the new dimensions are the same as the original ones, don't do anything
-        if self._width == width and self._height == height:
-            return
+        return self._position_texture
 
-        # update the renderer sizes
-        self._width = width
-        self._height = height
+    @property
+    def normal_texture(self) -> int:
+        """Texture storing the normal data.
 
-        # recreate the framebuffers
-        self._setup_framebuffers()
+        Returns:
+            int: Texture OpenGL ID
 
+        """
+        return self._normal_texture
+
+    @property
+    def color_texture(self) -> int:
+        """Texture storing the color data.
+
+        Returns:
+            int: Texture OpenGL ID
+
+        """
+        return self._color_texture
+
+    @property
+    def pbr_texture(self) -> int:
+        """Texture storing the PBR data.
+
+        Returns:
+            int: Texture OpenGL ID
+
+        """
+        return self._pbr_texture
+
+    @property
+    def depth_renderbuffer(self) -> int:
+        """Renderbuffer storing the depth data.
+
+        Returns:
+            int: Renderbuffer OpenGL ID
+
+        """
+        return self._depth_renderbuffer
+
+    @property
+    def g_buffer(self) -> int:
+        """Geometry Buffer storing the deferred rendering data.
+
+        Returns:
+            int: Buffer OpenGL ID
+
+        """
+        return self._g_buffer
+
+    @property
+    def ogl_timer(self) -> int:
+        """Get the OpenGL query timer.
+
+        Returns:
+            int: OpenGL ID of the query object
+            
+        """
+        return self._ogl_timer
+
+    def get_rendering_time(self) -> float:
+        """Get the elapsed rendering time from the renderer.
+
+        Returns:
+            float: Elapsed time in ms
+        """
+        return get_query_time(self._ogl_timer)
+
+    def get_cpu_time(self) -> float:
+        """Get the elapsed CPU time for rendering.
+
+        Returns:
+            float: CPU execution time in ms
+            
+        """
+        self._cpu_timer.get_last_record()
+        
+    # ------------------------------ Public methods ------------------------------ #
     def render(
         self,
         models: dict[str, Model],
@@ -102,9 +178,7 @@ class RasterDeferredRenderer:
         indices_counts: dict[str, int],
         materials: dict[str, Material],
         model_matrices: dict[str, any],
-        view_matrix: any,
         projection_matrix: any,
-        eye: any,
         light: any,
         lights: any,
         light_colors: any,
@@ -114,7 +188,8 @@ class RasterDeferredRenderer:
         camera: Camera,
         bounding_sphere_centers: dict[str, glm.vec3],
         bounding_sphere_radiuses: dict[str, float],
-    ) -> None:
+        time: bool = False
+    ) -> float:
         """Render in deferred rendering.
 
         Args:
@@ -133,8 +208,19 @@ class RasterDeferredRenderer:
             lights_count (any): Number of lights in the scene
             far_plane (any): Far plane of the shadow
             camera (Camera): Camera object
+            bounding_sphere_centers (dict[str, glm.vec3]): Dictionary containing the center of all the bounding spheres
+            bounding_sphere_radiuses: (dict[str, float]): Dictionary containing the radius of all the bounding spheres
+            time (bool, optional): Optional parameter to keep track of the rendering time. Defaults to False.
+
+        Returns:
+            float: CPU Rendering time. 0 if time is set to False
 
         """
+        # if the time flag is set to true, track the rendering time
+        if time:
+            self._cpu_timer.reset()
+            glBeginQuery(GL_TIME_ELAPSED, self._ogl_timer)
+            
         # bind the g buffer
         glBindFramebuffer(GL_FRAMEBUFFER, self._g_buffer)
         # clear its content
@@ -142,7 +228,7 @@ class RasterDeferredRenderer:
         # use the gbuffer shader
         self._g_buffer_shader.use()
         # setup the gbuffer shader uniforms
-        self._g_buffer_shader.bind_uniform('view', get_ogl_matrix(view_matrix))
+        self._g_buffer_shader.bind_uniform('view', camera.ogl_view_matrix)
         self._g_buffer_shader.bind_uniform('projection', get_ogl_matrix(projection_matrix))
 
         current_material_name: str = ''
@@ -150,11 +236,13 @@ class RasterDeferredRenderer:
 
         # iterate through the models in the scene
         for model in models:
+            # check if the model is visible in the camera frustum
             if not camera.frustum.check_visibility(
                 bounding_sphere_centers.get(model.name), bounding_sphere_radiuses.get(model.name)
             ):
                 continue
 
+            # if the model is using a new material, bind the necessary material parameters
             if model.material != current_material_name:
                 current_material_name = model.material
                 current_material = materials.get(current_material_name)
@@ -163,7 +251,7 @@ class RasterDeferredRenderer:
                 self._g_buffer_shader.bind_uniform_float('metallic', current_material.metallic)
 
             # bind the model information to be processed and saved in the gbuffer
-            self._g_buffer_shader.bind_uniform('model', get_ogl_matrix(model_matrices.get(model.name)))
+            self._g_buffer_shader.bind_uniform('model', model_matrices.get(model.name))
             # bind the mesh VAO
             glBindVertexArray(vaos.get(model.mesh))
             # draw the element
@@ -176,15 +264,15 @@ class RasterDeferredRenderer:
         # bind the screen quad VAO
         glBindVertexArray(vaos.get('screen_quad'))
         # use the PBR shader
-        self._pbr_shader.use()
+        self._render_shader.use()
         # bind the necessary shader uniforms
-        self._pbr_shader.bind_uniform('eye', eye)
-        self._pbr_shader.bind_uniform('light', light)
-        glUniform3fv(self._pbr_shader.uniforms.get('lights'), lights_count, lights)
-        glUniform3fv(self._pbr_shader.uniforms.get('light_colors'), lights_count, light_colors)
-        glUniform1fv(self._pbr_shader.uniforms.get('light_strengths'), lights_count, light_strengths)
-        self._pbr_shader.bind_uniform_float('lights_count', lights_count)
-        self._pbr_shader.bind_uniform('far_plane', far_plane)
+        self._render_shader.bind_uniform('eye', camera.position)
+        self._render_shader.bind_uniform('light', light)
+        glUniform3fv(self._render_shader.uniforms.get('lights'), lights_count, lights)
+        glUniform3fv(self._render_shader.uniforms.get('light_colors'), lights_count, light_colors)
+        glUniform1fv(self._render_shader.uniforms.get('light_strengths'), lights_count, light_strengths)
+        self._render_shader.bind_uniform_float('lights_count', lights_count)
+        self._render_shader.bind_uniform('far_plane', far_plane)
 
         # assign texture slot 3 for the depth cubemap
         glActiveTexture(GL_TEXTURE0)
@@ -209,3 +297,29 @@ class RasterDeferredRenderer:
             0, 0, self._width, self._height, 0, 0, self._width, self._height, GL_DEPTH_BUFFER_BIT, GL_NEAREST
         )
         glBindFramebuffer(GL_FRAMEBUFFER, self._output_framebuffer)
+
+        # if the time flag is set to true, stop the timing query
+        if time:
+            glEndQuery(GL_TIME_ELAPSED)
+            return(self._cpu_timer.elapsed())
+        
+        return(0)
+
+    def update_size(self, width: int, height: int) -> None:
+        """Update the size of the renderer and rebuild the framebuffers and textures.
+
+        Args:
+            width (int): New width
+            height (int): New height
+
+        """
+        # if the new dimensions are the same as the original ones, don't do anything
+        if self._width == width and self._height == height:
+            return
+
+        # update the renderer sizes
+        self._width = width
+        self._height = height
+
+        # recreate the framebuffers
+        self._setup_framebuffers()

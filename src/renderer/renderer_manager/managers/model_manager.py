@@ -1,6 +1,7 @@
 import glm
 
 from renderer.model.model import Model
+from utils import get_ogl_matrix
 from utils.messages import print_error
 
 
@@ -37,6 +38,7 @@ def new_model(self, name, mesh, shader, texture, material, count) -> None:
         self.rotations[name] = glm.vec3(0.0)
         self.scales[name] = glm.vec3(1.0)
         self.model_matrices[name] = glm.mat4(1.0)
+        self.ogl_model_matrices[name] = get_ogl_matrix(glm.mat4(1.0))
 
         self.model_bounding_sphere_center[name] = (
             self.mesh_manager._bounding_sphere_center[self.models[name].mesh] + self.positions[name]
@@ -117,6 +119,7 @@ def calculate_model_matrix(self, name) -> None:
     # calculate the scale
     scale = self.scales[name]
     self.model_matrices[name] = glm.scale(self.model_matrices[name], scale)
+    self.ogl_model_matrices[name] = get_ogl_matrix(self.model_matrices[name])
 
     max_scale = max(max(scale.x, scale.y), scale.z)
 

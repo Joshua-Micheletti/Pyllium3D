@@ -114,8 +114,16 @@ class RasterBloomRenderer(PostProcessingRenderer):
             './assets/shaders/bloom/bloom.frag',
         )
 
-    def render(self) -> None:
-        """Render the bloom effect."""
+    def render(self, time: bool = False) -> None:
+        """Render the bloom effect.
+
+        Args:
+            time (bool, optional): Flag whether to time the execution or not. Defaults to False.
+            
+        """
+        if time:
+            glBeginQuery(GL_TIME_ELAPSED, self._ogl_timer)
+        
         # bind the internal framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, self._bloom_framebuffer)
 
@@ -195,3 +203,6 @@ class RasterBloomRenderer(PostProcessingRenderer):
 
         # set the active texture back to texture slot 0
         glActiveTexture(GL_TEXTURE0)
+        
+        if time:
+            glEndQuery(GL_TIME_ELAPSED)

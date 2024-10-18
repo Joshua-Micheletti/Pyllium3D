@@ -10,6 +10,7 @@ from utils import create_framebuffer
 class PostProcessingRenderer:
     """Render a blurred image."""
 
+    # ----------------------------------- Setup ---------------------------------- #
     def __init__(self, width: int = 800, height: int = 600, source_texture: int = 0) -> None:
         """Set the initial parameters of the renderer.
 
@@ -26,6 +27,8 @@ class PostProcessingRenderer:
         self._output_framebuffer: int
         self._output_texture: int
         self._output_depth_texture: int
+        
+        self._ogl_timer: int = glGenQueries(1)[0]
 
         self._setup_framebuffers()
         self._setup_shaders()
@@ -38,6 +41,7 @@ class PostProcessingRenderer:
     def _setup_shaders(self) -> None:
         pass
 
+    # ---------------------------------- Getters --------------------------------- #
     @property
     def source_texture(self) -> int:
         """Get and set the source texture."""
@@ -56,6 +60,16 @@ class PostProcessingRenderer:
     def output_depth_texture(self) -> int:
         """Get the output depth texture."""
         return self._output_depth_texture
+
+    @property
+    def ogl_timer(self) -> int:
+        """OpenGL Query timer.
+
+        Returns:
+            int: OpenGL Query timer index
+            
+        """
+        return self._ogl_timer
 
     def update_size(self, width: int, height: int) -> None:
         """Update the size of the renderer and rebuild the framebuffers and textures."""

@@ -17,6 +17,10 @@ from renderer.renderer_manager.renderer_manager import MeshManager, RendererMana
 from renderer.shader.shader import Shader
 from utils import Singleton, Timer, get_ogl_matrix, timeit
 
+import ctypes
+
+from utils.opengl import get_query_time
+
 
 # class to render 3D models
 class RasterRenderer(metaclass=Singleton):
@@ -44,12 +48,12 @@ class RasterRenderer(metaclass=Singleton):
 
         self._setup_opengl()
         self._setup_textures()
-        self._setup_opengl_timers()
+        self._setup_timers()
         self._last_front_frame: int = 0
         self._depth_texture: int = 0
 
         # timer to keep track of the rendering time
-        self.timer: Timer = Timer()
+        self._timers: dict[str, dict[str, any]]
 
     def __str__(self) -> str:
         """Handle the object as a string.
@@ -71,7 +75,7 @@ class RasterRenderer(metaclass=Singleton):
 
     def _setup_opengl(self) -> None:
         """Set the OpenGL constants for rendering."""
-        # set the clear color to a dark grey
+        # set the clear color to black
         glClearColor(0.0, 0.0, 0.0, 1.0)
         # enable depth testing (hide further away triangles if covered)
         glEnable(GL_DEPTH_TEST)
@@ -79,8 +83,7 @@ class RasterRenderer(metaclass=Singleton):
         # enable face culling (don't render the inside of triangles)
         glEnable(GL_CULL_FACE)
         glEnable(GL_MULTISAMPLE)
-        # enable alpha blending (transparency)
-        # glEnable(GL_BLEND)
+
         glBlendFunc(GL_ONE, GL_ONE)
         glBlendEquation(GL_FUNC_ADD)
 
@@ -108,69 +111,25 @@ class RasterRenderer(metaclass=Singleton):
         glActiveTexture(GL_TEXTURE0 + 6)
         glBindTexture(GL_TEXTURE_2D, rm.brdf_integration_LUT)
 
-    def _setup_opengl_timers(self) -> None:
+    def _setup_timers(self) -> None:
         """Set OpenGL queries to keep track of performance."""
-        # setup the query objects to keep track of the rendering times
-        opengl_queries: any = glGenQueries(10)
+        self._timers = {
+            'deferred': {'query': self._deferred_renderer.ogl_timer, 'gpu': 0, 'cpu': 0},
+            'skybox': {'query': self._skybox_renderer.ogl_timer, 'gpu': 0, 'cpu': 0},
+            'bloom': {'query': self._bloom_renderer.ogl_timer, 'gpu': 0, 'cpu': 0},
+            'blur': {'query': self._blur_renderer.ogl_timer, 'gpu': 0, 'cpu': 0},
+            'dof': {'query': self._dof_renderer.ogl_timer, 'gpu': 0, 'cpu': 0}
+        }
 
-        # the objects consist of a list composed of:
-        # - opengl query object
-        # - flag to keep track of weather to do the query or not
-        # - actual value returned from the query
-        self.queries: dict[str, dict] = dict(  # noqa: C418
-            {
-                'models': {
-                    'ogl_id': opengl_queries[0],
-                    'active': True,
-                    'value': 0,
-                },
-                'instances': {
-                    'ogl_id': opengl_queries[1],
-                    'active': True,
-                    'value': 0,
-                },
-                'skybox': {
-                    'ogl_id': opengl_queries[2],
-                    'active': True,
-                    'value': 0,
-                },
-                'msaa': {
-                    'ogl_id': opengl_queries[3],
-                    'active': True,
-                    'value': 0,
-                },
-                'bloom': {
-                    'ogl_id': opengl_queries[4],
-                    'active': True,
-                    'value': 0,
-                },
-                'hdr': {
-                    'ogl_id': opengl_queries[5],
-                    'active': False,
-                    'value': 0,
-                },
-                'blur': {
-                    'ogl_id': opengl_queries[6],
-                    'active': True,
-                    'value': 0,
-                },
-                'depth_of_field': {
-                    'ogl_id': opengl_queries[7],
-                    'active': True,
-                    'value': 0,
-                },
-                'post_processing': {
-                    'ogl_id': opengl_queries[8],
-                    'active': True,
-                    'value': 0,
-                },
-                'shadow_map': {
-                    'ogl_id': opengl_queries[9],
-                    'active': True,
-                    'value': 0,
-                },
-            }
-        )
+    @property
+    def timers(self) -> dict[str, dict[str, any]]:
+        """Dictionary of render times.
+
+        Returns:
+            dict[str, dict[str, any]]: Dictionary of render times
+            
+        """
+        return self._timers
 
     # ---------------------------- Render methods ---------------------------
     # method to render the 3D models
@@ -215,15 +174,13 @@ class RasterRenderer(metaclass=Singleton):
         # and the instances
         # self._render_instances()
 
-        self._deferred_renderer.render(
+        self._timers.get('deferred')['cpu'] = self._deferred_renderer.render(
             rm.single_render_models,
             rm.mesh_manager._vaos,
             rm.mesh_manager._indices_count,
             rm.materials,
-            rm.model_matrices,
-            rm.camera.view_matrix,
+            rm.ogl_model_matrices,
             rm.projection_matrix,
-            rm.camera.position,
             [rm.light_positions[0], rm.light_positions[1], rm.light_positions[2]],
             rm.light_positions,
             rm.light_colors,
@@ -233,6 +190,7 @@ class RasterRenderer(metaclass=Singleton):
             rm.camera,
             rm.model_bounding_sphere_center,
             rm.model_bounding_sphere_radius,
+            True
         )
 
         # render the skybox
@@ -274,7 +232,7 @@ class RasterRenderer(metaclass=Singleton):
 
         # if we're profiling the performance, get the opengl time queries
         # if rm.render_states["profile"]:
-        #     self._calculate_render_times()
+        self._calculate_render_times()
 
     # method to render the models to the render framebuffer
     def _render_models(self) -> None:
@@ -283,7 +241,7 @@ class RasterRenderer(metaclass=Singleton):
         mm: MeshManager = MeshManager()
 
         if rm.render_states['profile']:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('models').get('ogl_id'))
+            glBeginQuery(GL_TIME_ELAPSED, self.ogl_timers.get('models').get('ogl_id'))
 
         # variables to keep track of the last used shader and mesh
         last_shader: str = ''
@@ -343,7 +301,7 @@ class RasterRenderer(metaclass=Singleton):
         rm: RendererManager = RendererManager()
 
         if rm.render_states['profile']:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('instances').get('ogl_id'))
+            glBeginQuery(GL_TIME_ELAPSED, self.ogl_timers.get('instances').get('ogl_id'))
 
         last_shader: str = ''
 
@@ -380,13 +338,13 @@ class RasterRenderer(metaclass=Singleton):
         rm: RendererManager = RendererManager()
 
         if not rm.render_states['shadow_map']:
-            self.queries.get('shadow_map')['active'] = False
+            # self.ogl_timers.get('shadow_map')['active'] = False
             return ()
 
-        self.queries['shadow_map'][1] = True
+        # self.ogl_timers['shadow_map'][1] = True
 
-        if rm.render_states['profile']:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('shadow_map').get('ogl_id'))
+        # if rm.render_states['profile']:
+        #     glBeginQuery(GL_TIME_ELAPSED, self.ogl_timers.get('shadow_map').get('ogl_id'))
 
         # set the viewport to match the dimensions of the shadow texture
         glViewport(0, 0, rm.shadow_size, rm.shadow_size)
@@ -441,16 +399,13 @@ class RasterRenderer(metaclass=Singleton):
         # reset the viewport back to the rendering dimensions
         glViewport(0, 0, rm.width, rm.height)
 
-        if rm.render_states['profile']:
-            glEndQuery(GL_TIME_ELAPSED)
+        # if rm.render_states['profile']:
+        #     glEndQuery(GL_TIME_ELAPSED)
 
     # method to render the skybox
     def _render_skybox(self) -> None:
         # get a reference to the renderer manager
         rm: RendererManager = RendererManager()
-
-        if rm.render_states['profile']:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('skybox').get('ogl_id'))
 
         # bind the default mesh vao (cube)
         glBindVertexArray(rm.mesh_manager._vaos['default'])
@@ -459,22 +414,19 @@ class RasterRenderer(metaclass=Singleton):
         self._skybox_renderer.view_matrix = get_ogl_matrix(rm.camera.center_view_matrix)
 
         # render the skybox
-        self._skybox_renderer.render()
-
-        if rm.render_states['profile']:
-            glEndQuery(GL_TIME_ELAPSED)
+        self._skybox_renderer.render(True)
 
     # method to resolve the msaa render texture into a single sample texture
     def _render_msaa(self) -> None:
         # reference to the renderer manager
         rm: RendererManager = RendererManager()
 
-        if rm.samples == 1:
-            self.queries['msaa'][1] = False
-            return ()
+        # if rm.samples == 1:
+        #     self.ogl_timers['msaa'][1] = False
+        #     return ()
 
-        if rm.render_states['profile']:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('msaa').get('ogl_id'))
+        # if rm.render_states['profile']:
+        #     glBeginQuery(GL_TIME_ELAPSED, self.ogl_timers.get('msaa').get('ogl_id'))
 
         self._msaa_renderer.source_texture = rm.multisample_render_texture
         self._msaa_renderer.source_framebuffer = rm.render_framebuffer
@@ -484,8 +436,8 @@ class RasterRenderer(metaclass=Singleton):
         self._last_front_frame = self._msaa_renderer.output_texture
         self._depth_texture = self._msaa_renderer.output_depth_texture
 
-        if rm.render_states['profile']:
-            glEndQuery(GL_TIME_ELAPSED)
+        # if rm.render_states['profile']:
+        #     glEndQuery(GL_TIME_ELAPSED)
 
     # method to render the blur texture
     def _render_blur(self) -> None:
@@ -496,19 +448,19 @@ class RasterRenderer(metaclass=Singleton):
         self._blur_renderer.source_texture = self._last_front_frame
 
         # only render the blur texture if the depth of field or post processing effects are enabled
-        if not rm.render_states['depth_of_field'] and not rm.render_states['post_processing']:
-            self.queries.get('blur')['active'] = False
-            return ()
+        # if not rm.render_states['depth_of_field'] and not rm.render_states['post_processing']:
+        #     self.ogl_timers.get('blur')['active'] = False
+        #     return ()
 
-        self.queries.get('blur')['active'] = True
+        # self.ogl_timers.get('blur')['active'] = True
 
-        if rm.render_states['profile']:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('blur').get('ogl_id'))
+        # if rm.render_states['profile']:
+        #     glBeginQuery(GL_TIME_ELAPSED, self.ogl_timers.get('blur').get('ogl_id'))
 
-        self._blur_renderer.render()
+        self._blur_renderer.render(True)
 
-        if rm.render_states['profile']:
-            glEndQuery(GL_TIME_ELAPSED)
+        # if rm.render_states['profile']:
+        #     glEndQuery(GL_TIME_ELAPSED)
 
     # method to render the depth of field effect
     def _render_depth_of_field(self) -> None:
@@ -516,25 +468,25 @@ class RasterRenderer(metaclass=Singleton):
         rm: RendererManager = RendererManager()
 
         # execute only if it's enabled
-        if not rm.render_states['depth_of_field']:
-            self.queries.get('depth_of_field')['active'] = False
-            return ()
+        # if not rm.render_states['depth_of_field']:
+        #     self.ogl_timers.get('depth_of_field')['active'] = False
+        #     return ()
 
-        self.queries.get('depth_of_field')['active'] = True
+        # self.ogl_timers.get('depth_of_field')['active'] = True
 
-        if rm.render_states['profile']:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('depth_of_field').get('ogl_id'))
+        # if rm.render_states['profile']:
+        #     glBeginQuery(GL_TIME_ELAPSED, self.ogl_timers.get('depth_of_field').get('ogl_id'))
 
         self._dof_renderer.source_texture = self._last_front_frame
         self._dof_renderer.blur_texture = self._blur_renderer.output_texture
         self._dof_renderer.depth_texture = self._depth_texture
 
-        self._dof_renderer.render()
+        self._dof_renderer.render(True)
 
         self._last_front_frame = self._dof_renderer.output_texture
 
-        if rm.render_states['profile']:
-            glEndQuery(GL_TIME_ELAPSED)
+        # if rm.render_states['profile']:
+        #     glEndQuery(GL_TIME_ELAPSED)
 
     def _render_bloom(self) -> None:
         rm = RendererManager()
@@ -543,29 +495,29 @@ class RasterRenderer(metaclass=Singleton):
         self._bloom_renderer.source_texture = self._last_front_frame
         # self._bloom_renderer.destination_framebuffer = rm.get_front_framebuffer()
 
-        if not rm.render_states['bloom']:
-            self.queries.get('bloom')['active'] = False
-            self._render_hdr()
-            return ()
+        # if not rm.render_states['bloom']:
+        #     self.ogl_timers.get('bloom')['active'] = False
+        #     self._render_hdr()
+        #     return ()
 
-        self.queries.get('bloom')['active'] = True
+        # self.ogl_timers.get('bloom')['active'] = True
 
-        if rm.render_states['profile']:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('bloom').get('ogl_id'))
+        # if rm.render_states['profile']:
+        #     glBeginQuery(GL_TIME_ELAPSED, self.ogl_timers.get('bloom').get('ogl_id'))
 
-        self._bloom_renderer.render()
+        self._bloom_renderer.render(True)
 
         self._last_front_frame = self._bloom_renderer.output_texture
 
-        if rm.render_states['profile']:
-            glEndQuery(GL_TIME_ELAPSED)
+        # if rm.render_states['profile']:
+        #     glEndQuery(GL_TIME_ELAPSED)
 
     def _render_hdr(self) -> None:
         rm = RendererManager()
 
-        if rm.render_states['profile']:
-            # ic(self.queries.get('hdr'))
-            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('hdr').get('ogl_id'))
+        # if rm.render_states['profile']:
+        #     # ic(self.ogl_timers.get('hdr'))
+        #     glBeginQuery(GL_TIME_ELAPSED, self.ogl_timers.get('hdr').get('ogl_id'))
 
         glBindFramebuffer(GL_FRAMEBUFFER, rm.get_front_framebuffer())
 
@@ -578,8 +530,8 @@ class RasterRenderer(metaclass=Singleton):
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
 
-        if rm.render_states['profile']:
-            glEndQuery(GL_TIME_ELAPSED)
+        # if rm.render_states['profile']:
+        #     glEndQuery(GL_TIME_ELAPSED)
 
     # method to render the screen texture to the main framebuffer
     def _render_screen(self) -> None:
@@ -612,19 +564,19 @@ class RasterRenderer(metaclass=Singleton):
         rm = RendererManager()
 
         # only execute if the post processing is enabled
-        if not rm.render_states['post_processing']:
-            self.queries.get('post_processing')['active'] = False
-            return ()
+        # if not rm.render_states['post_processing']:
+        #     self.ogl_timers.get('post_processing')['active'] = False
+        #     return ()
 
         # only execute if there are effects in the post processing list
-        if len(rm.post_processing_shaders) == 0:
-            self.queries.get('post_processing')['active'] = False
-            return ()
+        # if len(rm.post_processing_shaders) == 0:
+        #     self.ogl_timers.get('post_processing')['active'] = False
+        #     return ()
 
-        self.queries.get('post_processing')['active'] = True
+        # self.ogl_timers.get('post_processing')['active'] = True
 
-        if rm.render_states['profile']:
-            glBeginQuery(GL_TIME_ELAPSED, self.queries.get('post_processing').get('ogl_id'))
+        # if rm.render_states['profile']:
+        #     glBeginQuery(GL_TIME_ELAPSED, self.ogl_timers.get('post_processing').get('ogl_id'))
 
         # bind the screen quad mesh VAO and indices buffer
         i = 0
@@ -674,8 +626,8 @@ class RasterRenderer(metaclass=Singleton):
                 None,
             )
 
-        if rm.render_states['profile']:
-            glEndQuery(GL_TIME_ELAPSED)
+        # if rm.render_states['profile']:
+        #     glEndQuery(GL_TIME_ELAPSED)
 
     # method to render the brdf integration texture
     def _render_brdf_integration_map(self) -> None:
@@ -896,22 +848,8 @@ class RasterRenderer(metaclass=Singleton):
             )
 
     def _calculate_render_times(self) -> None:
-        for _name, query in self.queries.items():
-            if not query.get('active'):
-                query['value'] = 0
-                continue
-
-            available = GLuint(0)
-
-            while not available:
-                glGetQueryObjectiv(query.get('ogl_id'), GL_QUERY_RESULT_AVAILABLE, available)
-
-            # result = np.array([0], dtype=np.int32)
-
-            elapsed_time = GLuint64(0)
-            glGetQueryObjectui64v(query.get('ogl_id'), GL_QUERY_RESULT, ctypes.byref(elapsed_time))
-
-            query['value'] = elapsed_time.value / 1000000
+        for item in self._timers.values():
+            item['gpu'] = get_query_time(item.get('query'))
 
     def update_size(self) -> None:
         """Update the dimensions of the renderers."""

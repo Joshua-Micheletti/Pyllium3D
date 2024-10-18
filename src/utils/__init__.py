@@ -19,6 +19,7 @@ from utils.messages import (
     print_time,
     print_warning,
 )
+from utils.opengl import get_query_time
 from utils.profiler import profile
 
 # from utils.printer import * # causes a circular import
@@ -57,4 +58,5 @@ __all__ = [
     'get_ogl_matrix',
     'create_view_cubemap_matrices',
     'create_g_buffer',
+    'get_query_time',
 ]

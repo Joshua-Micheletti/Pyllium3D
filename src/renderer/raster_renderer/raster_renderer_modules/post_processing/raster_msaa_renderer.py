@@ -65,8 +65,16 @@ class RasterMSAARenderer(PostProcessingRenderer):
         self._msaa_shader.use()
         self._msaa_shader.bind_uniform('samples', self._samples)
 
-    def render(self) -> None:
-        """Render the scene MSAA antialiasing."""
+    def render(self, time: bool = False) -> None:
+        """Render the scene MSAA antialiasing.
+
+        Args:
+            time (bool, optional): Flag whether to time the execution or not. Defaults to False.
+            
+        """
+        if time:
+            glBeginQuery(GL_TIME_ELAPSED, self._ogl_timer)
+            
         # bind the solved framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, self._output_framebuffer)
         # bind the multisample texture to resolve
@@ -93,3 +101,6 @@ class RasterMSAARenderer(PostProcessingRenderer):
             GL_DEPTH_BUFFER_BIT,
             GL_NEAREST,
         )
+        
+        if time:
+            glEndQuery(GL_TIME_ELAPSED)

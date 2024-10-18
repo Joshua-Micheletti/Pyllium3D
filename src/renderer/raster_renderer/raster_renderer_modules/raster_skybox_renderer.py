@@ -20,7 +20,7 @@ class RasterSkyboxRenderer:
         skybox_size: int = 512,
         irradiance_size: int = 8,
         reflection_size: int = 128,
-        fov: int = 60,
+        fov: int = 60
     ) -> None:
         """Set the required parameters to render the skybox.
 
@@ -68,6 +68,8 @@ class RasterSkyboxRenderer:
         self._irradiance_framebuffer: int
         self._irradiance_cubemap: int
         self._irradiance_renderbuffer: int
+        
+        self._ogl_timer: int = glGenQueries(1)[0]
 
         # setup
         self._setup_matrices()
@@ -388,6 +390,7 @@ class RasterSkyboxRenderer:
         # set the viewport back to the renderer dimensions
         glViewport(0, 0, self._width, self._height)
 
+    # ---------------------------- Getters and setters --------------------------- #
     @property
     def projection_matrix(self) -> any:
         """Get and set the projection matrix."""
@@ -416,6 +419,17 @@ class RasterSkyboxRenderer:
         """Get the reflection cubemap."""
         return self._reflection_cubemap
 
+    @property
+    def ogl_timer(self) -> int:
+        """OpenGL Query timer.
+
+        Returns:
+            int: OpenGL Query timer index
+
+        """
+        return self._ogl_timer
+
+    # ------------------------------ Public methods ------------------------------ #
     def update_size(self, width: int, height: int) -> None:
         """Update the size of the renderer and rebuild the framebuffers and textures.
 
@@ -439,8 +453,16 @@ class RasterSkyboxRenderer:
         self._skybox_shader.use()
         self._skybox_shader.bind_uniform('projection', self._projection_matrix)
 
-    def render(self) -> None:
-        """Render the skybox."""
+    def render(self, time: bool = False) -> None:
+        """Render the skybox.
+
+        Args:
+            time (bool, optional): Flag whether to time the execution or not. Defaults to False.
+            
+        """
+        if time:
+            glBeginQuery(GL_TIME_ELAPSED, self._ogl_timer)
+            
         # set the cubemap texture slot 0 with the skybox cubemap
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_CUBE_MAP, self._skybox_cubemap)
@@ -457,3 +479,6 @@ class RasterSkyboxRenderer:
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, None)
         # re-enable face culling
         glEnable(GL_CULL_FACE)
+        
+        if time:
+            glEndQuery(GL_TIME_ELAPSED)

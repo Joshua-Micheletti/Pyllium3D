@@ -1,5 +1,9 @@
+"""UI Module."""
+
 import imgui
 from imgui.integrations.glfw import GlfwRenderer
+import imgui_bundle
+from imgui_bundle import implot
 
 from ui.windows import (
     BottomWindow,
@@ -15,12 +19,16 @@ from window import Window
 
 # class to implement UI
 class UI(metaclass=Singleton):
+    """Class implementing the UI Object."""
+
     # constructor method
     def __init__(self) -> None:
+        """Set the required data."""
         window = Window()
 
         # create an OpenGL context for imgui
         imgui.create_context()
+        implot.create_context()
         # implement the GLFW backend
         self.implementation = GlfwRenderer(Window().window, attach_callbacks=False)
 
@@ -42,7 +50,7 @@ class UI(metaclass=Singleton):
         self._setup_font()
 
         # create a dictionary to keep track of all the states of the UI
-        self.states = {}
+        self.states: dict[str, bool] = {}
         self.states['window'] = True
         self.states['game_window'] = True
         self.states['left_window'] = True
@@ -71,7 +79,7 @@ class UI(metaclass=Singleton):
         """Render the UI."""
         self.implementation.process_inputs()
 
-        imgui.new_frame()
+        imgui_bundle.new_frame()
 
         imgui.push_font(self.font)
 
@@ -91,7 +99,7 @@ class UI(metaclass=Singleton):
             rmupdatetime=rmupdatetime,
         )
 
-        imgui.show_demo_window()
+        # imgui.show_demo_window()
 
         imgui.pop_font()
 
@@ -99,6 +107,7 @@ class UI(metaclass=Singleton):
 
         imgui.render()
         self.implementation.render(imgui.get_draw_data())
+        imgui_bundle.end_frame()
 
     def _setup_style(self) -> None:
         style = imgui.get_style()

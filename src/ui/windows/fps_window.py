@@ -19,7 +19,7 @@ class FpsWindow(ResizableWindow):
         self.fps_graph = Graph('FPS:', scale_max=300)
         self.frametime_graph = Graph('Frametime: ')
 
-        self.rendertime_graph = Graph('Rendertime:')
+        # self.rendertime_graph = Graph('Rendertime:')
         self.modeltimegraph = Graph('Models:    ', scale_max=10)
         self.instancetimegraph = Graph('Instances: ', scale_max=10)
         self.skyboxtimegraph = Graph('Skybox:    ', scale_max=10)
@@ -31,12 +31,24 @@ class FpsWindow(ResizableWindow):
         self.postproctimegraph = Graph('PostProc:  ', scale_max=10)
         self.shadowmaptimegraph = Graph('Shadow Map:', scale_max=10)
         self.othertimegraph = Graph('Other:     ', scale_max=10)
+        
+        self._render_graphs: dict[Graph]
 
         self.ui_time_graph = Graph('UI:        ')
         self.swaptime_graph = Graph('Swaptime:  ')
         self.control_graph = Graph('Control:   ')
         self.update_graph = Graph('Update:    ')
         self.rm_update_graph = Graph('RM Update: ')
+        
+        self._setup_graphs()
+
+    def _setup_graphs(self):
+        rr = RasterRenderer()
+        
+        self._render_graphs = {}
+        
+        for key in rr.timers:
+            self._render_graphs[key] = Graph(f'{key}: ', scale_max=10)
 
     def draw(
         self,
@@ -72,27 +84,19 @@ class FpsWindow(ResizableWindow):
         if states['fps_window/details_header']:
             self.frametime_graph.draw(dt)
 
-            total_render_time = renderer.timer.get_last_record()
-            self.rendertime_graph.draw(total_render_time)
+            # total_render_time = renderer.timer.get_last_record()
+            # self.rendertime_graph.draw(total_render_time)
 
             if RendererManager().render_states['profile']:
-                self.modeltimegraph.draw(renderer.queries.get('models').get('value'))
-                self.instancetimegraph.draw(renderer.queries.get('instances').get('value'))
-                self.skyboxtimegraph.draw(renderer.queries.get('skybox').get('value'))
-                self.msaatimegraph.draw(renderer.queries.get('msaa').get('value'))
-                self.bloomtimegraph.draw(renderer.queries.get('bloom').get('value'))
-                self.hdrtimegraph.draw(renderer.queries.get('hdr').get('value'))
-                self.blurtimegraph.draw(renderer.queries.get('blur').get('value'))
-                self.doftimegraph.draw(renderer.queries.get('depth_of_field').get('value'))
-                self.postproctimegraph.draw(renderer.queries.get('post_processing').get('value'))
-                self.shadowmaptimegraph.draw(renderer.queries.get('shadow_map').get('value'))
+                for key, graph in self._render_graphs.items():
+                    graph.draw(renderer.timers.get(key).get('gpu'))
 
-                remaining_time = total_render_time
+                # remaining_time = total_render_time
 
-                for query in renderer.queries.values():
-                    remaining_time -= query.get('value')
+                # for query in renderer.queries.values():
+                #     remaining_time -= query.get('value')
 
-                self.othertimegraph.draw(remaining_time)
+                # self.othertimegraph.draw(remaining_time)
 
             self.ui_time_graph.draw(ui_time)
             self.swaptime_graph.draw(swaptime)

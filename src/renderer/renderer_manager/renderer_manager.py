@@ -76,6 +76,7 @@ class RendererManager(metaclass=Singleton):
 
         # dictionary of model matrices
         self.model_matrices = {}
+        self.ogl_model_matrices = {}
 
         # dictionary of trasformation factors of the meshes
         self.positions = {}

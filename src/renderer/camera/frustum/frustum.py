@@ -205,7 +205,7 @@ class Frustum:
             print('Frustum.front Invalid Value')
             return
         self._front = value
-        
+
     @property
     def position(self) -> float:
         """Position vector for calculating the frustum."""
