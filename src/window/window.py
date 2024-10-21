@@ -7,6 +7,7 @@ from glm import mat4x4
 from controller.controller import Controller
 from utils import Singleton, messages, timeit
 from utils.config import Config
+from imgui_bundle import imgui
 
 
 class Window(metaclass=Singleton):
@@ -154,10 +155,14 @@ def key_callback(window: Window, key: str, scancode: str, action: str, mods: str
         mods (object): additional keys
 
     """
+    
     if action == glfw.PRESS:
         Controller().handle_key_press(key, mods)
+        imgui.get_io().add_key_event(key, True)
     if action == glfw.RELEASE:
         Controller().handle_key_release(key, mods)
+        imgui.get_io().add_key_event(key, False)
+        
 
 
 # handle the resizing of the window
@@ -187,4 +192,5 @@ def mouse_callback(window: Window, xpos: int, ypos: int) -> None:
         ypos (float): y position of the mouse currently
 
     """
+    imgui.get_io().add_mouse_pos_event(xpos, ypos)
     Controller().handle_mouse_movement(window, xpos, ypos)

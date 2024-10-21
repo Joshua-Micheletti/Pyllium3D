@@ -1,4 +1,4 @@
-import imgui
+from imgui_bundle import imgui
 
 from renderer.raster_renderer.raster_renderer import RasterRenderer
 from renderer.renderer_manager.renderer_manager import RendererManager
@@ -31,7 +31,7 @@ class FpsWindow(ResizableWindow):
         self.postproctimegraph = Graph('PostProc:  ', scale_max=10)
         self.shadowmaptimegraph = Graph('Shadow Map:', scale_max=10)
         self.othertimegraph = Graph('Other:     ', scale_max=10)
-        
+
         self._render_graphs: dict[Graph]
 
         self.ui_time_graph = Graph('UI:        ')
@@ -39,14 +39,14 @@ class FpsWindow(ResizableWindow):
         self.control_graph = Graph('Control:   ')
         self.update_graph = Graph('Update:    ')
         self.rm_update_graph = Graph('RM Update: ')
-        
+
         self._setup_graphs()
 
     def _setup_graphs(self):
         rr = RasterRenderer()
-        
+
         self._render_graphs = {}
-        
+
         for key in rr.timers:
             self._render_graphs[key] = Graph(f'{key}: ', scale_max=10)
 

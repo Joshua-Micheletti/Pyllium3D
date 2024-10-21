@@ -53,7 +53,7 @@ class Camera:
     def center_view_matrix(self) -> glm.mat4:
         """View matrix without the position factored in."""
         return self._center_view_matrix
-    
+
     @property
     def ogl_view_matrix(self) -> glm.mat4:
         """OpenGL View matrix of the camera."""

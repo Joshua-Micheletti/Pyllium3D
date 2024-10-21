@@ -44,7 +44,7 @@ class RasterBlurRenderer(PostProcessingRenderer):
 
         Args:
             time (bool, optional): Flag whether to time the execution or not. Defaults to False.
-            
+
         """
         if time:
             glBeginQuery(GL_TIME_ELAPSED, self._ogl_timer)
@@ -69,6 +69,6 @@ class RasterBlurRenderer(PostProcessingRenderer):
         glBindTexture(GL_TEXTURE_2D, self._horizontal_blurred_texture)
         # render the vertically blurred image
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None)
-        
+
         if time:
             glEndQuery(GL_TIME_ELAPSED)

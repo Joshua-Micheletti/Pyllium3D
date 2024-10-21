@@ -27,7 +27,7 @@ class PostProcessingRenderer:
         self._output_framebuffer: int
         self._output_texture: int
         self._output_depth_texture: int
-        
+
         self._ogl_timer: int = glGenQueries(1)[0]
 
         self._setup_framebuffers()
@@ -67,7 +67,7 @@ class PostProcessingRenderer:
 
         Returns:
             int: OpenGL Query timer index
-            
+
         """
         return self._ogl_timer
 

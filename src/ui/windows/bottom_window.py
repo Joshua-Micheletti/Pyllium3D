@@ -1,4 +1,4 @@
-import imgui
+from imgui_bundle import imgui
 
 from ui.components import MaterialTab, MeshTab, ShaderTab, TextureTab
 from ui.windows.resizable_window import ResizableWindow

@@ -1,10 +1,9 @@
 """UI Module."""
 
-import imgui
-from imgui.integrations.glfw import GlfwRenderer
-import imgui_bundle
-from imgui_bundle import implot
+from imgui_bundle import imgui
+from imgui_bundle.python_backends.glfw_backend import GlfwRenderer
 
+# import imgui
 from ui.windows import (
     BottomWindow,
     FpsWindow,
@@ -28,9 +27,9 @@ class UI(metaclass=Singleton):
 
         # create an OpenGL context for imgui
         imgui.create_context()
-        implot.create_context()
+        imgui.backends.opengl3_init('#version 100')
         # implement the GLFW backend
-        self.implementation = GlfwRenderer(Window().window, attach_callbacks=False)
+        self.implementation = GlfwRenderer(window.window, attach_callbacks=False)
 
         # size of indentation
         self.dimensions = {}
@@ -43,11 +42,11 @@ class UI(metaclass=Singleton):
         self.dimensions['indent_size'] = 8
 
         # setup the initial style of the UI
-        self._setup_style()
+        # self._setup_style()
 
         # set a font for the UI
         self.font = None
-        self._setup_font()
+        # self._setup_font()
 
         # create a dictionary to keep track of all the states of the UI
         self.states: dict[str, bool] = {}
@@ -79,35 +78,39 @@ class UI(metaclass=Singleton):
         """Render the UI."""
         self.implementation.process_inputs()
 
-        imgui_bundle.new_frame()
+        imgui.new_frame()
 
-        imgui.push_font(self.font)
+        # imgui_bundle.new_frame()
+        # hello_imgui.frame(self.draw)
+
+        # imgui.push_font(self.font)
 
         self.states, self.dimensions = self.main_menu.draw(self.states, self.dimensions)
-        self.states = self.game_window.draw(self.states, self.dimensions)
-        self.states, self.dimensions = self.left_window.draw(self.states, self.dimensions)
-        self.states, self.dimensions = self.right_window.draw(self.states, self.dimensions)
-        self.states, self.dimensions = self.bottom_window.draw(self.states, self.dimensions)
-        self.states, self.dimensions = self.fps_window.draw(
-            self.states,
-            self.dimensions,
-            dt=dt,
-            swaptime=swaptime,
-            controltime=controltime,
-            ui_time=self.timer.get_last_record(),
-            updatetime=updatetime,
-            rmupdatetime=rmupdatetime,
-        )
+        self.states, self.dimensions = self.game_window.draw(self.states, self.dimensions)
+        # self.states, self.dimensions = self.left_window.draw(self.states, self.dimensions)
+        # self.states, self.dimensions = self.right_window.draw(self.states, self.dimensions)
+        # self.states, self.dimensions = self.bottom_window.draw(self.states, self.dimensions)
+        # self.states, self.dimensions = self.fps_window.draw(
+        #     self.states,
+        #     self.dimensions,
+        #     dt=dt,
+        #     swaptime=swaptime,
+        #     controltime=controltime,
+        #     ui_time=self.timer.get_last_record(),
+        #     updatetime=updatetime,
+        #     rmupdatetime=rmupdatetime,
+        # )
 
-        # imgui.show_demo_window()
+        imgui.show_demo_window()
 
-        imgui.pop_font()
+        # imgui.pop_font()
 
         self.states['first_draw'] = False
 
+        # hello_imgui.render()
         imgui.render()
         self.implementation.render(imgui.get_draw_data())
-        imgui_bundle.end_frame()
+        # imgui_bundle.end_frame()
 
     def _setup_style(self) -> None:
         style = imgui.get_style()

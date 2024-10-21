@@ -1,4 +1,4 @@
-import imgui
+from imgui_bundle import imgui
 
 from renderer.renderer_manager import RendererManager
 from utils import GuiColors

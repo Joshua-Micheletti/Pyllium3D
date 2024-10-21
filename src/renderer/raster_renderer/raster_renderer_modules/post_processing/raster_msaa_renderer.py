@@ -70,11 +70,11 @@ class RasterMSAARenderer(PostProcessingRenderer):
 
         Args:
             time (bool, optional): Flag whether to time the execution or not. Defaults to False.
-            
+
         """
         if time:
             glBeginQuery(GL_TIME_ELAPSED, self._ogl_timer)
-            
+
         # bind the solved framebuffer
         glBindFramebuffer(GL_FRAMEBUFFER, self._output_framebuffer)
         # bind the multisample texture to resolve
@@ -101,6 +101,6 @@ class RasterMSAARenderer(PostProcessingRenderer):
             GL_DEPTH_BUFFER_BIT,
             GL_NEAREST,
         )
-        
+
         if time:
             glEndQuery(GL_TIME_ELAPSED)

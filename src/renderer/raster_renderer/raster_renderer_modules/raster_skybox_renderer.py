@@ -20,7 +20,7 @@ class RasterSkyboxRenderer:
         skybox_size: int = 512,
         irradiance_size: int = 8,
         reflection_size: int = 128,
-        fov: int = 60
+        fov: int = 60,
     ) -> None:
         """Set the required parameters to render the skybox.
 
@@ -68,7 +68,7 @@ class RasterSkyboxRenderer:
         self._irradiance_framebuffer: int
         self._irradiance_cubemap: int
         self._irradiance_renderbuffer: int
-        
+
         self._ogl_timer: int = glGenQueries(1)[0]
 
         # setup
@@ -458,11 +458,11 @@ class RasterSkyboxRenderer:
 
         Args:
             time (bool, optional): Flag whether to time the execution or not. Defaults to False.
-            
+
         """
         if time:
             glBeginQuery(GL_TIME_ELAPSED, self._ogl_timer)
-            
+
         # set the cubemap texture slot 0 with the skybox cubemap
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_CUBE_MAP, self._skybox_cubemap)
@@ -479,6 +479,6 @@ class RasterSkyboxRenderer:
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, None)
         # re-enable face culling
         glEnable(GL_CULL_FACE)
-        
+
         if time:
             glEndQuery(GL_TIME_ELAPSED)

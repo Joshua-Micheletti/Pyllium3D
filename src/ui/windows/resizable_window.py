@@ -1,5 +1,5 @@
 import glfw
-import imgui
+from imgui_bundle import imgui
 
 from window import Window
 

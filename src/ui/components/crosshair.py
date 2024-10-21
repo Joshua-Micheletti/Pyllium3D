@@ -1,4 +1,4 @@
-import imgui
+from imgui_bundle import imgui
 
 from utils.config import Config
 
@@ -67,20 +67,18 @@ class Crosshair:
 
     def draw(self) -> None:
         wsize = imgui.get_window_size()
-        wpos = imgui.get_window_position()
+        wpos = imgui.get_window_pos()
 
         draw_list = imgui.get_window_draw_list()
         draw_list.add_circle_filled(
-            wsize.x / 2 + wpos.x,
-            wsize.y / 2 + wpos.y,
+            (wsize.x / 2 + wpos.x, wsize.y / 2 + wpos.y),
             self.radius,
-            imgui.get_color_u32_rgba(self.color_r, self.color_g, self.color_b, self.alpha),
+            imgui.get_color_u32((self.color_r, self.color_g, self.color_b, self.alpha)),
         )
         draw_list.add_circle(
-            wsize.x / 2 + wpos.x,
-            wsize.y / 2 + wpos.y,
+            (wsize.x / 2 + wpos.x, wsize.y / 2 + wpos.y),
             self.outline_radius,
-            imgui.get_color_u32_rgba(self.outline_r, self.outline_g, self.outline_b, self.outline_alpha),
+            imgui.get_color_u32((self.outline_r, self.outline_g, self.outline_b, self.outline_alpha)),
             10,
             self.outline_thickness,
         )

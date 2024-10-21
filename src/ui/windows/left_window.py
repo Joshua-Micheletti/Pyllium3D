@@ -1,6 +1,6 @@
 import random
 
-import imgui
+from imgui_bundle import imgui
 
 from renderer.renderer_manager.renderer_manager import RendererManager
 from ui.windows.resizable_window import ResizableWindow

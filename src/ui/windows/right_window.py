@@ -1,4 +1,4 @@
-import imgui
+from imgui_bundle import imgui
 
 from physics.physics_world import PhysicsWorld
 from renderer.renderer_manager.renderer_manager import RendererManager

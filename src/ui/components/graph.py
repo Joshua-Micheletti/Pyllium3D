@@ -1,8 +1,6 @@
 from array import array
 
-import imgui
-import imgui_bundle
-from imgui_bundle import implot
+from imgui_bundle import imgui, implot
 
 
 class Graph:
@@ -20,14 +18,14 @@ class Graph:
             self.graph_values.pop(0)
 
         self.graph_values.append(dt)
-        
+
         if dt_alt:
             dt_sum = dt + dt_alt
-            
+
             if len(self.graph_values_alt) == 90:
                 self.graph_values_alt.pop(0)
             self.graph_values_alt.append(dt_alt)
-            
+
             if len(self.graph_values_sum) == 90:
                 self.graph_values_sum.pop(0)
             self.graph_values_sum.append(dt_sum)
@@ -35,7 +33,9 @@ class Graph:
         last_values = []
 
         if len(self.graph_values) < 6:
-            average_value = sum(self.graph_values if not dt_alt else self.graph_values_sum) / len(self.graph_values if not dt_alt else self.graph_values_sum)
+            average_value = sum(self.graph_values if not dt_alt else self.graph_values_sum) / len(
+                self.graph_values if not dt_alt else self.graph_values_sum
+            )
         else:
             for i in range(5):
                 last_values.append(self.graph_values[-(i + 1)] if not dt_alt else self.graph_values_sum[-(i + 1)])
@@ -53,12 +53,12 @@ class Graph:
         if dt_alt:
             plot_values_alt = array('f', self.graph_values_alt)
             plot_values_sum = array('f', self.graph_values_sum)
-            
+
         imgui.align_text_to_frame_padding()
         imgui.text(self.name)
         imgui.same_line()
-        
-        if implot.begin_plot("Multiple Lines Plot"):
+
+        if implot.begin_plot('Multiple Lines Plot'):
             # Plot the first line (Sine)
             implot.plot_line('###' + self.name + '_plot', plot_values)
             # Plot the second line (Cosine)

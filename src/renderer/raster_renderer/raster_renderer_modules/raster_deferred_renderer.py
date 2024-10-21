@@ -9,7 +9,7 @@ from renderer.camera.camera import Camera
 from renderer.material.material import Material
 from renderer.model.model import Model
 from renderer.shader.shader import Shader
-from utils import create_g_buffer, get_ogl_matrix, get_query_time, Timer
+from utils import Timer, create_g_buffer, get_ogl_matrix, get_query_time
 from utils.framebuffer import create_framebuffer
 
 
@@ -149,7 +149,7 @@ class RasterDeferredRenderer:
 
         Returns:
             int: OpenGL ID of the query object
-            
+
         """
         return self._ogl_timer
 
@@ -158,6 +158,7 @@ class RasterDeferredRenderer:
 
         Returns:
             float: Elapsed time in ms
+
         """
         return get_query_time(self._ogl_timer)
 
@@ -166,10 +167,10 @@ class RasterDeferredRenderer:
 
         Returns:
             float: CPU execution time in ms
-            
+
         """
         self._cpu_timer.get_last_record()
-        
+
     # ------------------------------ Public methods ------------------------------ #
     def render(
         self,
@@ -188,7 +189,7 @@ class RasterDeferredRenderer:
         camera: Camera,
         bounding_sphere_centers: dict[str, glm.vec3],
         bounding_sphere_radiuses: dict[str, float],
-        time: bool = False
+        time: bool = False,
     ) -> float:
         """Render in deferred rendering.
 
@@ -220,7 +221,7 @@ class RasterDeferredRenderer:
         if time:
             self._cpu_timer.reset()
             glBeginQuery(GL_TIME_ELAPSED, self._ogl_timer)
-            
+
         # bind the g buffer
         glBindFramebuffer(GL_FRAMEBUFFER, self._g_buffer)
         # clear its content
@@ -301,9 +302,9 @@ class RasterDeferredRenderer:
         # if the time flag is set to true, stop the timing query
         if time:
             glEndQuery(GL_TIME_ELAPSED)
-            return(self._cpu_timer.elapsed())
-        
-        return(0)
+            return self._cpu_timer.elapsed()
+
+        return 0
 
     def update_size(self, width: int, height: int) -> None:
         """Update the size of the renderer and rebuild the framebuffers and textures.

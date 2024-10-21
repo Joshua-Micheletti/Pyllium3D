@@ -15,10 +15,7 @@ from renderer.raster_renderer.raster_renderer_modules import (
 from renderer.raster_renderer.raster_renderer_modules.raster_deferred_renderer import RasterDeferredRenderer
 from renderer.renderer_manager.renderer_manager import MeshManager, RendererManager
 from renderer.shader.shader import Shader
-from utils import Singleton, Timer, get_ogl_matrix, timeit
-
-import ctypes
-
+from utils import Singleton, get_ogl_matrix, timeit
 from utils.opengl import get_query_time
 
 
@@ -118,7 +115,7 @@ class RasterRenderer(metaclass=Singleton):
             'skybox': {'query': self._skybox_renderer.ogl_timer, 'gpu': 0, 'cpu': 0},
             'bloom': {'query': self._bloom_renderer.ogl_timer, 'gpu': 0, 'cpu': 0},
             'blur': {'query': self._blur_renderer.ogl_timer, 'gpu': 0, 'cpu': 0},
-            'dof': {'query': self._dof_renderer.ogl_timer, 'gpu': 0, 'cpu': 0}
+            'dof': {'query': self._dof_renderer.ogl_timer, 'gpu': 0, 'cpu': 0},
         }
 
     @property
@@ -127,7 +124,7 @@ class RasterRenderer(metaclass=Singleton):
 
         Returns:
             dict[str, dict[str, any]]: Dictionary of render times
-            
+
         """
         return self._timers
 
@@ -190,7 +187,7 @@ class RasterRenderer(metaclass=Singleton):
             rm.camera,
             rm.model_bounding_sphere_center,
             rm.model_bounding_sphere_radius,
-            True
+            True,
         )
 
         # render the skybox

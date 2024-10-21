@@ -1,4 +1,4 @@
-import imgui
+from imgui_bundle import imgui
 from OpenGL.GL import *
 
 from renderer.raster_renderer.raster_renderer import RasterRenderer

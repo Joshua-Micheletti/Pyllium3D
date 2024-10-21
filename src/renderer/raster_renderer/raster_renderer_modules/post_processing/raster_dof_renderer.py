@@ -70,7 +70,7 @@ class RasterDOFRenderer(PostProcessingRenderer):
 
         Args:
             time (bool, optional): Flag whether to time the execution or not. Defaults to False.
-            
+
         """
         if time:
             glBeginQuery(GL_TIME_ELAPSED, self._ogl_timer)
@@ -90,6 +90,6 @@ class RasterDOFRenderer(PostProcessingRenderer):
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, None)
         # set back the active texture slot to index 0
         glActiveTexture(GL_TEXTURE0)
-        
+
         if time:
             glEndQuery(GL_TIME_ELAPSED)
